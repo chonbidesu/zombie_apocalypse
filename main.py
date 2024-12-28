@@ -197,7 +197,7 @@ def draw_description_panel(city, player):
 def draw_chat(chat_history, input_text, scroll_offset):
     """Draw the chat window with scrolling support and text wrapping."""
     chat_start_x, chat_start_y = 10, SCREEN_HEIGHT // 2 + 30
-    chat_width, chat_height = SCREEN_WIDTH // 3 - 10, SCREEN_HEIGHT // 2 - 40
+    chat_width, chat_height = SCREEN_WIDTH // 3 - 10, SCREEN_HEIGHT // 2 - 70
 
     # Draw the chat window.
     pygame.draw.rect(screen, BLACK, (chat_start_x, chat_start_y, chat_width, chat_height))
@@ -205,7 +205,7 @@ def draw_chat(chat_history, input_text, scroll_offset):
 
     # Draw messages starting from the bottom of the chat area
     # Calculate the max number of visible lines.
-    max_visible_lines = (chat_height - 60) // 20
+    max_visible_lines = (chat_height - 20) // 20
     wrapped_history = []
     for message in chat_history:
         wrapped_history.extend(wrap_text(f">> {message}", font_large, chat_width - 20))
@@ -217,7 +217,7 @@ def draw_chat(chat_history, input_text, scroll_offset):
 
     # Determine which messages to display based on scroll_offset
     visible_history = wrapped_history[scroll_offset:scroll_offset + max_visible_lines]
-    y_offset = chat_start_y + chat_height - 60
+    y_offset = chat_start_y + chat_height - 30
 
     for message in reversed(visible_history):
             text = font_large.render(message, True, WHITE)
@@ -225,7 +225,7 @@ def draw_chat(chat_history, input_text, scroll_offset):
             y_offset -= 20
 
     # Draw input box
-    input_box = pygame.Rect(chat_start_x, chat_start_y + chat_height - 30, chat_width - 10, 25)
+    input_box = pygame.Rect(chat_start_x, chat_start_y + chat_height + 5, chat_width - 10, 25)
     pygame.draw.rect(screen, GRAY, input_box)
     input_text_rendered = font_large.render(input_text, True, WHITE)
     screen.blit(input_text_rendered, (input_box.x + 5, input_box.y + 5))
@@ -293,9 +293,16 @@ def process_command(command, player, city, chat_history):
         else:
             chat_history.append(f"There is nothing to search here.")
 
+    elif cmd == "barricade":
+        if hasattr(player, 'barricade') and callable(player.barricade):
+            result = player.barricade()
+            chat_history.append(result)
+        else:
+            chat_history.append(f"You can't barricade here.")
+
     elif cmd == "help":
         chat_history.append(
-            "Available commands: enter, leave, search, help."
+            "Available commands: enter, leave, search, barricade, where, help."
         )
 
     else:
@@ -323,7 +330,7 @@ def main():
                     chat_history.append(input_text.strip())
                     process_command(input_text.strip(), player, city, chat_history)
                     input_text = ""
-                    scroll_offset = max(0, len(chat_history) - (SCREEN_HEIGHT // 2 - 80) // 20)
+                    scroll_offset = max(0, len(chat_history) - (SCREEN_HEIGHT // 2 - 200) // 20)
                 elif event.key == pygame.K_BACKSPACE:
                     input_text = input_text[:-1]
                 else:

@@ -178,12 +178,12 @@ class Player:
 
     def barricade(self):
         current_block = self.get_current_block()
-        if not current_block.barricaded and current_block.can_barricade:
-            current_block.barricaded = True
-            current_block.add_observation("The building has been barricaded.")
-            return "You have barricaded the building."
-        elif current_block.barricaded and current_block.can_barricade:
-            return "The building is already barricaded."
+        if current_block.can_barricade and self.inside:
+            add_barricade = current_block.barricade.adjust_barricade(1)
+            print(add_barricade)
+            if not add_barricade:
+                return "You can't add more barricades."
+            return f"You managed to add to the barricade. The building is now {current_block.barricade.get_barricade_description()}."
         else:
             return "You can't barricade here."
 

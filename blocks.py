@@ -42,8 +42,8 @@ class BuildingBlock(CityBlock):
     """A block with a building that can be barricaded and searched."""
     def __init__(self, block_type):
         super().__init__(block_type)
-        self.barricaded = False
         self.can_barricade = True
+        self.barricade = self.BarricadeLevel()
         self.powered = False
         self.lights_on = False
         self.door_open = True
@@ -78,3 +78,45 @@ class BuildingBlock(CityBlock):
     def add_inside_observation(self, observation):
         """Add a new inside observation to the list."""
         self.inside_observations.append(observation)
+
+    class BarricadeLevel:
+        """Model barricade levels for buildings"""
+        # Mapping integer values to descriptive barricade states
+        BARRICADE_DESCRIPTIONS = {
+            0: "not barricaded",
+            1: "loosely barricaded",
+            2: "lightly barricaded",
+            3: "strongly barricaded",
+            4: "very strongly barricaded",
+            5: "heavily barricaded",
+            6: "very heavily barricaded",
+            7: "extremely heavily barricaded"
+        }
+
+        def __init__(self, level=0):
+            # Set default barricade level (0 by default, i.e., no barricade)
+            self.set_barricade_level(level)
+
+        def set_barricade_level(self, level):
+            """
+            Sets the barricade level. 
+            If the level is out of bounds (less than 0 or greater than 7), it will be capped at 0 or 7.
+            """
+            self.level = max(0, min(level, 7))  # Keep the level within the bounds
+            self.description = self.BARRICADE_DESCRIPTIONS[self.level]
+
+        def adjust_barricade(self, delta):
+            """
+            Adjust the barricade level by adding or subtracting `delta`.
+            """
+            new_level = self.level + delta
+            if new_level > 7:
+                return False
+            self.set_barricade_level(new_level)  # Automatically handles out-of-bound levels
+            return True
+
+        def get_barricade_description(self):
+            """
+            Returns the current description of the barricade.
+            """
+            return self.description
