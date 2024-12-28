@@ -1,4 +1,6 @@
 # player.py
+from settings import *
+import random
 
 class Player:
     """Represents the player's character."""
@@ -178,14 +180,19 @@ class Player:
             return "Movement out of bounds."
         return "Not enough action points to move."
 
-    def barricade(self):
+    def barricade(self, modifier=1):
         current_block = self.get_current_block()
         if current_block.can_barricade and self.inside:
-            add_barricade = current_block.barricade.adjust_barricade(1)
-            print(add_barricade)
-            if not add_barricade:
-                return "You can't add more barricades."
-            return f"You managed to add to the barricade. The building is now {current_block.barricade.get_barricade_description()}."
+            success_chance = BARRICADE_CHANCE * modifier
+            success_chance = max(0, min(success_chance, 1))  # Ensure the chance is between 0 and 1
+            success = random.random() < success_chance
+            if success:
+                add_barricade = current_block.barricade.adjust_barricade(1)
+                if not add_barricade:
+                    return "You can't add more barricades."
+                return f"You managed to add to the barricade. The building is now {current_block.barricade.get_barricade_description()}."
+            else:
+                return "You could not find anything to add to the barricade."
         else:
             return "You can't barricade here."
 

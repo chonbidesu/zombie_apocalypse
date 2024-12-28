@@ -330,7 +330,7 @@ def main():
                     chat_history.append(input_text.strip())
                     process_command(input_text.strip(), player, city, chat_history)
                     input_text = ""
-                    scroll_offset = max(0, len(chat_history) - (SCREEN_HEIGHT // 2 - 200) // 20)
+                    scroll_offset = max(0, len(chat_history) - ((SCREEN_HEIGHT // 2) - 90) // 20)
                 elif event.key == pygame.K_BACKSPACE:
                     input_text = input_text[:-1]
                 else:

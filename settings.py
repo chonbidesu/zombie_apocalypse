@@ -15,6 +15,9 @@ FONT_SIZE = 16
 CHAT_HEIGHT = 150
 CHAT_LINES = 10
 
+# Gameplay
+BARRICADE_CHANCE = 0.5
+
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
