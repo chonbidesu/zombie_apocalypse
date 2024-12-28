@@ -130,12 +130,14 @@ class Player:
         current_block.observations.clear()  # Clear existing observations
         if self.inside:
             current_block.observations.append(f'You are standing in {current_block.block_desc}.')
+            current_block.observations.append(f"The building is {current_block.barricade.get_barricade_description()}")
             current_block.observations.append(current_block.block_inside_desc)
             for observation in current_block.inside_observations:
                 current_block.observations.append(observation)
         else:
             if current_block.is_building:
                 current_block.observations.append(f'You are standing outside {current_block.block_desc}. A sign reads "{current_block.block_name}".')
+                current_block.observations.append(f"The building is {current_block.barricade.get_barricade_description()}")
             else:
                 current_block.observations.append(f'You are standing in {current_block.block_desc}.')
             current_block.observations.append(current_block.block_outside_desc)
