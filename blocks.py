@@ -1,21 +1,26 @@
 # blocks.py
 import random
 from collections import defaultdict
+import pygame
 
-class CityBlock:
+from settings import *
+
+class CityBlock(pygame.sprite.Sprite):
     """Base class for a city block."""
-    def __init__(self, block_type):
-        self.block_type = block_type
+    def __init__(self):
+        super().__init__()
         self.block_name = 'City Block'
         self.block_desc = 'city block'
         self.block_outside_desc = 'A non-descript city block.'
-        self.can_barricade = False
         self.zoom_x = None
         self.zoom_y = None
-        self.is_building = False
         self.observations = []
-        self.outside_observations = []
-    
+
+        # Sprite image setup
+        self.image = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
+        self.image.fill((0, 0, 255))
+        self.rect = self.image.get_rect()
+
     def generate_descriptions(self, descriptions_data):
         if self.block_type in descriptions_data:
             data = descriptions_data[self.block_type]
@@ -33,23 +38,13 @@ class CityBlock:
             self.block_outside_desc = "This place shows signs of decay and neglect."
 
 
-    def add_outside_observation(self, observation):
-        """Add a new outside observation to the list."""
-        self.outside_observations.append(observation)
-
-
 class BuildingBlock(CityBlock):
     """A block with a building that can be barricaded and searched."""
-    def __init__(self, block_type):
-        super().__init__(block_type)
-        self.can_barricade = True
+    def __init__(self):
+        super().__init__()
         self.barricade = self.BarricadeLevel()
-        self.powered = False
-        self.lights_on = False
-        self.door_open = True
-        self.is_building = True
+        self.fuel_expiration = 0
         self.block_inside_desc = 'The inside of a building.'
-        self.inside_observations = []
 
     def generate_descriptions(self, descriptions_data):
         if self.block_type in descriptions_data:
@@ -75,9 +70,6 @@ class BuildingBlock(CityBlock):
             self.block_inside_desc = "Inside, this place looks abandoned and forgotten."
             self.block_outside_desc = "Outside, the building shows signs of decay and neglect."
 
-    def add_inside_observation(self, observation):
-        """Add a new inside observation to the list."""
-        self.inside_observations.append(observation)
 
     class BarricadeLevel:
         """Model barricade levels for buildings"""
@@ -96,6 +88,7 @@ class BuildingBlock(CityBlock):
         def __init__(self, level=0):
             # Set default barricade level (0 by default, i.e., no barricade)
             self.set_barricade_level(level)
+            self.barricade_health = 30
 
         def set_barricade_level(self, level):
             """
@@ -104,6 +97,7 @@ class BuildingBlock(CityBlock):
             """
             self.level = max(0, min(level, 7))  # Keep the level within the bounds
             self.description = self.BARRICADE_DESCRIPTIONS[self.level]
+            self.barricade_health = 30
 
         def adjust_barricade(self, delta):
             """
@@ -120,3 +114,6 @@ class BuildingBlock(CityBlock):
             Returns the current description of the barricade.
             """
             return self.description
+        
+        def item_search(self, modifier):
+            return False

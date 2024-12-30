@@ -4,6 +4,7 @@ import sys
 import random
 from settings import *
 from player import Player
+from zombie import Zombie, populate_city_with_zombies, draw_zombies
 import city_generation
 
 
@@ -13,8 +14,9 @@ pygame.init()
 # Initialize city
 city = city_generation.generate_city()
 
-# Initialize zoom coordinates for street block rect images
-city_generation.initialize_zoom_coordinates(city)
+# Create dictionaries to manage the x, y coordinate groups
+x_groups = {x: pygame.sprite.Group() for x in range(100)}
+y_groups = {y: pygame.sprite.Group() for y in range(100)}
 
 # Load images for block types
 BLOCK_IMAGES = {
@@ -38,7 +40,12 @@ BLOCK_IMAGES = {
     "Pub": pygame.image.load("assets/pub.gif"),
     "Library": pygame.image.load("assets/library.gif"),
     "AutoRepair": pygame.image.load("assets/auto_repair.gif"),
+
+
 }
+
+# Initialize zoom coordinates for street block rect images
+city_generation.initialize_zoom_coordinates(city)
 
 # Create screen and clock
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -60,6 +67,12 @@ player = Player(
     x=50,
     y=50,
 )
+
+# Zombie sprites group
+# zombie_group = pygame.sprite.Group()
+
+# Populate the city with zombies
+# zombie_population = populate_city_with_zombies(city, 500)
 
 # Draw zoomed-in image to randomize street appearance
 def draw_zoomed_image(screen, block_image, rect_x, rect_y, zoom_x, zoom_y):
@@ -120,7 +133,10 @@ def draw_grid(city, player):
     text = font_small.render(neighbourhood_name, True, WHITE)
     screen.blit(text, (grid_start_x + 10, grid_start_y + 5))
 
+#   grid = []
+
     for row in range(GRID_SIZE):
+#        grid_row = []
         for col in range(GRID_SIZE):
             grid_x = start_x + col
             grid_y = start_y + row
@@ -131,6 +147,7 @@ def draw_grid(city, player):
 
                 block = city[grid_y][grid_x]
                 block_image = BLOCK_IMAGES.get(block.block_type, None)
+#                grid_row.append(grid_y, g)
 
                 if block_image:
                     if block.block_type == "Street":
@@ -159,6 +176,10 @@ def draw_grid(city, player):
                     text_rect = text.get_rect(center=(button_rect.centerx, y_offset))
                     screen.blit(text, text_rect)
                     y_offset += font_small.size(line)[1] # Move down for the next line
+#        grid.append(grid_row)
+
+#    draw_zombies(grid_start_x, grid_start_y, grid, city, player, zombie_group)
+#    zombie_group.draw(screen)
 
 # Draw description panel
 def draw_description_panel(city, player):
@@ -240,12 +261,10 @@ def draw_status(player):
 
     y_offset = status_start_y + 10
     status_text = [
-        f"Human Name: {player.human_name}",
-        f"Zombie Name: {player.zombie_name}",
+        f"Player Name: {player.human_name}",
         f"HP: {player.hp}/{player.max_hp}",
-        f"AP: {player.action_points}/{player.max_action_points}",
+        f"Actions taken: {player.ticker}",
         f"Location: {player.location}",
-        f"State: {'Human' if player.is_human else 'Zombie'}"
     ]
 
     for line in status_text:
@@ -356,6 +375,7 @@ def main():
         draw_description_panel(city, player)
         draw_chat(chat_history, input_text, scroll_offset)
         draw_status(player)
+#        zombie_group.update()
 
         pygame.display.flip()
         clock.tick(FPS)

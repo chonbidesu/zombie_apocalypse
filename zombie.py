@@ -1,0 +1,179 @@
+# zombie.py
+import random
+import pygame
+from settings import *
+
+class Zombie(pygame.sprite.Sprite):
+    """Represents a zombie in the city."""
+    def __init__(self, x, y, city):
+        self.x, self.y = x, y
+        self.city = city
+        self.hp = ZOMBIE_START_HP
+        self.action_points = 0
+        self.is_dead = False
+        self.inside = False
+        self.image = pygame.Surface((20,20))
+        self.image.fill((0, 255, 0))
+        self.rect = self.image.get_rect()
+
+    def update_position(self):
+        """Updates the position of the zombie's sprite rect based on city coordinates."""
+        self.rect.topleft = (self.x * 50 + 15, self.y * 50 + 15)  # Adjust offsets as needed
+
+    def gain_action_point(self):
+        self.action_points += 1
+
+    def take_action(self, player):
+        if self.action_points >= 1 and not self.is_dead:
+            target_building = self.find_lit_building()
+            if target_building:  # Move towards lit building if adjacent
+                if self.move_towards(target_building):
+                    self.action_points -= 2
+                else: # Attack barricades if in front of lit building
+                    self.action_points -= 1
+                    return self.attack_barricade(target_building)
+                
+            if (self.x, self.y) == player.location:  # Attack player if in same block
+                self.action_points -= 1
+                return self.attack(player)
+            elif self.action_points >= 2:  # Move if no player or lit building to act upon
+                self.action_points -= 2
+                return self.move()
+        elif self.is_dead and self.action_points >= 20:  # Stand up if dead
+            self.stand_up()
+        return "Zombie does nothing."
+
+    def find_lit_building(self):
+        """Finds adjacent lit buildings."""
+        adjacent_positions = [
+            (self.x + 1, self.y),
+            (self.x - 1, self.y),
+            (self.x, self.y + 1),
+            (self.x, self.y - 1)
+        ]
+        lit_buildings = []
+
+        for x, y in adjacent_positions:
+            if 0 <= x < 100 and 0 <= y < 100:
+                block = self.city[y][x]
+                if hasattr(block, "lights_on") and block.lights_on:
+                    lit_buildings.append(block)
+
+        return random.choice(lit_buildings) if lit_buildings else None
+
+    def move_towards(self, building):
+        """Moves towards the given building if not already in front."""
+        block = self.city[self.y][self.x]
+        if block.lights_on:
+            return False  # Already in front of a lit building.
+
+        if building.x > self.x:
+            self.x += 1
+        elif building.x < self.x:
+            self.x -= 1
+        elif building.y > self.y:
+            self.y += 1
+        elif building.y < self.y:
+            self.y -= 1
+        return True
+
+    def attack_barricade(self, building):
+        """Attacks the barricades of the given building."""
+        if hasattr(building, "barricade_level") and building.barricade.barricade_level > 0:
+            if hasattr(building, "barricade_health") and building.barricade.barricade_health > 0:
+                if random.random() < 0.3:  # 30% chance to successfully attack barricades
+                    building.barricade.barricade_health -= 10
+                    if building.barricade.barricade_health <= 0:  # Reduce barricade level if health reaches 0
+                        building.barricade.barricade_health = 30  # Reset health for the next level
+                        building.barricade.adjust_barricade_level(-1)
+                        return "Zombie reduces barricade level!"
+                    return "Zombie damages barricade."
+            return "Zombie attack on barricade fails."
+        return "No barricades to attack."
+
+    def move(self):
+        """Randomly moves the zombie to an adjacent block."""
+        dx, dy = random.choice([(0, 1), (0, -1), (1, 0), (-1, 0)])
+        new_x, new_y = self.x + dx, self.y + dy
+
+        if 0 <= new_x < 100 and 0 <= new_y < 100:  # Ensure within city bounds
+            self.x = new_x
+            self.y = new_y
+            return "Zombie moves."
+        return "Zombie cannot move."
+
+    def attack(self, player):
+        """Attempts to attack a player if in the same block."""
+        if (self.x, self.y) == player.location:
+            player.take_damage(10)  # Zombies deal 10 damage
+            return "Zombie attacks the player!"
+        return "No target to attack."
+
+    def take_damage(self, amount):
+        """Reduces the zombie's health."""
+        self.hp -= amount
+        if self.hp <= 0:
+            self.die()
+            return "Zombie is dead."
+        return "Zombie takes damage."
+
+    def die(self):
+        """Handles the zombie's death."""
+        self.is_dead = True
+        self.hp = 0
+        self.dead_body_visible = True
+
+    def stand_up(self):
+        """Zombie stands up at full health after collecting enough action points."""
+        self.is_dead = False
+        self.hp = 50
+        self.dead_body_visible = False
+        self.action_points = 0
+        return "Zombie stands up and continues acting."
+
+    def status(self):
+        """Returns the current status of the zombie."""
+        return {
+            "Location": (self.x, self.y),
+            "HP": self.hp,
+            "Action Points": self.action_points,
+            "Dead": self.is_dead,
+            "Dead Body Visible": self.dead_body_visible
+        }
+
+# Draw zombies on grid
+def draw_zombies(grid_start_x, grid_start_y, grid, city, player, zombie_group):
+    """Displays zombie sprites on the 3x3 grid."""
+    for row in range(3):
+        for col in range(3):
+            grid_x = grid_start_x + col * 50
+            grid_y = grid_start_y + row * 50
+
+            x, y = grid[row][col]  # Grid represents coordinates of blocks in the city
+            block = city[y][x]
+
+            if hasattr(block, 'zombies'):
+                for zombie in block.zombies:
+                    if zombie.inside == player.inside and not zombie.is_dead:
+                        zombie.update_position()
+                        zombie.rect.center = (grid_x + 25, grid_y + 25)  # Adjust position to center of block
+                        zombie_group.add(zombie)
+
+
+# Zombie population management
+def populate_city_with_zombies(city, count):
+    """Populates the city with an initial zombie population."""
+    zombies = []
+    for _ in range(count):
+        while True:
+            x = random.randint(0, 99)
+            y = random.randint(0, 99)
+            if not hasattr(city[y][x], 'zombies'):  # Ensure block can have zombies
+                city[y][x].zombies = []
+
+            if len(city[y][x].zombies) < 5:  # Limit zombies per block
+                zombie = Zombie(x, y, city)
+                city[y][x].zombies.append(zombie)
+                zombies.append(zombie)
+                break
+    return zombies        

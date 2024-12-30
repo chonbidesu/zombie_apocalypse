@@ -15,14 +15,13 @@ class Player:
         self.inventory = []  # Items carried by the player
         self.max_hp = 100  # Maximum hit points
         self.hp = self.max_hp  # Current hit points
-        self.max_action_points = 100  # Maximum action points
-        self.action_points = self.max_action_points  # Current action points
         self.location = (x, y)  # Initial location in the 100x100 grid
         self.city = city
         self.inside = False
         self.starting_trait = self.assign_starting_trait(occupation)
         self.is_human = True  # Starts as human
         self.is_dead = False  # Status of the player
+        self.ticker = 0  # Tracks the number of actions taken
 
     def get_block_at(self, x, y):
         """Retrieve the block at a given (x, y) location in the city."""
@@ -71,17 +70,6 @@ class Player:
             return "Inventory is empty."
         return ", ".join(item.name for item in self.inventory)
 
-    def spend_action_point(self):
-        """Spends one action point if available."""
-        if self.action_points > 0:
-            self.action_points -= 1
-            return True
-        return False
-
-    def regenerate_action_points(self, amount=1):
-        """Regenerates action points up to the maximum."""
-        self.action_points = min(self.action_points + amount, self.max_action_points)
-
     def take_damage(self, amount):
         """Reduces the player's health by the given amount."""
         self.hp -= amount
@@ -119,38 +107,61 @@ class Player:
             "Location": self.location,
             "HP": self.hp,
             "Max HP": self.max_hp,
-            "Action Points": self.action_points,
-            "Max Action Points": self.max_action_points,
             "State": "Human" if self.is_human else "Zombie",
             "Dead": self.is_dead,
         }
         return status
+
+    def get_current_observations(self, current_block):
+        current_observations = ""
+        if self.inside:
+            current_observations += f'You are standing inside {current_block.block_name}. '
+            if not current_block.lights_on:
+                current_observations += 'With the lights out, you can hardly see anything. '
+            current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
+            
+            # Check if the building has a running generator.
+            if current_block.generator_installed:
+                current_observations += "A portable generator has been set up here. "
+                if current_block.lights_on:
+                    current_observations += "It is running. "
+                else:
+                    current_observations += "It is out of fuel. "
+        else:
+            if current_block.is_building:
+                current_observations += f'You are standing outside {current_block.block_desc}. A sign reads "{current_block.block_name}". '
+                current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
+                if current_block.lights_on:
+                    current_observations += "Lights are on inside. "
+            else:
+                current_observations += f'You are standing in {current_block.block_desc}.'
+        return current_observations
 
     def update_observations(self):
         """Update the observations list based on the player's current state."""
         current_block = self.get_current_block()
         current_block.observations.clear()  # Clear existing observations
         if self.inside:
-            current_block.observations.append(f'You are standing in {current_block.block_desc}.')
-            current_block.observations.append(f"The building is {current_block.barricade.get_barricade_description()}")
+            current_block.observations.append(self.get_current_observations(current_block))
             current_block.observations.append(current_block.block_inside_desc)
-            for observation in current_block.inside_observations:
-                current_block.observations.append(observation)
         else:
-            if current_block.is_building:
-                current_block.observations.append(f'You are standing outside {current_block.block_desc}. A sign reads "{current_block.block_name}".')
-                current_block.observations.append(f"The building is {current_block.barricade.get_barricade_description()}")
-            else:
-                current_block.observations.append(f'You are standing in {current_block.block_desc}.')
+            current_block.observations.append(self.get_current_observations(current_block))
             current_block.observations.append(current_block.block_outside_desc)
-            for observation in current_block.outside_observations:
-                current_block.observations.append(observation)
 
     def description(self):
         """Return the current list of observations as a list."""
         current_block = self.get_current_block()
         self.update_observations()  # Ensure observations are current
         return current_block.observations
+    
+    def increment_ticker(self):
+        """Increments the ticker to track player actions."""
+        self.ticker += 1
+        for row in self.city:
+            for block in row:
+                if block.is_building:
+                    if block.fuel_expiration < self.ticker:
+                        block.lights_on = False
 
     # Start of player actions
 
@@ -159,6 +170,7 @@ class Player:
         for item in self.inventory:
             if item.name == item_name:
                 result = item.use()
+                self.increment_ticker()
                 if item.consumable:
                     self.remove_item(item)
                 return result
@@ -166,23 +178,22 @@ class Player:
 
     def move(self, dx, dy):
         """Moves the player to a new location on the grid."""
-        if self.spend_action_point():
-            x, y = self.location
-            new_x, new_y = x + dx, y + dy
+        x, y = self.location
+        new_x, new_y = x + dx, y + dy
 
-            # Check if the new coordinates are valid within the grid
-            if 0 <= new_x < 100 and 0 <= new_y < 100:
-                # If a player moves, they are no longer inside.
-                self.inside = False
-
-                self.location = (new_x, new_y)
-                return f"Player moved to {self.location}."
-            return "Movement out of bounds."
-        return "Not enough action points to move."
+        # Check if the new coordinates are valid within the grid
+        if 0 <= new_x < 100 and 0 <= new_y < 100:
+            # If a player moves, they are no longer inside.
+            self.inside = False
+            self.increment_ticker()
+            self.location = (new_x, new_y)
+            return f"Player moved to {self.location}."
+        return "Movement out of bounds."
 
     def barricade(self, modifier=1):
         current_block = self.get_current_block()
         if current_block.can_barricade and self.inside:
+            self.increment_ticker()
             success_chance = BARRICADE_CHANCE * modifier
             success_chance = max(0, min(success_chance, 1))  # Ensure the chance is between 0 and 1
             success = random.random() < success_chance
@@ -204,6 +215,7 @@ class Player:
         current_block = self.get_current_block()
         if current_block.is_building:
             if not self.inside:
+                self.increment_ticker()
                 self.inside = True
                 self.update_observations()
                 return "You entered the building."
@@ -214,6 +226,7 @@ class Player:
         current_block = self.get_current_block()
         if current_block.is_building:
             if self.inside:
+                self.increment_ticker()
                 self.inside = False
                 self.update_observations()
                 return "You left the building."
@@ -221,14 +234,38 @@ class Player:
         return "You can't leave this place."
 
     def search(self):
+        self.increment_ticker()
         current_block = self.get_current_block()
         if current_block.is_building:
             if self.inside:
-                message = "You search the building. "
-                if current_block.powered and current_block.lights_on:
+                if current_block.lights_on:
                     multiplier = 1.5
                 else:
                     multiplier = 1.0
+                item_found = current_block.item_search(multiplier)
+                if item_found:
+                    self.inventory.append(item_found)
+                    return f"You found {item_found.description}!"
+                else:
+                    return "You search but can't find anything."
             else:
-                return "You need to be inside the building to search it."
-        return "You search but can't find anything."
+                return "You search around the building but there is nothing to be found."
+        else:
+            return "You search but there is nothing to be found."
+        
+    def install_generator(self):
+        current_block = self.get_current_block()
+        if current_block.generator_installed:
+            return "Generator is already installed."
+        else:
+            self.increment_ticker()
+            return "You install a generator. It needs fuel to operate."
+        
+    def fuel_generator(self, current_ticker):
+        current_block = self.get_current_block()
+        if current_block.lights_on:
+            return "Generator already has fuel."
+        else:
+            self.increment_ticker()
+            current_block.fuel_expiration = current_ticker + FUEL_DURATION
+            return "You fuel the generator. The lights are now on."
