@@ -129,33 +129,91 @@ def generate_city(x_groups, y_groups):
             y_groups[y].add(block)
 
     # Implement mall spreading logic
-    for y, row in y_groups.items():
-        for x, block in x_groups.items():
-            if block in building_type_groups['Mall']:
-                # Try to expand the mall to adjacent blocks
-                # Right neighbour
-                if x + 1 in x_groups and y in y_groups and \
-                        x_groups[x + 1] in outdoor_type_groups['Street']:
-                    right_block = x_groups[x + 1]
-                    outdoor_type_groups['Street'].remove(right_block)
-                    outdoor_group.remove(right_block)
-                    building_type_groups['Mall'].add(right_block)
-                    building_group.add(right_block)
-                    # Update block attributes to match original mall
-                    right_block.block_name = block.block_name
-                    right_block.block_desc = block.block_desc
+    for y, blocks_in_row in y_groups.items():
+        for x, block_set in x_groups.items():
+            for block in set(block_set) & set(blocks_in_row):  # Get intersection of x_groups and y_groups
+                if block in building_type_groups['Mall']:
+                    # Try to expand the mall to adjacent blocks
+                    # Right neighbor
+                    if x + 1 in x_groups and y in y_groups:
+                        adjacent_blocks = set(x_groups[x + 1]) & set(blocks_in_row)
+                        for right_block in adjacent_blocks:
+                            if right_block in outdoor_type_groups['Street']:
+                                # Replace CityBlock with a new BuildingBlock
+                                new_block = BuildingBlock()
+                                new_block.block_name = block.block_name
+                                new_block.block_desc = block.block_desc
+                                new_block.image = block.image  # Retain image
+                                new_block.generate_descriptions(descriptions, 'Mall')
 
-                # Bottom neighbor
-                if y + 1 in y_groups and x in x_groups and \
-                        y_groups[y + 1] in outdoor_type_groups['Street']:
-                    bottom_block = y_groups[y + 1]
-                    outdoor_type_groups['Street'].remove(bottom_block)
-                    outdoor_group.remove(bottom_block)
-                    building_type_groups['Mall'].add(bottom_block)
-                    building_group.add(bottom_block)
-                    # Update block attributes
-                    bottom_block.block_name = block.block_name
-                    bottom_block.block_desc = block.block_desc
+                                # Remove old block and add the new block to groups
+                                outdoor_type_groups['Street'].remove(right_block)
+                                outdoor_group.remove(right_block)
+                                cityblock_group.remove(right_block)
+
+                                building_type_groups['Mall'].add(new_block)
+                                building_group.add(new_block)
+                                cityblock_group.add(new_block)
+
+                                # Replace the block in x_groups and y_groups
+                                x_groups[x + 1].remove(right_block)
+                                y_groups[y].remove(right_block)
+                                x_groups[x + 1].add(new_block)
+                                y_groups[y].add(new_block)
+
+                    # Bottom neighbor
+                    if y + 1 in y_groups and x in x_groups:
+                        adjacent_blocks = set(y_groups[y + 1]) & set(block_set)
+                        for bottom_block in adjacent_blocks:
+                            if bottom_block in outdoor_type_groups['Street']:
+                                # Replace CityBlock with a new BuildingBlock
+                                new_block = BuildingBlock()
+                                new_block.block_name = block.block_name
+                                new_block.block_desc = block.block_desc
+                                new_block.image = block.image  # Retain image
+                                new_block.generate_descriptions(descriptions, 'Mall')
+
+                                # Remove old block and add the new block to groups
+                                outdoor_type_groups['Street'].remove(bottom_block)
+                                outdoor_group.remove(bottom_block)
+                                cityblock_group.remove(bottom_block)
+
+                                building_type_groups['Mall'].add(new_block)
+                                building_group.add(new_block)
+                                cityblock_group.add(new_block)
+
+                                # Replace the block in x_groups and y_groups
+                                x_groups[x].remove(bottom_block)
+                                y_groups[y + 1].remove(bottom_block)
+                                x_groups[x].add(new_block)
+                                y_groups[y + 1].add(new_block)
+
+                    # Diagonal neighbor
+                    if x + 1 in x_groups and y + 1 in y_groups:
+                        diagonal_blocks = set(x_groups[x + 1]) & set(y_groups[y + 1])
+                        for diagonal_block in diagonal_blocks:
+                            if diagonal_block in outdoor_type_groups['Street']:
+                                # Replace CityBlock with a new BuildingBlock
+                                new_block = BuildingBlock()
+                                new_block.block_name = block.block_name
+                                new_block.block_desc = block.block_desc
+                                new_block.image = block.image  # Retain image
+                                new_block.generate_descriptions(descriptions, 'Mall')
+
+                                # Remove old block and add the new block to groups
+                                outdoor_type_groups['Street'].remove(diagonal_block)
+                                outdoor_group.remove(diagonal_block)
+                                cityblock_group.remove(diagonal_block)
+
+                                building_type_groups['Mall'].add(new_block)
+                                building_group.add(new_block)
+                                cityblock_group.add(new_block)
+
+                                # Replace the block in x_groups and y_groups
+                                x_groups[x + 1].remove(diagonal_block)
+                                y_groups[y + 1].remove(diagonal_block)
+                                x_groups[x + 1].add(new_block)
+                                y_groups[y + 1].add(new_block)
 
 def generate_neighbourhoods(x_groups, y_groups):
     neighbourhood_index = 0
