@@ -190,9 +190,11 @@ class Player:
         else:
             return "You can't barricade here."
 
-    def where(self):
-        current_block = self.get_current_block()
-        return f"You are standing in front of {current_block.block_desc} called {current_block.block_name}."
+    def where(self, current_block):
+        if self.inside:
+            return f"You are standing inside {current_block.block_desc} called {current_block.block_name}."
+        else:
+            return f"You are standing in front of {current_block.block_desc} called {current_block.block_name}."
 
     def enter(self, current_block, building_group, lights_on, generator_installed):
         if current_block in building_group:

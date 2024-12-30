@@ -320,7 +320,7 @@ def process_command(command, chat_history):
 
     elif cmd == "where":
         if hasattr(player, 'where') and callable(player.where):
-            result = player.where()
+            result = player.where(get_block_at_player())
             chat_history.append(result)
         else:
             chat_history.append(f"I don't know where we are.")
