@@ -35,6 +35,8 @@ building_group = pygame.sprite.Group()
 outdoor_types = ['Street', 'Park', 'Cemetery', 'Monument', 'Carpark']
 outdoor_type_groups = {block_type: pygame.sprite.Group() for block_type in outdoor_types}
 outdoor_group = pygame.sprite.Group()
+cityblock_group = pygame.sprite.Group()
+neighbourhood_groups = {}
 
 def _load_block_names():
     """Load block names from text files into a dictionary."""
@@ -59,41 +61,69 @@ def _get_unique_block_name(block_type):
         return f"{block_type} (Generic)"  # Fallback if no names are left
 
 def generate_city(x_groups, y_groups):
-    """Generate a 100x100 grid of block sprites"""
+    """Generate a pool of 10,000 block sprites"""
     _load_block_names()
     block_pool = []
 
-    # Generate 500 building blocks
-    for _ in range(500):
+    # Generate 5000 building blocks
+    for _ in range(CITY_SIZE * 50):
         building_block = BuildingBlock()
         building_group.add(building_block)
+        cityblock_group.add(building_block)
         block_type = random.choice(building_types)
+        image_filename = BLOCK_IMAGES[block_type]
+        image = pygame.image.load(image_filename)
+        image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
+        building_block.image = image
         building_type_groups[block_type].add(building_block)
         block_name = _get_unique_block_name(block_type)
         block_desc = BLOCKNAME_DESC[block_type]
         building_block.block_name = block_name
         building_block.block_desc = block_desc
-        building_block.generate_descriptions(descriptions)
+        building_block.generate_descriptions(descriptions, block_type)
         block_pool.append(building_block)
 
-    # Generate 500 outdoor blocks
-    for _ in range(500):
+    # Generate 2500 outdoor blocks
+    for _ in range(CITY_SIZE * 25):
         outdoor_block = CityBlock()
         outdoor_group.add(outdoor_block)
+        cityblock_group.add(outdoor_block)
         block_type = random.choice(outdoor_types)
+        image_filename = BLOCK_IMAGES[block_type]
+        image = pygame.image.load(image_filename)
+        image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
+        outdoor_block.image = image
         outdoor_type_groups[block_type].add(outdoor_block)
         block_name = _get_unique_block_name(block_type)
         block_desc = BLOCKNAME_DESC[block_type]
         outdoor_block.block_name = block_name
         outdoor_block.block_desc = block_desc
-        outdoor_block.generate_descriptions(descriptions)
+        outdoor_block.generate_descriptions(descriptions, block_type)
         block_pool.append(outdoor_block)
+
+    # Generate 2500 street blocks
+    for _ in range(CITY_SIZE * 25):
+        street_block = CityBlock()
+        outdoor_group.add(street_block)
+        cityblock_group.add(street_block)
+        block_type = 'Street'
+        image_filename = BLOCK_IMAGES[block_type]
+        image = pygame.image.load(image_filename)
+        image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
+        street_block.image = image
+        outdoor_type_groups[block_type].add(street_block)
+        block_name = _get_unique_block_name(block_type)
+        block_desc = BLOCKNAME_DESC[block_type]
+        street_block.block_name = block_name
+        street_block.block_desc = block_desc
+        street_block.generate_descriptions(descriptions, block_type)
+        block_pool.append(street_block)
 
     random.shuffle(block_pool)
 
     # Now, randomly place blocks into a 100x100 grid
-    for y in range(100):
-        for x in range(100):
+    for y in range(CITY_SIZE):
+        for x in range(CITY_SIZE):
             block = block_pool.pop()
             x_groups[x].add(block)
             y_groups[y].add(block)
@@ -127,24 +157,23 @@ def generate_city(x_groups, y_groups):
                     bottom_block.block_name = block.block_name
                     bottom_block.block_desc = block.block_desc
 
-######################def generate_neighbourhoods:
+def generate_neighbourhoods(x_groups, y_groups):
+    neighbourhood_index = 0
 
-def generate_city():
-    """Generate the entire 100x100 city as a grid of neighbourhoods."""
-    _load_block_names()
+    for y_start in range(0, CITY_SIZE, NEIGHBOURHOOD_SIZE): # Iterate over rows in steps of 10
+        for x_start in range(0, CITY_SIZE, NEIGHBOURHOOD_SIZE): # Iterate over columns in steps of 10
+            neighbourhood_name = list(NEIGHBOURHOODS.values())[neighbourhood_index]
+            neighbourhood_group = pygame.sprite.Group()
+            neighbourhood_index += 1
 
-    city = [[None for _ in range(100)] for _ in range(100)]
+            # Collect blocks and add to neighbourhood group
+            for y in range(y_start, y_start + NEIGHBOURHOOD_SIZE):
+                for x in range(x_start, x_start + NEIGHBOURHOOD_SIZE):
+                    block = set(x_groups[x]) & set(y_groups[y]) & set(cityblock_group)
+                    neighbourhood_group.add(block)
 
-    for neighbourhood_index, neighbourhood_name in NEIGHBOURHOODS.items():
-        top_left_x = ((neighbourhood_index - 1) % 10) * 10
-        top_left_y = ((neighbourhood_index - 1) // 10) * 10
-
-        neighbourhood_grid = _generate_neighbourhood(neighbourhood_name)
-        for y in range(10):
-            for x in range(10):
-                city[top_left_y + y][top_left_x + x] = neighbourhood_grid[y][x]
-
-    return city
+            # Store the neighbourhood group
+            neighbourhood_groups[neighbourhood_name] = neighbourhood_group
 
 # Store zoom coordinates for street blocks to give streets variety
 def initialize_zoom_coordinates(city):

@@ -4,48 +4,21 @@ import sys
 import random
 from settings import *
 from player import Player
-from zombie import Zombie, populate_city_with_zombies, draw_zombies
-import city_generation
+from city_generation import outdoor_type_groups, building_type_groups, cityblock_group, outdoor_group, building_group, neighbourhood_groups, generate_city, generate_neighbourhoods
 
 
 # Initialize Pygame
 pygame.init()
 
-# Initialize city
-city = city_generation.generate_city()
-
 # Create dictionaries to manage the x, y coordinate groups
 x_groups = {x: pygame.sprite.Group() for x in range(100)}
 y_groups = {y: pygame.sprite.Group() for y in range(100)}
 
-# Load images for block types
-BLOCK_IMAGES = {
-    "FireStation": pygame.image.load("assets/fire_station.gif"),
-    "PoliceDepartment": pygame.image.load("assets/police_department.gif"),
-    "Street": pygame.image.load("assets/streets.gif"),
-    "Park": pygame.image.load("assets/park.gif"),
-    "Carpark": pygame.image.load("assets/carpark.gif"),
-    "Cemetery": pygame.image.load("assets/cemetery.gif"),
-    "Monument": pygame.image.load("assets/monument.gif"),
-    "Hospital": pygame.image.load("assets/hospital.gif"),
-    "Mall": pygame.image.load("assets/mall.gif"),
-    "Church": pygame.image.load("assets/church.gif"),
-    "Warehouse": pygame.image.load("assets/warehouse.gif"),
-    "Factory": pygame.image.load("assets/factory.gif"),
-    "School": pygame.image.load("assets/school.gif"),
-    "NecroTechLab": pygame.image.load("assets/necrotech_lab.gif"),
-    "Junkyard": pygame.image.load("assets/junkyard.gif"),
-    "Museum": pygame.image.load("assets/museum.gif"),
-    "Nightclub": pygame.image.load("assets/nightclub.gif"),
-    "Pub": pygame.image.load("assets/pub.gif"),
-    "Library": pygame.image.load("assets/library.gif"),
-    "AutoRepair": pygame.image.load("assets/auto_repair.gif"),
-
-
-}
-
-# Initialize zoom coordinates for street block rect images
-city_generation.initialize_zoom_coordinates(city)
+# Initialize city
+generate_city(x_groups, y_groups)
+generate_neighbourhoods(x_groups, y_groups)
+lights_on = pygame.sprite.Group()
+generator_installed = pygame.sprite.Group()
 
 # Create screen and clock
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -58,7 +31,6 @@ font_large = pygame.font.SysFont(None, 24)
 
 # Create player
 player = Player(
-    city,
     human_name="Alice",
     zombie_name="Raven",
     gender="Female",
@@ -68,27 +40,31 @@ player = Player(
     y=50,
 )
 
-# Zombie sprites group
-# zombie_group = pygame.sprite.Group()
-
-# Populate the city with zombies
-# zombie_population = populate_city_with_zombies(city, 500)
-
-# Draw zoomed-in image to randomize street appearance
-def draw_zoomed_image(screen, block_image, rect_x, rect_y, zoom_x, zoom_y):
-    """Draw a zoomed-in portion of the block image."""
+# Apply zoomed-in image of street grid to street sprites to randomize street appearance
+def apply_zoomed_image(block_image):
+    """Apply a zoomed-in portion of the block image."""
+    street_group = outdoor_type_groups['Street']
     image_width, image_height = block_image.get_width(), block_image.get_height()
 
     # Define the zoom-in factor (e.g., 2x zoom = 50% of the original size)
     zoom_factor = 2
     zoom_width, zoom_height = image_width // zoom_factor, image_height // zoom_factor
 
-    # Extract the zoomed-in portion
-    zoomed_surface = block_image.subsurface((zoom_x, zoom_y, zoom_width, zoom_height))
+    for sprite in street_group:
+        # Generate random top-left coordinates for the zoomed-in area
+        zoom_x = random.randint(0, image_width - zoom_width)
+        zoom_y = random.randint(0, image_height - zoom_height)
 
-    # Scale it to the target block size and blit it
-    zoomed_surface = pygame.transform.scale(zoomed_surface, (BLOCK_SIZE, BLOCK_SIZE))
-    screen.blit(zoomed_surface, (rect_x, rect_y))
+        # Extract the zoomed-in portion
+        zoomed_surface = block_image.subsurface((zoom_x, zoom_y, zoom_width, zoom_height))
+
+        # Scale it to the target block size and assign to sprite
+        zoomed_surface = pygame.transform.scale(zoomed_surface, (BLOCK_SIZE, BLOCK_SIZE))
+        sprite.image = zoomed_surface
+
+# Load the street images
+street_image = pygame.image.load(BLOCK_IMAGES['Street'])
+apply_zoomed_image(street_image)
 
 # Handle text wrapping
 def wrap_text(text, font, max_width):
@@ -114,78 +90,129 @@ def wrap_text(text, font, max_width):
 
     return lines
 
-# Draw grid
-def draw_grid(city, player):
-    """Draw the 3x3 grid representing the player's surroundings."""
-    grid_start_x, grid_start_y = 10, 10
-    x, y = player.location
-    start_x, start_y = max(0, x - 1), max(0, y - 1)
+# Get all sprites at (x, y)
+def get_sprites_at(x, y):
+    sprites_x = x_groups[x]
+    sprites_y = y_groups[y]
+    return set(sprites_x) & set(sprites_y)
 
-    neighbourhood_name = "Unknown"
-    for key, name in NEIGHBOURHOODS.items():
-        nx, ny = (key - 1) % 10, (key - 1) // 10
-        if nx * 10 <= x < (nx + 1) * 10 and ny * 10 <= y < (ny + 1) * 10:
-            neighbourhood_name = name
+# Get filtered sprites at (x, y)
+def get_filtered_sprites_at(x, y, group):
+    all_sprites = get_sprites_at(x, y)
+    filtered_sprites = []
+    for sprite in all_sprites:
+        if sprite in group:
+            filtered_sprites.append(sprite)
+    
+    return filtered_sprites
+
+# Get the city block at player's current location
+def get_block_at_player():
+    block = get_filtered_sprites_at(player.location[0], player.location[1], cityblock_group)[0]
+    return block
+
+# Get the neighbourhood of a city block
+def get_neighbourhood(block):
+    for group_name, group in neighbourhood_groups.items():
+        if block in group:
+            return group_name
+    return None
+
+# Get (x, y) of a specific sprite
+def get_sprite_coordinates(sprite):
+    for x, group in x_groups.items():
+        if sprite in group:
+            x_coordinate = x
             break
 
+    for y, group in y_groups.items():
+        if sprite in group:
+            y_coordinate = y
+            break
+
+    return x_coordinate, y_coordinate
+
+# Update viewport centered on player
+def update_viewport():
+    viewport_rows = []
+    player_x, player_y = player.location
+
+    # Collect blocks in a 3x3 grid around the player
+    for row_offset in range(-1, 2):
+        row = []
+        for col_offset in range(-1, 2):
+            block_x, block_y = player_x + col_offset, player_y + row_offset
+
+            #Ensure block coordinates are within city bounds
+            if block_x in x_groups and block_y in y_groups:
+                blocks = set(x_groups[block_x]) & set(y_groups[block_y]) & set(cityblock_group)
+                if blocks:
+                    block = next(iter(blocks))
+                    row.append(block)
+        viewport_rows.append(row)
+
+    return viewport_rows
+
+#    # Determine the bounds of the viewport
+#    x_start, x_end = player.location[0] - 1, player.location[0] + 1
+#    y_start, y_end = player.location[1] - 1, player.location[1] + 1
+
+#    for x in range(x_start, x_end + 1):
+#        for y in range(y_start, y_end + 1):
+#            # Get block at this coordinate
+#            block = get_filtered_sprites_at(x, y, cityblock_group)
+#            # Add to the appropriate row and column groups
+#            viewport_rows[y - y_start].add(block)
+#            viewport_columns[x - x_start].add(block)
+
+#    return viewport_rows
+
+# Initialize viewport based on player's starting position
+viewport_rows = update_viewport()
+
+# Draw viewport
+def draw_viewport():
+    """Draw the 3x3 viewport representing the player's surroundings."""
+    grid_start_x, grid_start_y = 10, 10
+    player_x, player_y = player.location
+
+    for row_index, row in enumerate(viewport_rows):
+        for col_index, block in enumerate(row):
+            if block is None:
+                continue
+
+            # Calculate the block's position relative to the viewport
+            block_rect_x = grid_start_x + col_index * BLOCK_SIZE
+            block_rect_y = grid_start_y + row_index * BLOCK_SIZE + 20
+
+            screen.blit(block.image, (block_rect_x, block_rect_y))
+
+#            block_x, block_y = get_sprite_coordinates(block)
+#            block_rect_x = grid_start_x + ((block_x - player_x) + 1) * BLOCK_SIZE
+#            block_rect_y = grid_start_y + ((block_y - player_y) + 1) * BLOCK_SIZE + 20
+#            screen.blit(block.image, (block_rect_x, block_rect_y))
+
+            block_text = wrap_text(block.block_name, font_small, BLOCK_SIZE - 10)
+            text_height = sum(font_small.size(line)[1] for line in block_text)
+            button_rect = pygame.Rect(block_rect_x, block_rect_y, BLOCK_SIZE, text_height + 10)
+            pygame.draw.rect(screen, WHITE, button_rect)
+            y_offset = button_rect.top + (button_rect.height - text_height)  # Center text vertically
+
+            for line in block_text:
+                text = font_small.render(line, True, BLACK)
+                text_rect = text.get_rect(center=(button_rect.centerx, y_offset))
+                screen.blit(text, text_rect)
+                y_offset += font_small.size(line)[1]  # Move down for the next line
+
     # Draw neighbourhood name
-    pygame.draw.rect(screen, GRAY, (grid_start_x, grid_start_y, GRID_SIZE * BLOCK_SIZE, 20))
+    pygame.draw.rect(screen, GRAY, (grid_start_x, grid_start_y, VIEWPORT_SIZE * BLOCK_SIZE, 20))
+    neighbourhood_name = get_neighbourhood(get_block_at_player())
     text = font_small.render(neighbourhood_name, True, WHITE)
     screen.blit(text, (grid_start_x + 10, grid_start_y + 5))
 
-#   grid = []
-
-    for row in range(GRID_SIZE):
-#        grid_row = []
-        for col in range(GRID_SIZE):
-            grid_x = start_x + col
-            grid_y = start_y + row
-
-            if 0 <= grid_x < 100 and 0 <= grid_y < 100:
-                rect_x = grid_start_x + col * BLOCK_SIZE 
-                rect_y = grid_start_y + row * BLOCK_SIZE + 20
-
-                block = city[grid_y][grid_x]
-                block_image = BLOCK_IMAGES.get(block.block_type, None)
-#                grid_row.append(grid_y, g)
-
-                if block_image:
-                    if block.block_type == "Street":
-                        draw_zoomed_image(screen, block_image, rect_x, rect_y, block.zoom_x, block.zoom_y)
-                    else:
-                        screen.blit(pygame.transform.scale(block_image, (BLOCK_SIZE, BLOCK_SIZE)), (rect_x, rect_y))
-
-                # Wrap the block name text to fit inside the button
-                wrapped_text = wrap_text(block.block_name, font_small, BLOCK_SIZE - 10)
-
-                # Calculate the total height of the wrapped text
-                total_height = sum(font_small.size(line)[1] for line in wrapped_text)
-
-                # Once height of text is known, set button height.
-                # Draw centered text on light-colored button
-                button_rect = pygame.Rect(
-                    rect_x, rect_y,
-                    BLOCK_SIZE, total_height + 10
-                )
-                pygame.draw.rect(screen, WHITE, button_rect)
-
-                y_offset = button_rect.top + (button_rect.height - total_height)  # Center text vertically
-
-                for line in wrapped_text:
-                    text = font_small.render(line, True, BLACK)
-                    text_rect = text.get_rect(center=(button_rect.centerx, y_offset))
-                    screen.blit(text, text_rect)
-                    y_offset += font_small.size(line)[1] # Move down for the next line
-#        grid.append(grid_row)
-
-#    draw_zombies(grid_start_x, grid_start_y, grid, city, player, zombie_group)
-#    zombie_group.draw(screen)
-
 # Draw description panel
-def draw_description_panel(city, player):
+def draw_description_panel():
     """Draw the description panel on the right side of the screen."""
-    x, y = player.location
-    block = city[y][x]
 
     description_start_x = SCREEN_WIDTH // 3 + 10
     description_width = SCREEN_WIDTH - description_start_x - 10
@@ -195,7 +222,7 @@ def draw_description_panel(city, player):
 
     # Get the description text and wrap it to fit within the panel
     paragraphs = []
-    current_observations = player.description()
+    current_observations = player.description(get_block_at_player(), building_group, lights_on, generator_installed)
     for observation in current_observations:
         wrapped_text = wrap_text(observation, font_large, description_width - 20)  # 10px padding on each side
         for line in wrapped_text:
@@ -251,7 +278,7 @@ def draw_chat(chat_history, input_text, scroll_offset):
     input_text_rendered = font_large.render(input_text, True, WHITE)
     screen.blit(input_text_rendered, (input_box.x + 5, input_box.y + 5))
 
-def draw_status(player):
+def draw_status():
     """Draw the player status panel."""
     status_start_x, status_start_y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT - 150
     status_width, status_height = SCREEN_WIDTH * 2 // 3 - 20, 140
@@ -273,7 +300,7 @@ def draw_status(player):
         y_offset += 20
 
 
-def process_command(command, player, city, chat_history):
+def process_command(command, chat_history):
     """Process player commands."""
     # Parse the command and arguments
     parts = command.lower().split()
@@ -286,7 +313,7 @@ def process_command(command, player, city, chat_history):
     # Handle commands
     if cmd == "enter":
         if hasattr(player, 'enter') and callable(player.enter):
-            result = player.enter()
+            result = player.enter(get_block_at_player(), building_group, lights_on, generator_installed)
             chat_history.append(result)
         else:
             chat_history.append(f"There is no building to enter here.")
@@ -300,21 +327,21 @@ def process_command(command, player, city, chat_history):
 
     elif cmd == "leave":
         if hasattr(player, 'leave') and callable(player.leave):
-            result = player.leave()
+            result = player.leave(get_block_at_player(), building_group, lights_on, generator_installed)
             chat_history.append(result)
         else:
             chat_history.append(f"You are already outside.")
 
     elif cmd == "search":
         if hasattr(player, 'search') and callable(player.search):
-            result = player.search()
+            result = player.search(get_block_at_player(), building_group, lights_on)
             chat_history.append(result)
         else:
             chat_history.append(f"There is nothing to search here.")
 
     elif cmd == "barricade":
         if hasattr(player, 'barricade') and callable(player.barricade):
-            result = player.barricade()
+            result = player.barricade(get_block_at_player(), building_group, lights_on)
             chat_history.append(result)
         else:
             chat_history.append(f"You can't barricade here.")
@@ -331,6 +358,7 @@ def process_command(command, player, city, chat_history):
 # Main game loop
 def main():
     running = True
+    global viewport_rows
     chat_history = ["The city is in ruins. Can you make it through the night?",
                     "Use arrow keys to move around.", 
                     "Type 'help' for a list of commands."]
@@ -347,7 +375,7 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     chat_history.append(input_text.strip())
-                    process_command(input_text.strip(), player, city, chat_history)
+                    process_command(input_text.strip(), chat_history)
                     input_text = ""
                     scroll_offset = max(0, len(chat_history) - ((SCREEN_HEIGHT // 2) - 90) // 20)
                 elif event.key == pygame.K_BACKSPACE:
@@ -355,14 +383,14 @@ def main():
                 else:
                     input_text += event.unicode
 
-                if event.key == pygame.K_UP:
-                    player.move(0, -1)
-                elif event.key == pygame.K_DOWN:
-                    player.move(0, 1)
-                elif event.key == pygame.K_LEFT:
-                    player.move(-1, 0)
-                elif event.key == pygame.K_RIGHT:
-                    player.move(1, 0)
+                if event.key == pygame.K_UP and player.move(0, -1, building_group, lights_on):
+                    viewport_rows = update_viewport()
+                elif event.key == pygame.K_DOWN and player.move(0, 1, building_group, lights_on):
+                    viewport_rows = update_viewport()
+                elif event.key == pygame.K_LEFT and player.move(-1, 0, building_group, lights_on):                    
+                    viewport_rows = update_viewport()
+                elif event.key == pygame.K_RIGHT and player.move(1, 0, building_group, lights_on):
+                    viewport_rows = update_viewport()
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4: # Scroll up
@@ -371,11 +399,11 @@ def main():
                     scroll_offset += 1
 
 
-        draw_grid(city, player)
-        draw_description_panel(city, player)
+        draw_viewport()
+        draw_description_panel()
         draw_chat(chat_history, input_text, scroll_offset)
-        draw_status(player)
-#        zombie_group.update()
+        draw_status()
+
 
         pygame.display.flip()
         clock.tick(FPS)

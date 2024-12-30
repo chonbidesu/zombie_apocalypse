@@ -5,8 +5,9 @@ SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
 
 # Grid and tile settings
-GRID_SIZE = 3  # 3x3 viewport
+VIEWPORT_SIZE = 3  # 3x3 viewport
 CITY_SIZE = 100  # 100x100 city grid
+NEIGHBOURHOOD_SIZE = 10  # 10x10 neighbourhoods
 BLOCK_SIZE = SCREEN_HEIGHT // 6
 
 # Game settings
@@ -27,6 +28,30 @@ GRAY = (100, 100, 100)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 DARK_GREEN = (34, 51, 34)
+
+# Images for block sprites
+BLOCK_IMAGES = {
+    "FireStation": "assets/fire_station.gif",
+    "PoliceDepartment": "assets/police_department.gif",
+    "Street": "assets/streets.gif",
+    "Park": "assets/park.gif",
+    "Carpark": "assets/carpark.gif",
+    "Cemetery": "assets/cemetery.gif",
+    "Monument": "assets/monument.gif",
+    "Hospital": "assets/hospital.gif",
+    "Mall": "assets/mall.gif",
+    "Church": "assets/church.gif",
+    "Warehouse": "assets/warehouse.gif",
+    "Factory": "assets/factory.gif",
+    "School": "assets/school.gif",
+    "NecroTechLab": "assets/necrotech_lab.gif",
+    "Junkyard": "assets/junkyard.gif",
+    "Museum": "assets/museum.gif",
+    "Nightclub": "assets/nightclub.gif",
+    "Pub": "assets/pub.gif",
+    "Library": "assets/library.gif",
+    "AutoRepair": "assets/auto_repair.gif",
+}
 
 # List of neighbourhoods
 NEIGHBOURHOODS = {

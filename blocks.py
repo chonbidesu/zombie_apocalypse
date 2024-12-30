@@ -21,7 +21,8 @@ class CityBlock(pygame.sprite.Sprite):
         self.image.fill((0, 0, 255))
         self.rect = self.image.get_rect()
 
-    def generate_descriptions(self, descriptions_data):
+    def generate_descriptions(self, descriptions_data, block_type):
+        self.block_type = block_type
         if self.block_type in descriptions_data:
             data = descriptions_data[self.block_type]
             
@@ -46,7 +47,8 @@ class BuildingBlock(CityBlock):
         self.fuel_expiration = 0
         self.block_inside_desc = 'The inside of a building.'
 
-    def generate_descriptions(self, descriptions_data):
+    def generate_descriptions(self, descriptions_data, block_type):
+        self.block_type = block_type
         if self.block_type in descriptions_data:
             data = descriptions_data[self.block_type]
             
