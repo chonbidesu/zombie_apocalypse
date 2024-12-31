@@ -31,10 +31,7 @@ font_large = pygame.font.SysFont(None, 24)
 
 # Create player
 player = Player(
-    human_name="Alice",
-    zombie_name="Raven",
-    gender="Female",
-    age=25,
+    name="Alice",
     occupation="Doctor",
     x=50,
     y=50,
@@ -187,14 +184,12 @@ def draw_viewport():
 
             screen.blit(block.image, (block_rect_x, block_rect_y))
 
-#            block_x, block_y = get_sprite_coordinates(block)
-#            block_rect_x = grid_start_x + ((block_x - player_x) + 1) * BLOCK_SIZE
-#            block_rect_y = grid_start_y + ((block_y - player_y) + 1) * BLOCK_SIZE + 20
-#            screen.blit(block.image, (block_rect_x, block_rect_y))
-
             block_text = wrap_text(block.block_name, font_small, BLOCK_SIZE - 10)
             text_height = sum(font_small.size(line)[1] for line in block_text)
-            button_rect = pygame.Rect(block_rect_x, block_rect_y, BLOCK_SIZE, text_height + 10)
+            # Adjust button_rect to align with bottom of block_rect
+            button_rect = pygame.Rect(
+                block_rect_x, block_rect_y + BLOCK_SIZE - text_height - 10, 
+                BLOCK_SIZE, text_height + 10)
             pygame.draw.rect(screen, WHITE, button_rect)
             y_offset = button_rect.top + (button_rect.height - text_height)  # Center text vertically
 
@@ -242,6 +237,7 @@ def draw_description_panel():
         screen.blit(text, text_rect)
         y_offset += font_large.size(line)[1]  # Move down for the next line
 
+# Draw the chat panel
 def draw_chat(chat_history, input_text, scroll_offset):
     """Draw the chat window with scrolling support and text wrapping."""
     chat_start_x, chat_start_y = 10, SCREEN_HEIGHT // 2 + 30
@@ -278,28 +274,90 @@ def draw_chat(chat_history, input_text, scroll_offset):
     input_text_rendered = font_large.render(input_text, True, WHITE)
     screen.blit(input_text_rendered, (input_box.x + 5, input_box.y + 5))
 
+# Draw the player status panel
 def draw_status():
     """Draw the player status panel."""
     status_start_x, status_start_y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT - 150
-    status_width, status_height = SCREEN_WIDTH * 2 // 3 - 20, 140
+    status_width, status_height = SCREEN_WIDTH // 4 - 20, 140
 
     pygame.draw.rect(screen, BLACK, (status_start_x, status_start_y, status_width, status_height))
     pygame.draw.rect(screen, WHITE, (status_start_x, status_start_y, status_width, status_height), 2)
 
     y_offset = status_start_y + 10
-    status_text = [
-        f"Player Name: {player.human_name}",
-        f"HP: {player.hp}/{player.max_hp}",
-        f"Actions taken: {player.ticker}",
-        f"Location: {player.location}",
-    ]
+    status_text = []
+    for status_type, status in player.status().items():
+        line = f"{status_type}: {status}"
+        status_text.append(line)
 
     for line in status_text:
         text = font_large.render(line, True, WHITE)
         screen.blit(text, (status_start_x + 10, y_offset))
         y_offset += 20
 
+# Draw the inventory panel
+def draw_inventory_panel():
+    """Render the inventory panel in the bottom-right corner of the screen."""
+    # Panel dimensionss
+    panel_width = SCREEN_WIDTH * 5 // 12 - 20
+    panel_height = 140
+    panel_x = SCREEN_WIDTH - panel_width - 10
+    panel_y = SCREEN_HEIGHT - panel_height - 10
 
+    # Sub-panel dimensions
+    equipped_panel_width = panel_width // 4
+    equipped_panel_height = panel_height
+    equipped_panel_x = panel_x
+    equipped_panel_y = panel_y
+
+    inventory_panel_width = panel_width - equipped_panel_width
+    inventory_panel_height = panel_height
+    inventory_panel_x = panel_x + equipped_panel_width
+    inventory_panel_y = panel_y
+
+    # Draw main panel
+    pygame.draw.rect(screen, BLACK, (panel_x, panel_y, panel_width, panel_height))
+    pygame.draw.rect(screen, WHITE, (panel_x, panel_y, panel_width, panel_height), 2)
+
+    # Draw equipped sub-panel
+    pygame.draw.rect(screen, GRAY, (equipped_panel_x, equipped_panel_y, equipped_panel_width, equipped_panel_height))
+    pygame.draw.rect(screen, WHITE, (equipped_panel_x, equipped_panel_y, equipped_panel_width, equipped_panel_height), 2)
+
+    # Draw "Equipped" label
+    font_large = pygame.font.SysFont(None, 24)
+    equipped_label = font_large.render("Equipped", True, WHITE)
+    label_rect = equipped_label.get_rect(center=(equipped_panel_x + equipped_panel_width // 2, equipped_panel_y + 20))
+    screen.blit(equipped_label, label_rect)
+
+    # Render equipped item (if any)
+    if player.weapon:
+        # Draw enlarged equipped item
+        enlarged_image = pygame.transform.scale(player.weapon.image, (64, 64))
+        equipped_item_x = equipped_panel_x + (equipped_panel_width - 64) // 2
+        equipped_item_y = equipped_panel_y + 40
+        screen.blit(enlarged_image, (equipped_item_x, equipped_item_y))
+
+    # Draw inventory sub-panel
+    pygame.draw.rect(screen, GRAY, (inventory_panel_x, inventory_panel_y, inventory_panel_width, inventory_panel_height))
+    pygame.draw.rect(screen, WHITE, (inventory_panel_x, inventory_panel_y, inventory_panel_width, inventory_panel_height), 2)
+
+    # Render inventory items
+    item_x = inventory_panel_x + 10  # Start with padding
+    item_y = inventory_panel_y + (inventory_panel_height // 2 - 16)  # Center items vertically
+    for item in player.inventory:
+        # Draw item image
+        screen.blit(item.image, (item_x, item_y))
+
+        # Highlight the equipped item
+        if item == player.weapon:
+            pygame.draw.rect(screen, WHITE, (item_x - 2, item_y - 2, 36, 36), 2)
+
+        # Move to the next position
+        item_x += 36  # Item width + spacing
+        if item_x + 36 > inventory_panel_x + inventory_panel_width:  # Wrap to next line if out of space
+            item_x = inventory_panel_x + 10
+            item_y += 36
+
+# Process user commands
 def process_command(command, chat_history):
     """Process player commands."""
     # Parse the command and arguments
@@ -332,9 +390,9 @@ def process_command(command, chat_history):
         else:
             chat_history.append(f"You are already outside.")
 
-    elif cmd == "search":
+    elif cmd == "search" or cmd == "s":
         if hasattr(player, 'search') and callable(player.search):
-            result = player.search(get_block_at_player(), building_group, lights_on)
+            result = player.search(get_block_at_player(), building_group, lights_on, building_type_groups)
             chat_history.append(result)
         else:
             chat_history.append(f"There is nothing to search here.")
@@ -403,7 +461,7 @@ def main():
         draw_description_panel()
         draw_chat(chat_history, input_text, scroll_offset)
         draw_status()
-
+        draw_inventory_panel()
 
         pygame.display.flip()
         clock.tick(FPS)

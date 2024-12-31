@@ -29,28 +29,49 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 DARK_GREEN = (34, 51, 34)
 
+ITEMS = {
+    'First Aid Kit': {'image_file': 'assets/first_aid_kit.bmp'},
+    'Portable Generator': {'image_file': 'assets/portable_generator.bmp'},
+    'Fuel Can': {'image_file': 'assets/fuel_can.bmp'},
+    'Map': {'image_file': 'assets/map.bmp'},
+    'Shotgun Shell': {'image_file': 'assets/shotgun_shell.bmp'},
+    'Pistol Clip': {'image_file': 'assets/pistol_clip.bmp'},
+}
+
+WEAPONS = {
+    'Crowbar': {'image_file': 'assets/crowbar.bmp', 'damage': 8, 'durability': 100},
+    'Fire Axe': {'image_file': 'assets/fire_axe.bmp', 'damage': 15, 'durability': 80},
+    'Shovel': {'image_file': 'assets/shovel.bmp', 'damage': 10, 'durability': 90},
+    'Shotgun': {'image_file': 'assets/shotgun.bmp', 'damage': 50, 'loaded_ammo': 2, 'max_ammo': 2},
+    'Pistol': {'image_file': 'assets/pistol.bmp', 'damage': 20, 'loaded_ammo': 7, 'max_ammo': 7},
+}
+
+# Categorization for weapons
+MELEE_WEAPONS = ['Crowbar', 'Fire Axe', 'Shovel']
+FIREARMS = ['Shotgun', 'Pistol']
+
 # Images for block sprites
 BLOCK_IMAGES = {
-    "FireStation": "assets/fire_station.gif",
-    "PoliceDepartment": "assets/police_department.gif",
+    "FireStation": "assets/fire_station.bmp",
+    "PoliceDepartment": "assets/police_department.bmp",
     "Street": "assets/streets.gif",
-    "Park": "assets/park.gif",
-    "Carpark": "assets/carpark.gif",
-    "Cemetery": "assets/cemetery.gif",
-    "Monument": "assets/monument.gif",
-    "Hospital": "assets/hospital.gif",
-    "Mall": "assets/mall.gif",
-    "Church": "assets/church.gif",
-    "Warehouse": "assets/warehouse.gif",
-    "Factory": "assets/factory.gif",
-    "School": "assets/school.gif",
-    "NecroTechLab": "assets/necrotech_lab.gif",
-    "Junkyard": "assets/junkyard.gif",
-    "Museum": "assets/museum.gif",
-    "Nightclub": "assets/nightclub.gif",
-    "Pub": "assets/pub.gif",
-    "Library": "assets/library.gif",
-    "AutoRepair": "assets/auto_repair.gif",
+    "Park": "assets/park.bmp",
+    "Carpark": "assets/carpark.bmp",
+    "Cemetery": "assets/cemetery.bmp",
+    "Monument": "assets/monument.bmp",
+    "Hospital": "assets/hospital.bmp",
+    "Mall": "assets/mall.bmp",
+    "Church": "assets/church.bmp",
+    "Warehouse": "assets/warehouse.bmp",
+    "Factory": "assets/factory.bmp",
+    "School": "assets/school.bmp",
+    "NecroTechLab": "assets/necrotech_lab.bmp",
+    "Junkyard": "assets/junkyard.bmp",
+    "Museum": "assets/museum.bmp",
+    "Nightclub": "assets/nightclub.bmp",
+    "Pub": "assets/pub.bmp",
+    "Library": "assets/library.bmp",
+    "AutoRepair": "assets/auto_repair.bmp",
 }
 
 # List of neighbourhoods
