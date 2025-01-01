@@ -2,10 +2,11 @@
 import pygame
 import sys
 import random
+
 from settings import *
 from player import Player
-from city_generation import outdoor_type_groups, building_type_groups, cityblock_group, outdoor_group, building_group, neighbourhood_groups, generate_city, generate_neighbourhoods
-
+import city_generation
+import ui
 
 # Initialize Pygame
 pygame.init()
@@ -14,11 +15,19 @@ pygame.init()
 x_groups = {x: pygame.sprite.Group() for x in range(100)}
 y_groups = {y: pygame.sprite.Group() for y in range(100)}
 
+# Set up action button group
+button_group = pygame.sprite.Group()
+buttons = ['barricade', 'search']
+for i, button_name in enumerate(buttons):
+    button = ui.Button(button_name, x=40 + i * 120, y=(SCREEN_HEIGHT // 2) + 80)
+    button_group.add(button)
+enter_button = ui.Button('enter', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
+button_group.add(enter_button)
+leave_button = ui.Button('leave', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
+
 # Initialize city
-generate_city(x_groups, y_groups)
-generate_neighbourhoods(x_groups, y_groups)
-lights_on = pygame.sprite.Group()
-generator_installed = pygame.sprite.Group()
+city_generation.generate_city(x_groups, y_groups)
+city_generation.generate_neighbourhoods(x_groups, y_groups)
 
 # Create screen and clock
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -31,16 +40,14 @@ font_large = pygame.font.SysFont(None, 24)
 
 # Create player
 player = Player(
-    name="Alice",
-    occupation="Doctor",
-    x=50,
-    y=50,
+    x_groups, y_groups, city_generation.cityblock_group, city_generation.building_group, city_generation.building_type_groups, city_generation.neighbourhood_groups,
+    button_group, enter_button, leave_button, name="Alice", occupation="Doctor", x=50, y=50, 
 )
 
 # Apply zoomed-in image of street grid to street sprites to randomize street appearance
 def apply_zoomed_image(block_image):
     """Apply a zoomed-in portion of the block image."""
-    street_group = outdoor_type_groups['Street']
+    street_group = city_generation.outdoor_type_groups['Street']
     image_width, image_height = block_image.get_width(), block_image.get_height()
 
     # Define the zoom-in factor (e.g., 2x zoom = 50% of the original size)
@@ -62,58 +69,6 @@ def apply_zoomed_image(block_image):
 # Load the street images
 street_image = pygame.image.load(BLOCK_IMAGES['Street'])
 apply_zoomed_image(street_image)
-
-# Handle text wrapping
-def wrap_text(text, font, max_width):
-    """Wrap the text to fit inside a given width."""
-    lines = []
-    words = text.split(" ")
-    current_line = ""
-
-    for word in words:
-        # Check if adding the word exceeds the width
-        test_line = current_line + (word if current_line == "" else " " + word)
-        test_width, _ = font.size(test_line)
-
-        if test_width <= max_width:
-            current_line = test_line  # Add the word to the current line
-        else:
-            if current_line != "":
-                lines.append(current_line)  # Append the current line if it's not empty
-            current_line = word  # Start a new line with the current word
-
-    if current_line != "":  # Append the last line if it has any content
-        lines.append(current_line)
-
-    return lines
-
-# Get all sprites at (x, y)
-def get_sprites_at(x, y):
-    sprites_x = x_groups[x]
-    sprites_y = y_groups[y]
-    return set(sprites_x) & set(sprites_y)
-
-# Get filtered sprites at (x, y)
-def get_filtered_sprites_at(x, y, group):
-    all_sprites = get_sprites_at(x, y)
-    filtered_sprites = []
-    for sprite in all_sprites:
-        if sprite in group:
-            filtered_sprites.append(sprite)
-    
-    return filtered_sprites
-
-# Get the city block at player's current location
-def get_block_at_player():
-    block = get_filtered_sprites_at(player.location[0], player.location[1], cityblock_group)[0]
-    return block
-
-# Get the neighbourhood of a city block
-def get_neighbourhood(block):
-    for group_name, group in neighbourhood_groups.items():
-        if block in group:
-            return group_name
-    return None
 
 # Get (x, y) of a specific sprite
 def get_sprite_coordinates(sprite):
@@ -142,7 +97,7 @@ def update_viewport():
 
             #Ensure block coordinates are within city bounds
             if block_x in x_groups and block_y in y_groups:
-                blocks = set(x_groups[block_x]) & set(y_groups[block_y]) & set(cityblock_group)
+                blocks = set(x_groups[block_x]) & set(y_groups[block_y]) & set(city_generation.cityblock_group)
                 if blocks:
                     block = next(iter(blocks))
                     row.append(block)
@@ -150,212 +105,8 @@ def update_viewport():
 
     return viewport_rows
 
-#    # Determine the bounds of the viewport
-#    x_start, x_end = player.location[0] - 1, player.location[0] + 1
-#    y_start, y_end = player.location[1] - 1, player.location[1] + 1
-
-#    for x in range(x_start, x_end + 1):
-#        for y in range(y_start, y_end + 1):
-#            # Get block at this coordinate
-#            block = get_filtered_sprites_at(x, y, cityblock_group)
-#            # Add to the appropriate row and column groups
-#            viewport_rows[y - y_start].add(block)
-#            viewport_columns[x - x_start].add(block)
-
-#    return viewport_rows
-
 # Initialize viewport based on player's starting position
 viewport_rows = update_viewport()
-
-# Draw viewport
-def draw_viewport():
-    """Draw the 3x3 viewport representing the player's surroundings."""
-    grid_start_x, grid_start_y = 10, 10
-    player_x, player_y = player.location
-
-    for row_index, row in enumerate(viewport_rows):
-        for col_index, block in enumerate(row):
-            if block is None:
-                continue
-
-            # Calculate the block's position relative to the viewport
-            block_rect_x = grid_start_x + col_index * BLOCK_SIZE
-            block_rect_y = grid_start_y + row_index * BLOCK_SIZE + 20
-
-            screen.blit(block.image, (block_rect_x, block_rect_y))
-
-            block_text = wrap_text(block.block_name, font_small, BLOCK_SIZE - 10)
-            text_height = sum(font_small.size(line)[1] for line in block_text)
-            # Adjust button_rect to align with bottom of block_rect
-            button_rect = pygame.Rect(
-                block_rect_x, block_rect_y + BLOCK_SIZE - text_height - 10, 
-                BLOCK_SIZE, text_height + 10)
-            pygame.draw.rect(screen, WHITE, button_rect)
-            y_offset = button_rect.top + (button_rect.height - text_height)  # Center text vertically
-
-            for line in block_text:
-                text = font_small.render(line, True, BLACK)
-                text_rect = text.get_rect(center=(button_rect.centerx, y_offset))
-                screen.blit(text, text_rect)
-                y_offset += font_small.size(line)[1]  # Move down for the next line
-
-    # Draw neighbourhood name
-    pygame.draw.rect(screen, GRAY, (grid_start_x, grid_start_y, VIEWPORT_SIZE * BLOCK_SIZE, 20))
-    neighbourhood_name = get_neighbourhood(get_block_at_player())
-    text = font_small.render(neighbourhood_name, True, WHITE)
-    screen.blit(text, (grid_start_x + 10, grid_start_y + 5))
-
-# Draw description panel
-def draw_description_panel():
-    """Draw the description panel on the right side of the screen."""
-
-    description_start_x = SCREEN_WIDTH // 3 + 10
-    description_width = SCREEN_WIDTH - description_start_x - 10
-    description_height = SCREEN_HEIGHT - 170
-
-    pygame.draw.rect(screen, WHITE, (description_start_x, 10, description_width, description_height))
-
-    # Get the description text and wrap it to fit within the panel
-    paragraphs = []
-    current_observations = player.description(get_block_at_player(), building_group, lights_on, generator_installed)
-    for observation in current_observations:
-        wrapped_text = wrap_text(observation, font_large, description_width - 20)  # 10px padding on each side
-        for line in wrapped_text:
-            paragraphs.append(line)
-        paragraphs.append(" ")
-
-    # Calculate the total height of the formatted text
-    total_text_height = sum(font_large.size(line)[1] for line in paragraphs)
-    
-    # Calculate the starting y_offset to center the text vertically with padding
-    y_offset = 20 + (description_height - total_text_height) // 2  # 20px padding at the top of the panel
-
-    # Render each paragraph inside the description panel
-    for line in paragraphs:
-        text = font_large.render(line, True, BLACK)
-        text_rect = text.get_rect(x=description_start_x + 10, y=y_offset)  # Padding of 10px on the left
-        screen.blit(text, text_rect)
-        y_offset += font_large.size(line)[1]  # Move down for the next line
-
-# Draw the chat panel
-def draw_chat(chat_history, input_text, scroll_offset):
-    """Draw the chat window with scrolling support and text wrapping."""
-    chat_start_x, chat_start_y = 10, SCREEN_HEIGHT // 2 + 30
-    chat_width, chat_height = SCREEN_WIDTH // 3 - 10, SCREEN_HEIGHT // 2 - 70
-
-    # Draw the chat window.
-    pygame.draw.rect(screen, BLACK, (chat_start_x, chat_start_y, chat_width, chat_height))
-    pygame.draw.rect(screen, WHITE, (chat_start_x, chat_start_y, chat_width, chat_height), 2)
-
-    # Draw messages starting from the bottom of the chat area
-    # Calculate the max number of visible lines.
-    max_visible_lines = (chat_height - 20) // 20
-    wrapped_history = []
-    for message in chat_history:
-        wrapped_history.extend(wrap_text(f">> {message}", font_large, chat_width - 20))
-
-    total_lines = len(wrapped_history)
-
-    # Limit scroll_offset to valid bounds.
-    scroll_offset = max(0, min(scroll_offset, max(0, total_lines - max_visible_lines)))
-
-    # Determine which messages to display based on scroll_offset
-    visible_history = wrapped_history[scroll_offset:scroll_offset + max_visible_lines]
-    y_offset = chat_start_y + chat_height - 30
-
-    for message in reversed(visible_history):
-            text = font_large.render(message, True, WHITE)
-            screen.blit(text, (chat_start_x + 10, y_offset))
-            y_offset -= 20
-
-    # Draw input box
-    input_box = pygame.Rect(chat_start_x, chat_start_y + chat_height + 5, chat_width - 10, 25)
-    pygame.draw.rect(screen, GRAY, input_box)
-    input_text_rendered = font_large.render(input_text, True, WHITE)
-    screen.blit(input_text_rendered, (input_box.x + 5, input_box.y + 5))
-
-# Draw the player status panel
-def draw_status():
-    """Draw the player status panel."""
-    status_start_x, status_start_y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT - 150
-    status_width, status_height = SCREEN_WIDTH // 4 - 20, 140
-
-    pygame.draw.rect(screen, BLACK, (status_start_x, status_start_y, status_width, status_height))
-    pygame.draw.rect(screen, WHITE, (status_start_x, status_start_y, status_width, status_height), 2)
-
-    y_offset = status_start_y + 10
-    status_text = []
-    for status_type, status in player.status().items():
-        line = f"{status_type}: {status}"
-        status_text.append(line)
-
-    for line in status_text:
-        text = font_large.render(line, True, WHITE)
-        screen.blit(text, (status_start_x + 10, y_offset))
-        y_offset += 20
-
-# Draw the inventory panel
-def draw_inventory_panel():
-    """Render the inventory panel in the bottom-right corner of the screen."""
-    # Panel dimensionss
-    panel_width = SCREEN_WIDTH * 5 // 12 - 20
-    panel_height = 140
-    panel_x = SCREEN_WIDTH - panel_width - 10
-    panel_y = SCREEN_HEIGHT - panel_height - 10
-
-    # Sub-panel dimensions
-    equipped_panel_width = panel_width // 4
-    equipped_panel_height = panel_height
-    equipped_panel_x = panel_x
-    equipped_panel_y = panel_y
-
-    inventory_panel_width = panel_width - equipped_panel_width
-    inventory_panel_height = panel_height
-    inventory_panel_x = panel_x + equipped_panel_width
-    inventory_panel_y = panel_y
-
-    # Draw main panel
-    pygame.draw.rect(screen, BLACK, (panel_x, panel_y, panel_width, panel_height))
-    pygame.draw.rect(screen, WHITE, (panel_x, panel_y, panel_width, panel_height), 2)
-
-    # Draw equipped sub-panel
-    pygame.draw.rect(screen, GRAY, (equipped_panel_x, equipped_panel_y, equipped_panel_width, equipped_panel_height))
-    pygame.draw.rect(screen, WHITE, (equipped_panel_x, equipped_panel_y, equipped_panel_width, equipped_panel_height), 2)
-
-    # Draw "Equipped" label
-    font_large = pygame.font.SysFont(None, 24)
-    equipped_label = font_large.render("Equipped", True, WHITE)
-    label_rect = equipped_label.get_rect(center=(equipped_panel_x + equipped_panel_width // 2, equipped_panel_y + 20))
-    screen.blit(equipped_label, label_rect)
-
-    # Render equipped item (if any)
-    if player.weapon:
-        # Draw enlarged equipped item
-        enlarged_image = pygame.transform.scale(player.weapon.image, (64, 64))
-        equipped_item_x = equipped_panel_x + (equipped_panel_width - 64) // 2
-        equipped_item_y = equipped_panel_y + 40
-        screen.blit(enlarged_image, (equipped_item_x, equipped_item_y))
-
-    # Draw inventory sub-panel
-    pygame.draw.rect(screen, GRAY, (inventory_panel_x, inventory_panel_y, inventory_panel_width, inventory_panel_height))
-    pygame.draw.rect(screen, WHITE, (inventory_panel_x, inventory_panel_y, inventory_panel_width, inventory_panel_height), 2)
-
-    # Render inventory items
-    item_x = inventory_panel_x + 10  # Start with padding
-    item_y = inventory_panel_y + (inventory_panel_height // 2 - 16)  # Center items vertically
-    for item in player.inventory:
-        # Draw item image
-        screen.blit(item.image, (item_x, item_y))
-
-        # Highlight the equipped item
-        if item == player.weapon:
-            pygame.draw.rect(screen, WHITE, (item_x - 2, item_y - 2, 36, 36), 2)
-
-        # Move to the next position
-        item_x += 36  # Item width + spacing
-        if item_x + 36 > inventory_panel_x + inventory_panel_width:  # Wrap to next line if out of space
-            item_x = inventory_panel_x + 10
-            item_y += 36
 
 # Process user commands
 def process_command(command, chat_history):
@@ -371,35 +122,35 @@ def process_command(command, chat_history):
     # Handle commands
     if cmd == "enter":
         if hasattr(player, 'enter') and callable(player.enter):
-            result = player.enter(get_block_at_player(), building_group, lights_on, generator_installed)
+            result = player.enter()
             chat_history.append(result)
         else:
             chat_history.append(f"There is no building to enter here.")
 
     elif cmd == "where":
         if hasattr(player, 'where') and callable(player.where):
-            result = player.where(get_block_at_player())
+            result = player.where()
             chat_history.append(result)
         else:
             chat_history.append(f"I don't know where we are.")
 
     elif cmd == "leave":
         if hasattr(player, 'leave') and callable(player.leave):
-            result = player.leave(get_block_at_player(), building_group, lights_on, generator_installed)
+            result = player.leave()
             chat_history.append(result)
         else:
             chat_history.append(f"You are already outside.")
 
     elif cmd == "search" or cmd == "s":
         if hasattr(player, 'search') and callable(player.search):
-            result = player.search(get_block_at_player(), building_group, lights_on, building_type_groups)
+            result = player.search()
             chat_history.append(result)
         else:
             chat_history.append(f"There is nothing to search here.")
 
     elif cmd == "barricade":
         if hasattr(player, 'barricade') and callable(player.barricade):
-            result = player.barricade(get_block_at_player(), building_group, lights_on)
+            result = player.barricade()
             chat_history.append(result)
         else:
             chat_history.append(f"You can't barricade here.")
@@ -441,13 +192,24 @@ def main():
                 else:
                     input_text += event.unicode
 
-                if event.key == pygame.K_UP and player.move(0, -1, building_group, lights_on):
+                # Arrow key movement
+                if event.key == pygame.K_UP and player.move(0, -1):
                     viewport_rows = update_viewport()
-                elif event.key == pygame.K_DOWN and player.move(0, 1, building_group, lights_on):
+                elif event.key == pygame.K_DOWN and player.move(0, 1):
                     viewport_rows = update_viewport()
-                elif event.key == pygame.K_LEFT and player.move(-1, 0, building_group, lights_on):                    
+                elif event.key == pygame.K_LEFT and player.move(-1, 0):                    
                     viewport_rows = update_viewport()
-                elif event.key == pygame.K_RIGHT and player.move(1, 0, building_group, lights_on):
+                elif event.key == pygame.K_RIGHT and player.move(1, 0):
+                    viewport_rows = update_viewport()
+
+                # WASD movement
+                if event.key == pygame.K_w and player.move(0, -1):
+                    viewport_rows = update_viewport()
+                elif event.key == pygame.K_s and player.move(0, 1):
+                    viewport_rows = update_viewport()
+                elif event.key == pygame.K_a and player.move(-1, 0):                    
+                    viewport_rows = update_viewport()
+                elif event.key == pygame.K_d and player.move(1, 0):
                     viewport_rows = update_viewport()
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -456,12 +218,44 @@ def main():
                 elif event.button == 5: # Scroll down
                     scroll_offset += 1
 
+            for button in button_group:
+                action = button.handle_event(event)
+                current_block = player.get_block_at_player()
+                if action:
+                    if action == 'barricade':
+                        if hasattr(player, 'barricade') and callable(player.barricade):
+                            result = player.barricade()
+                            chat_history.append(result)
+                        else:
+                            chat_history.append(f"You can't barricade here.")
+                    elif action == 'search':
+                        if hasattr(player, 'search') and callable(player.search):
+                            result = player.search()
+                            chat_history.append(result)
+                        else:
+                            chat_history.append(f"There is nothing to search here.")
+                    elif action == 'enter':
+                        if hasattr(player, 'enter') and callable(player.enter):
+                            result = player.enter()
+                            chat_history.append(result)
+                        else:
+                            chat_history.append(f"There is no building to enter here.")
+                    elif action == 'leave':
+                        if hasattr(player, 'leave') and callable(player.leave):
+                            result = player.leave()
+                            chat_history.append(result)
+                        else:
+                            chat_history.append(f"You are already outside.")
 
-        draw_viewport()
-        draw_description_panel()
-        draw_chat(chat_history, input_text, scroll_offset)
-        draw_status()
-        draw_inventory_panel()
+        # Draw game elements to screen
+        ui.draw_viewport(screen, player, viewport_rows, font_small)
+        ui.draw_actions_panel(screen, font_large)
+        button_group.update()
+        button_group.draw(screen)
+        ui.draw_description_panel(screen, player, font_large)
+        ui.draw_chat(screen, chat_history, input_text, scroll_offset, font_large)
+        ui.draw_status(screen, player, font_large)
+        ui.draw_inventory_panel(screen, player, font_large)
 
         pygame.display.flip()
         clock.tick(FPS)

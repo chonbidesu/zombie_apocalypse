@@ -167,6 +167,7 @@ def generate_city(x_groups, y_groups):
 
                                 building_type_groups['Mall'].add(new_block)
                                 building_group.add(new_block)
+                                # print(f"Added to building_group: {new_block} of type {new_block.__class__.__name__}")
                                 cityblock_group.add(new_block)
 
                                 x_groups[x + 1].remove(right_block)
@@ -196,6 +197,7 @@ def generate_city(x_groups, y_groups):
 
                                 building_type_groups['Mall'].add(new_block)
                                 building_group.add(new_block)
+                                # print(f"Added to building_group: {new_block} of type {new_block.__class__.__name__}")
                                 cityblock_group.add(new_block)
 
                                 x_groups[x].remove(bottom_block)
@@ -225,6 +227,7 @@ def generate_city(x_groups, y_groups):
 
                                 building_type_groups['Mall'].add(new_block)
                                 building_group.add(new_block)
+                                # print(f"Added to building_group: {new_block} of type {new_block.__class__.__name__}")
                                 cityblock_group.add(new_block)
 
                                 x_groups[x + 1].remove(diagonal_block)

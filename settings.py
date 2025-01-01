@@ -8,7 +8,7 @@ SCREEN_HEIGHT = 800
 VIEWPORT_SIZE = 3  # 3x3 viewport
 CITY_SIZE = 100  # 100x100 city grid
 NEIGHBOURHOOD_SIZE = 10  # 10x10 neighbourhoods
-BLOCK_SIZE = SCREEN_HEIGHT // 6
+BLOCK_SIZE = SCREEN_HEIGHT * 7 // 54
 
 # Game settings
 FPS = 30
@@ -28,6 +28,7 @@ GRAY = (100, 100, 100)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 DARK_GREEN = (34, 51, 34)
+ORANGE = (236, 88, 0)
 
 ITEMS = {
     'First Aid Kit': {'image_file': 'assets/first_aid_kit.bmp'},

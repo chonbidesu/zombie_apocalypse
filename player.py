@@ -9,7 +9,7 @@ from items import Item, Weapon
 
 class Player:
     """Represents the player's character."""
-    def __init__(self, name, occupation, x, y):
+    def __init__(self, x_groups, y_groups, cityblock_group, building_group, building_type_groups, neighbourhood_groups, button_group, enter_button, leave_button, name, occupation, x, y):
         self.name = name
         self.occupation = occupation
         self.skills = []  # Skills active when human
@@ -23,6 +23,17 @@ class Player:
         self.is_dead = False  # Status of the player
         self.search_chances = self.load_search_chances("assets/search.csv")
         self.ticker = 0  # Tracks the number of actions taken
+        self.x_groups = x_groups
+        self.y_groups = y_groups
+        self.cityblock_group = cityblock_group
+        self.building_group = building_group
+        self.building_type_groups = building_type_groups
+        self.neighbourhood_groups = neighbourhood_groups
+        self.button_group = button_group
+        self.enter_button = enter_button
+        self.leave_button = leave_button
+        self.lights_on = pygame.sprite.Group()
+        self.generator_installed = pygame.sprite.Group()
 
     def assign_starting_trait(self, occupation):
         """Assigns a starting trait based on the player's occupation."""
@@ -37,6 +48,28 @@ class Player:
         }
         return traits.get(occupation, "Survivor Instinct")
 
+    # Get all sprites at (x, y)
+    def get_sprites_at(self, x, y):
+        sprites_x = self.x_groups[x]
+        sprites_y = self.y_groups[y]
+        return set(sprites_x) & set(sprites_y)
+
+    # Get filtered sprites at (x, y)
+    def get_filtered_sprites_at(self, x, y, group):
+        all_sprites = self.get_sprites_at(x, y)
+        filtered_sprites = []
+        for sprite in all_sprites:
+            if sprite in group:
+                filtered_sprites.append(sprite)
+        
+        return filtered_sprites
+
+    # Get the city block at player's current location
+    def get_block_at_player(self):
+        block_list = self.get_filtered_sprites_at(self.location[0], self.location[1], self.cityblock_group)
+        for block in block_list:
+            return block
+    
     def gain_skill(self, skill):
         """Adds a skill to the player's skill list depending on their state."""
         self.skills.append(skill)
@@ -83,44 +116,47 @@ class Player:
         }
         return status
 
-    def get_current_observations(self, current_block, building_group, lights_on, generator_installed):
+    def get_current_observations(self):
+        current_block = self.get_block_at_player()
         current_observations = ""
         if self.inside:
             current_observations += f'You are standing inside {current_block.block_name}. '
-            if not current_block in lights_on:
+            if not current_block in self.lights_on:
                 current_observations += 'With the lights out, you can hardly see anything. '
             current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
             
             # Check if the building has a running generator.
-            if current_block in generator_installed:
+            if current_block in self.generator_installed:
                 current_observations += "A portable generator has been set up here. "
-                if current_block in lights_on:
+                if current_block in self.lights_on:
                     current_observations += "It is running. "
                 else:
                     current_observations += "It is out of fuel. "
         else:
-            if current_block in building_group:
+            if current_block in self.building_group:
                 current_observations += f'You are standing outside {current_block.block_desc}. A sign reads "{current_block.block_name}". '
                 current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
-                if current_block in lights_on:
+                if current_block in self.lights_on:
                     current_observations += "Lights are on inside. "
             else:
                 current_observations += f'You are standing in {current_block.block_desc}.'
         return current_observations
 
-    def update_observations(self, current_block, building_group, lights_on, generator_installed):
+    def update_observations(self):
         """Update the observations list based on the player's current state."""
+        current_block = self.get_block_at_player()
         current_block.observations.clear()  # Clear existing observations
         if self.inside:
-            current_block.observations.append(self.get_current_observations(current_block, building_group, lights_on, generator_installed))
+            current_block.observations.append(self.get_current_observations())
             current_block.observations.append(current_block.block_inside_desc)
         else:
-            current_block.observations.append(self.get_current_observations(current_block, building_group, lights_on, generator_installed))
+            current_block.observations.append(self.get_current_observations())
             current_block.observations.append(current_block.block_outside_desc)
 
-    def description(self, current_block, building_group, lights_on, generator_installed):
+    def description(self):
         """Return the current list of observations as a list."""
-        self.update_observations(current_block, building_group, lights_on, generator_installed)  # Ensure observations are current
+        current_block = self.get_block_at_player()
+        self.update_observations()  # Ensure observations are current
         return current_block.observations
     
     def load_search_chances(self, file_path):
@@ -165,28 +201,28 @@ class Player:
                 image_file=attributes['image_file']
             )
 
-    def increment_ticker(self, building_group, lights_on):
+    def increment_ticker(self):
         """Increments the ticker to track player actions."""
         self.ticker += 1
-        for building in building_group:
-            if building.fuel_expiration < self.ticker:
-                if building in lights_on:
-                    lights_on.remove(building)
+        for building in self.building_group:
+            if hasattr(building, 'fuel_expiration') and building.fuel_expiration < self.ticker:
+                if building in self.lights_on:
+                    self.lights_on.remove(building)
 
     # Start of player actions
 
-    def use_item(self, item_name, building_group, lights_on):
+    def use_item(self, item_name):
         """Uses an item from the inventory if available."""
         for item in self.inventory:
             if item.name == item_name:
                 result = item.use()
-                self.increment_ticker(building_group, lights_on)
+                self.increment_ticker()
                 if item.consumable:
                     self.remove_item(item)
                 return result
         return f"You don't have a {item_name}."
 
-    def move(self, dx, dy, building_group, lights_on):
+    def move(self, dx, dy):
         """Moves the player to a new location on the grid."""
         x, y = self.location
         new_x, new_y = x + dx, y + dy
@@ -194,15 +230,19 @@ class Player:
         # Check if the new coordinates are valid within the grid
         if 0 <= new_x < 100 and 0 <= new_y < 100:
             # If a player moves, they are no longer inside.
-            self.inside = False
-            self.increment_ticker(building_group, lights_on)
+            if self.inside:
+                self.inside = False
+                self.button_group.remove(self.leave_button)
+                self.button_group.add(self.enter_button)
+            self.increment_ticker()
             self.location = (new_x, new_y)
             return True
         return False
 
-    def barricade(self, current_block, building_group, lights_on, modifier=1):
-        if current_block in building_group and self.inside:
-            self.increment_ticker(building_group, lights_on)
+    def barricade(self, modifier=1):
+        current_block = self.get_block_at_player()
+        if current_block in self.building_group and self.inside:
+            self.increment_ticker()
             success_chance = BARRICADE_CHANCE * modifier
             success_chance = max(0, min(success_chance, 1))  # Ensure the chance is between 0 and 1
             success = random.random() < success_chance
@@ -216,40 +256,52 @@ class Player:
         else:
             return "You can't barricade here."
 
-    def where(self, current_block):
+    def where(self):
+        current_block = self.get_block_at_player()
         if self.inside:
             return f"You are standing inside {current_block.block_desc} called {current_block.block_name}."
         else:
             return f"You are standing in front of {current_block.block_desc} called {current_block.block_name}."
 
-    def enter(self, current_block, building_group, lights_on, generator_installed):
-        if current_block in building_group:
+    def enter(self):
+        current_block = self.get_block_at_player()
+        if current_block in self.building_group:
             if not self.inside:
-                self.increment_ticker(building_group, lights_on)
+                self.increment_ticker()
                 self.inside = True
-                self.update_observations(current_block, building_group, lights_on, generator_installed)
+                self.update_observations()
+                for button in self.button_group:
+                    if button.name == 'enter':
+                        self.button_group.remove(button)
+                self.button_group.add(self.leave_button)
                 return "You entered the building."
             return "You are already inside."
         return "This is not a building."
 
-    def leave(self, current_block, building_group, lights_on, generator_installed):
-        if current_block in building_group:
+    def leave(self):
+        current_block = self.get_block_at_player()
+        if current_block in self.building_group:
             if self.inside:
-                self.increment_ticker(building_group, lights_on)
+                self.increment_ticker()
                 self.inside = False
-                self.update_observations(current_block, building_group, lights_on, generator_installed)
+                self.update_observations()
+                for button in self.button_group:
+                    if button.name == 'leave':
+                        self.button_group.remove(button)
+                self.button_group.add(self.enter_button)
                 return "You left the building."
             return "You are already outside."
         return "You can't leave this place."
 
-    def search(self, current_block, building_group, lights_on, building_type_groups):
-        self.increment_ticker(building_group, lights_on)
-        if current_block in building_group:
-            for group_type, group in building_type_groups.items():
+    def search(self):
+        current_block = self.get_block_at_player()
+        self.increment_ticker()
+        if current_block in self.building_group:
+            for group_type, group in self.building_type_groups.items():
                 if current_block in group:
                     block_type = group_type
             if self.inside:
-                if current_block in lights_on:
+                if current_block in self.lights_on:
                     multiplier = 1.5
                 else:
                     multiplier = 1.0
@@ -276,21 +328,21 @@ class Player:
         else:
             return "You search but there is nothing to be found."
         
-    def install_generator(self, current_block, building_group, lights_on, generator_installed):
-        if current_block in generator_installed:
+    def install_generator(self, current_block):
+        if current_block in self.generator_installed:
             return "Generator is already installed."
         else:
-            self.increment_ticker(building_group, lights_on)
-            generator_installed.add(current_block)
+            self.increment_ticker()
+            self.generator_installed.add(current_block)
             return "You install a generator. It needs fuel to operate."
         
-    def fuel_generator(self, current_block, building_group, lights_on, generator_installed):
-        if current_block in lights_on:
+    def fuel_generator(self, current_block):
+        if current_block in self.lights_on:
             return "Generator already has fuel."
-        elif current_block not in generator_installed:
+        elif current_block not in self.generator_installed:
             return "You need to install a generator first."
         else:
-            self.increment_ticker(building_group, lights_on)
+            self.increment_ticker()
             current_block.fuel_expiration = self.ticker + FUEL_DURATION
-            lights_on.add(current_block)
+            self.lights_on.add(current_block)
             return "You fuel the generator. The lights are now on."
