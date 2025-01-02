@@ -170,7 +170,35 @@ def draw_description_panel(screen, player, font_large):
     scaled_panel_image = pygame.transform.scale(description_panel_image, (description_width, description_height))
     screen.blit(scaled_panel_image, (description_start_x, 10))
 
+    # Determine the setting image
+    current_block = player.get_block_at_player()
+    for group, blocks in player.outdoor_type_groups.items():
+        if current_block in blocks:
+            block_type = group.lower()
+    for group, blocks in player.building_type_groups.items():
+        if current_block in blocks:
+            block_type = group.lower()
+    image_suffix = "inside" if player.inside else "outside"
+    image_path = f"assets/{block_type}_{image_suffix}.png"
+
+    try:
+        setting_image = pygame.image.load(image_path)
+    except FileNotFoundError:
+        setting_image = pygame.Surface((1, 1))  # Fallback if image not found
+        setting_image.fill((0, 0, 0))
+
+    # Scale the setting image
+    setting_image_width = description_width * 5 // 6
+    setting_image_height = setting_image_width * 4 // 9  # 9:4 aspect ratio
+    scaled_setting_image = pygame.transform.scale(setting_image, (setting_image_width, setting_image_height))
+
+    # Blit the setting image at the top of the panel
+    setting_image_x = description_start_x + (description_width - setting_image_width) // 2
+    setting_image_y = 50
+    screen.blit(scaled_setting_image, (setting_image_x, setting_image_y))
+
     # Get the description text and wrap it to fit within the panel
+    text_start_y = setting_image_y + setting_image_height + 20
     paragraphs = []
     current_observations = player.description()
     for observation in current_observations:
@@ -179,18 +207,12 @@ def draw_description_panel(screen, player, font_large):
             paragraphs.append(line)
         paragraphs.append(" ")
 
-    # Calculate the total height of the formatted text
-    total_text_height = sum(font_large.size(line)[1] for line in paragraphs)
-    
-    # Calculate the starting y_offset to center the text vertically with padding
-    y_offset = 20 + (description_height - total_text_height) // 2  # 20px padding at the top of the panel
-
     # Render each paragraph inside the description panel
     for line in paragraphs:
         text = font_large.render(line, True, BLACK)
-        text_rect = text.get_rect(x=description_start_x + 50, y=y_offset)  # Padding of 50px on the left
+        text_rect = text.get_rect(x=description_start_x + 50, y=text_start_y)  # Padding of 50px on the left
         screen.blit(text, text_rect)
-        y_offset += font_large.size(line)[1]  # Move down for the next line
+        text_start_y += font_large.size(line)[1]  # Move down for the next line
 
 # Draw the chat panel
 def draw_chat(screen, chat_history, input_text, scroll_offset, font_chat):

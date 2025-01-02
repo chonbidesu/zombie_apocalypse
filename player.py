@@ -9,7 +9,8 @@ from items import Item, Weapon
 
 class Player:
     """Represents the player's character."""
-    def __init__(self, x_groups, y_groups, cityblock_group, building_group, building_type_groups, neighbourhood_groups, button_group, enter_button, leave_button, name, occupation, x, y):
+    def __init__(self, x_groups, y_groups, cityblock_group, building_group, building_type_groups, outdoor_type_groups, 
+                 neighbourhood_groups, button_group, enter_button, leave_button, name, occupation, x, y):
         self.name = name
         self.occupation = occupation
         self.skills = []  # Skills active when human
@@ -28,6 +29,7 @@ class Player:
         self.cityblock_group = cityblock_group
         self.building_group = building_group
         self.building_type_groups = building_type_groups
+        self.outdoor_type_groups = outdoor_type_groups
         self.neighbourhood_groups = neighbourhood_groups
         self.button_group = button_group
         self.enter_button = enter_button

@@ -43,7 +43,8 @@ font_chat = pygame.font.SysFont(None, 21)
 
 # Create player
 player = Player(
-    x_groups, y_groups, city_generation.cityblock_group, city_generation.building_group, city_generation.building_type_groups, city_generation.neighbourhood_groups,
+    x_groups, y_groups, city_generation.cityblock_group, city_generation.building_group, 
+    city_generation.building_type_groups, city_generation.outdoor_type_groups, city_generation.neighbourhood_groups,
     button_group, enter_button, leave_button, name="Alice", occupation="Doctor", x=50, y=50, 
 )
 
