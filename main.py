@@ -2,6 +2,8 @@
 import pygame
 import sys
 import random
+from pygame.locals import *
+
 
 from settings import *
 from player import Player
@@ -36,7 +38,8 @@ clock = pygame.time.Clock()
 
 # Fonts
 font_small = pygame.font.SysFont(None, 16)
-font_large = pygame.font.SysFont(None, 24)
+font_large = pygame.font.SysFont(None, 26)
+font_chat = pygame.font.SysFont(None, 21)
 
 # Create player
 player = Player(
@@ -108,69 +111,49 @@ def update_viewport():
 # Initialize viewport based on player's starting position
 viewport_rows = update_viewport()
 
-# Process user commands
-def process_command(command, chat_history):
-    """Process player commands."""
-    # Parse the command and arguments
-    parts = command.lower().split()
-    if not parts:
-        return
+## Menu data and functions.
+menu_data = (
+    'Main',
+    'Item 0',
+    'Item 1',
+    'Quit',
+)
 
-    cmd = parts[0]
-    args = parts[1:]
+menu = ui.NonBlockingPopupMenu(menu_data)
 
-    # Handle commands
-    if cmd == "enter":
-        if hasattr(player, 'enter') and callable(player.enter):
-            result = player.enter()
-            chat_history.append(result)
-        else:
-            chat_history.append(f"There is no building to enter here.")
+def handle_menu(event):
+    global menu
+    print('Menu event: %s.%d: %s' % (event.name,event.item_id,event.text))
+    if event.name is None:
+        print('Hide menu')
+        menu.hide()
+    elif event.name == 'Main':
+        if event.text == 'Quit':
+            quit()
 
-    elif cmd == "where":
-        if hasattr(player, 'where') and callable(player.where):
-            result = player.where()
-            chat_history.append(result)
-        else:
-            chat_history.append(f"I don't know where we are.")
+## Sprite cursor also runs while menu is posted.
 
-    elif cmd == "leave":
-        if hasattr(player, 'leave') and callable(player.leave):
-            result = player.leave()
-            chat_history.append(result)
-        else:
-            chat_history.append(f"You are already outside.")
+class Cursor(object):
+    def __init__(self):
+        self.image = pygame.image.load('assets/zombie_hand.png').convert_alpha()
+        self.rect = self.image.get_rect(center=(0,0))
+        pygame.mouse.set_visible(False)
+    
+    def update(self):
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        self.rect.topleft = (mouse_x, mouse_y)
 
-    elif cmd == "search" or cmd == "s":
-        if hasattr(player, 'search') and callable(player.search):
-            result = player.search()
-            chat_history.append(result)
-        else:
-            chat_history.append(f"There is nothing to search here.")
-
-    elif cmd == "barricade":
-        if hasattr(player, 'barricade') and callable(player.barricade):
-            result = player.barricade()
-            chat_history.append(result)
-        else:
-            chat_history.append(f"You can't barricade here.")
-
-    elif cmd == "help":
-        chat_history.append(
-            "Available commands: enter, leave, search, barricade, where, help."
-        )
-
-    else:
-        chat_history.append(f"Unknown command: {cmd}")
-
+    def draw(self):
+        pygame.display.get_surface().blit(self.image, self.rect)
+cursor = Cursor()
 
 # Main game loop
 def main():
     running = True
     global viewport_rows
-    chat_history = ["The city is in ruins. Can you make it through the night?",
-                    "Use arrow keys to move around.", 
-                    "Type 'help' for a list of commands."]
+    chat_history = ["The city is in ruins. Can you make it through the night?", 
+                    "Use 'w', 'a', 's', 'd' to move. ESC to quit."
+                    ]
     input_text = ""
     scroll_offset = 0
 
@@ -182,15 +165,8 @@ def main():
                 running = False
 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    chat_history.append(input_text.strip())
-                    process_command(input_text.strip(), chat_history)
-                    input_text = ""
-                    scroll_offset = max(0, len(chat_history) - ((SCREEN_HEIGHT // 2) - 90) // 20)
-                elif event.key == pygame.K_BACKSPACE:
-                    input_text = input_text[:-1]
-                else:
-                    input_text += event.unicode
+                if event.key == pygame.K_ESCAPE:
+                    running = False
 
                 # Arrow key movement
                 if event.key == pygame.K_UP and player.move(0, -1):
@@ -217,10 +193,21 @@ def main():
                     scroll_offset -= 1
                 elif event.button == 5: # Scroll down
                     scroll_offset += 1
+                menu.hide()
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 3:
+                    menu.show()
+
+            elif event.type == MOUSEMOTION:
+                cursor.rect.center = event.pos
+
+            elif event.type == USEREVENT:
+                if event.code == 'Menu':
+                    handle_menu(event)
 
             for button in button_group:
                 action = button.handle_event(event)
-                current_block = player.get_block_at_player()
                 if action:
                     if action == 'barricade':
                         if hasattr(player, 'barricade') and callable(player.barricade):
@@ -253,9 +240,12 @@ def main():
         button_group.update()
         button_group.draw(screen)
         ui.draw_description_panel(screen, player, font_large)
-        ui.draw_chat(screen, chat_history, input_text, scroll_offset, font_large)
+        ui.draw_chat(screen, chat_history, input_text, scroll_offset, font_chat)
         ui.draw_status(screen, player, font_large)
         ui.draw_inventory_panel(screen, player, font_large)
+        menu.draw()
+        cursor.update()
+        cursor.draw()
 
         pygame.display.flip()
         clock.tick(FPS)

@@ -250,6 +250,8 @@ class Player:
                 add_barricade = current_block.barricade.adjust_barricade(1)
                 if not add_barricade:
                     return "You can't add more barricades."
+                if current_block.barricade.level == 4:
+                    return f"The building is now very strongly barricaded. If you add any more barricades, you cannot re-enter the building."
                 return f"You managed to add to the barricade. The building is now {current_block.barricade.get_barricade_description()}."
             else:
                 return "You could not find anything to add to the barricade."
@@ -267,14 +269,17 @@ class Player:
         current_block = self.get_block_at_player()
         if current_block in self.building_group:
             if not self.inside:
-                self.increment_ticker()
-                self.inside = True
-                self.update_observations()
-                for button in self.button_group:
-                    if button.name == 'enter':
-                        self.button_group.remove(button)
-                self.button_group.add(self.leave_button)
-                return "You entered the building."
+                if current_block.barricade.level <= 4:
+                    self.increment_ticker()
+                    self.inside = True
+                    self.update_observations()
+                    for button in self.button_group:
+                        if button.name == 'enter':
+                            self.button_group.remove(button)
+                    self.button_group.add(self.leave_button)
+                    return "You entered the building."
+                else:
+                    return "You can't find a way through the barricades."
             return "You are already inside."
         return "This is not a building."
 
