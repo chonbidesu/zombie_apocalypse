@@ -99,7 +99,6 @@ def draw_viewport(screen, player, viewport_rows, font_small):
     """Draw the 3x3 viewport representing the player's surroundings."""
     viewport_frame_width, viewport_frame_height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2
     grid_start_x, grid_start_y = (viewport_frame_width // 9) + 12, (viewport_frame_height // 9) + 12
-    player_x, player_y = player.location
     current_block = player.get_block_at_player()
     neighbourhood_groups = player.neighbourhood_groups
 
