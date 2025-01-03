@@ -15,16 +15,22 @@ class CharacterSprite(pygame.sprite.Sprite):
 
 class Zombie(pygame.sprite.Sprite):
     """Represents a zombie in the city."""
-    def __init__(self, x_groups, y_groups, x, y):
+    def __init__(self, x_groups, y_groups, zombie_group, x, y):
+        super().__init__()
         self.x_groups, self.y_groups = x_groups, y_groups
+        self.zombie_group = zombie_group
         self.hp = ZOMBIE_START_HP
         self.action_points = 0
         self.is_dead = False
         self.inside = False
         self.start_location = x, y
-        self.x_groups[x].add.(self)
-        self.y_groups[y].add.(self)
 
+        # Add zombie to sprite groups
+        self.x_groups[x].add(self)
+        self.y_groups[y].add(self)
+        self.zombie_group.add(self)
+
+        # Set up viewport sprite
         self.image = pygame.Surface((10,10))
         self.image.fill((0, 255, 0))
         self.rect = self.image.get_rect()
@@ -59,6 +65,18 @@ class Zombie(pygame.sprite.Sprite):
     def update_character_sprite(self, player, panel_position):
         """Update the character sprite for the description panel."""
         current_x, current_y = self.get_coordinates()
+        if (current_x, current_y) == player.location:
+            if not self.character_sprite:
+                # Create the character sprite if not already present
+                image_path = "assets/zombie_character.png"
+                self.character_sprite = CharacterSprite(self, image_path, panel_position)
+            else:
+                # Update position if the sprite already exists
+                self.character_sprite.rect.center = panel_position
+            return self.character_sprite # Return the sprite to be added to the group
+        else:
+            self.character_sprite = None # Remove the sprite when not on player's square
+            return None
         
 
     def gain_action_point(self):

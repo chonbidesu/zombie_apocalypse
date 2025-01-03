@@ -9,6 +9,7 @@ from settings import *
 from player import Player
 import city_generation
 import ui
+import zombie
 
 # Initialize Pygame
 pygame.init()
@@ -47,6 +48,12 @@ player = Player(
     city_generation.building_type_groups, city_generation.outdoor_type_groups, city_generation.neighbourhood_groups,
     button_group, enter_button, leave_button, name="Alice", occupation="Doctor", x=50, y=50, 
 )
+
+# Create zombies
+zombie_group = pygame.sprite.Group()
+zombie_display_group = pygame.sprite.Group()
+
+zombie = zombie.Zombie(x_groups, y_groups, zombie_group, 51, 51)
 
 # Apply zoomed-in image of street grid to street sprites to randomize street appearance
 def apply_zoomed_image(block_image):
@@ -138,6 +145,23 @@ def update_viewport():
                     row.append(block)
                     viewport_group.add(block)
         viewport_rows.append(row)
+
+            # Update zombies in the viewport
+    for zombie in zombie_group:
+        zombie_x, zombie_y = zombie.get_coordinates()
+
+        # Check if the zombie is within the 3x3 viewport
+        if player_x - 1 <= zombie_x <= player_x + 1 and player_y - 1 <= zombie_y <= player_y + 1:
+            # Update zombie rect to align with its block's position
+            col_offset = zombie_x - player_x
+            row_offset = zombie_y - player_y
+            zombie.rect = pygame.Rect(
+                grid_start_x + col_offset * BLOCK_SIZE + BLOCK_SIZE // 4,  # Center the mini-square
+                grid_start_y + row_offset * BLOCK_SIZE + BLOCK_SIZE // 4,
+                BLOCK_SIZE // 2,
+                BLOCK_SIZE // 2
+            )
+            viewport_group.add(zombie)
 
     return viewport_rows
 
@@ -247,6 +271,13 @@ def main():
 
     while running:
         screen.fill(DARK_GREEN)
+
+        character_sprite = zombie.update_character_sprite(player, (100, 100))
+        if character_sprite:
+            if character_sprite not in zombie_display_group:
+                zombie_display_group.add(character_sprite)
+        else:
+            zombie_display_group.remove(character_sprite)
 
         events = pygame.event.get()
         for event in events:
