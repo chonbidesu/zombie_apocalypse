@@ -88,6 +88,26 @@ def get_sprite_coordinates(sprite):
 
     return x_coordinate, y_coordinate
 
+def get_viewport_dxy(sprite):
+    center_x, center_y = player.location
+    block_x, block_y = get_sprite_coordinates(sprite)
+
+    dx = block_x - center_x
+    dy = block_y - center_y
+
+    return dx, dy
+
+# Check whether the current block is a building
+def is_building():
+    current_block = player.get_block_at_player()
+    if current_block in city_generation.building_group:
+        return True
+
+def calculate_grid_start():
+    grid_start_x = (SCREEN_HEIGHT // 5)
+    grid_start_y = (SCREEN_HEIGHT // 5)
+    return grid_start_x, grid_start_y
+
 # Update viewport centered on player
 viewport_group = pygame.sprite.Group()
 def update_viewport():
@@ -126,37 +146,78 @@ viewport_rows = update_viewport()
 
 # Get the target of the mouse click
 def get_click_target(mouse_pos):
-    print(f"Mouse position: {mouse_pos}")
     current_block = player.get_block_at_player()
-    print(f"Current block rect: {current_block.rect}")
     if current_block.rect.collidepoint(mouse_pos):
         return 'current block', current_block
     for sprite in player.inventory:
-        print(f"Sprite rect: {sprite.rect}")
         if sprite.rect.collidepoint(mouse_pos):
             return 'item', sprite
-    for row in viewport_rows:
-        for sprite in row:
-            print(f"Sprite rect: {sprite.rect}")
-            if sprite.rect.collidepoint(mouse_pos):
-                return 'block', sprite
+    for sprite in viewport_group:
+        if sprite.rect.collidepoint(mouse_pos):
+            return 'block', sprite
     return 'screen', None
+
+menu_viewport_dxy = None
+menu_item = None
 
 # Create a context-sensitive popup menu based on the target
 def create_context_menu(target, sprite=None):
-    print(target)
+    global popup_menu, menu_viewport_dxy, menu_item
     if target == 'item':
-        menu_data = ['Item Actions', 'Equip', 'Use', 'Drop']
-    elif target == 'current block' and not player.inside:
-        menu_data = ['Outside Actions', 'Barricade', 'Search', 'Enter']
-    elif target == 'current block' and player.inside:
-        menu_data = ['Inside Actions', 'Barricade', 'Search', 'Leave']
+        if sprite is not None:
+            if sprite in player.weapon_group:
+                menu_data = ['Item', 'Equip', 'Drop']
+            else:
+                menu_data = ['Item', 'Use', 'Drop']
+        if sprite is not None:
+            menu_item = sprite
+    elif target == 'current block' and is_building():
+        if not player.inside:
+            menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
+        elif target == 'current block' and player.inside:
+            menu_data = ['Actions', 'Barricade', 'Search', 'Leave']
+    elif target == 'current block' and not is_building():
+        menu_data = ['Actions', 'Search']
     elif target == 'block':
-        menu_data = ['Movement', 'Move']
+        menu_data = ['Go', 'Move']
+        if sprite is not None:
+            menu_viewport_dxy = (get_viewport_dxy(sprite))
     elif target == 'screen':
-        print("Screen clicked!")
         return None
-    return ui.NonBlockingPopupMenu(menu_data)
+
+    popup_menu = ui.NonBlockingPopupMenu(menu_data)
+
+# Handle menu actions
+def handle_menu_action(menu_name, action, chat_history):
+    if menu_name == 'Item':
+        if action == 'Equip':
+            player.weapon.empty()
+            player.weapon.add(menu_item)
+        elif action == 'Use':
+            print(f"Using item!")
+        elif action == 'Drop':
+            menu_item.kill()
+    elif menu_name == 'Actions':
+        if action == 'Barricade':
+            result = player.barricade()
+            chat_history.append(result)
+        elif action == 'Search':
+            result = player.search()
+            chat_history.append(result)
+        elif action == 'Enter':
+            player.inside = True
+            button_group.remove(enter_button)
+            button_group.add(leave_button)
+        elif action == 'Leave':
+            player.inside = False
+            button_group.remove(leave_button)
+            button_group.add(enter_button)
+    elif menu_name == 'Go':
+        if action == 'Move':
+            player.move(menu_viewport_dxy[0], menu_viewport_dxy[1])
+            print(f"Moving to {menu_viewport_dxy}")
+            viewport_rows = update_viewport()
+          
 
 ## Sprite cursor also runs while menu is posted.
 class Cursor(object):
@@ -221,46 +282,51 @@ def main():
                     scroll_offset -= 1
                 elif event.button == 5: # Scroll down
                     scroll_offset += 1
-                if popup_menu:
-                    popup_menu.hide()
+                #if popup_menu:
+                #    popup_menu.hide()
 
             elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:
-                    mouse_pos = pygame.mouse.get_pos()
-                    target, sprite = get_click_target(mouse_pos)
-                    popup_menu = create_context_menu(target, sprite)
+                mouse_pos = pygame.mouse.get_pos()
+                target, sprite = get_click_target(mouse_pos)
+                create_context_menu(target, sprite)
+                print(target)
+                if popup_menu:
+                    popup_menu.show()
 
             elif event.type == MOUSEMOTION:
                 cursor.rect.center = event.pos
 
-            elif event.type == USEREVENT and event.code == 'Menu':
-                if event.name is None:
-                    print('Hide menu')
-                    popup_menu.hide()
-                elif event.name == 'Item Actions':
-                    if event.text == 'Equip':
-                        print(f"Equipping item: {sprite.name}")
-                    elif event.text == 'Use':
-                        print(f"Using item: {sprite.name}")
-                    elif event.text == 'Drop':
-                        print(f"Dropping item: {sprite.name}")
-                elif event.name == 'Outside Actions':
-                    if event.text == 'Barricade':
-                        print(f"Barricading {sprite.name}")
-                    elif event.text == 'Search':
-                        print(f"Searching {sprite.name}")
-                    elif event.text == 'Enter':
-                        print(f"Entering {sprite.name}")
-                elif event.name == 'Inside Actions':
-                    if event.text == 'Barricade':
-                        print(f"Barricading {sprite.name}")
-                    elif event.text == 'Search':
-                        print(f"Searching {sprite.name}")
-                    elif event.text == 'Leave':
-                        print(f"Leaving {sprite.name}")
-                elif event.name == 'Movement':
-                    if event.text == 'Move':
-                        print(f"Moving to {sprite.name}")
-                popup_menu.hide()
+            #elif event.type == USEREVENT and event.code == 'MENU':
+            #    if event.name is None:
+            #        print('Hide menu')
+            #        popup_menu.hide()
+            #    elif event.name == 'Item':
+            #        if event.text == 'Equip':
+            #            print(f"Equipping item: {sprite.name}")
+            #        elif event.text == 'Use':
+            #            print(f"Using item: {sprite.name}")
+            #        elif event.text == 'Drop':
+            #            print(f"Dropping item: {sprite.name}")
+            #    elif event.name == 'Actions':
+            #        if event.text == 'Barricade':
+            #            print(f"Barricading {sprite.name}")
+            #        elif event.text == 'Search':
+            #            print(f"Searching {sprite.name}")
+            #        elif event.text == 'Enter':
+            #            print(f"Entering {sprite.name}")
+            #        elif event.text == 'Leave':
+            #            print(f"Leaving {sprite.name}")
+            #    elif event.name == 'Inside Actions':
+            #        if event.text == 'Barricade':
+            #            print(f"Barricading {sprite.name}")
+            #        elif event.text == 'Search':
+            #            print(f"Searching {sprite.name}")
+            #        elif event.text == 'Leave':
+            #            print(f"Leaving {sprite.name}")
+            #    elif event.name == 'Go':
+            #        if event.text == 'Move':
+            #            print(f"Moving to {sprite.name}")
+            #    popup_menu.hide()
 
             for button in button_group:
                 action = button.handle_event(event)
@@ -291,7 +357,7 @@ def main():
                             chat_history.append(f"You are already outside.")
 
         # Draw game elements to screen
-        ui.draw_viewport(screen, player, viewport_rows, font_small)
+        ui.draw_viewport(screen, player, viewport_group, font_small)
         ui.draw_actions_panel(screen, font_large)
         button_group.update()
         button_group.draw(screen)
@@ -299,12 +365,23 @@ def main():
         ui.draw_chat(screen, chat_history, input_text, scroll_offset, font_chat)
         ui.draw_status(screen, player, font_large)
         ui.draw_inventory_panel(screen, player, font_large)
-        cursor.update()
-        cursor.draw()
+        player.inventory.update()
+        player.inventory.draw(screen)
 
         if popup_menu:
             popup_menu.handle_events(events)
             popup_menu.draw()
+
+        for event in events:
+            if event.type == pygame.USEREVENT and event.code == 'MENU':
+                if event.name is None:
+                    popup_menu = None
+                else:
+                    handle_menu_action(event.name, event.text, chat_history)
+                    popup_menu = None
+
+        cursor.update()
+        cursor.draw()
 
         pygame.display.flip()
         clock.tick(FPS)

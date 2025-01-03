@@ -95,41 +95,46 @@ def get_neighbourhood(block, neighbourhood_groups):
 # Draw viewport
 viewport_frame = pygame.image.load('assets/viewport_frame.png')
 
-def draw_viewport(screen, player, viewport_rows, font_small):
+def draw_viewport(screen, player, viewport_group, font_small):
     """Draw the 3x3 viewport representing the player's surroundings."""
+    
     viewport_frame_width, viewport_frame_height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2
-    grid_start_x, grid_start_y = (viewport_frame_width // 9) + 12, (viewport_frame_height // 9) + 12
+    # grid_start_x, grid_start_y = (viewport_frame_width // 9) + 12, (viewport_frame_height // 9) + 12
     current_block = player.get_block_at_player()
     neighbourhood_groups = player.neighbourhood_groups
 
     scaled_viewport_frame = pygame.transform.scale(viewport_frame, (viewport_frame_width, viewport_frame_height))
     screen.blit(scaled_viewport_frame, (10, 10))
 
-    for row_index, row in enumerate(viewport_rows):
-        for col_index, block in enumerate(row):
-            if block is None:
-                continue
+    viewport_group.draw(screen)
+
+    for block in viewport_group:
+
+    # for row_index, row in enumerate(viewport_rows):
+        # for col_index, block in enumerate(row):
+            # if block is None:
+            #    continue
 
             # Calculate the block's position relative to the viewport
-            block_rect_x = grid_start_x + col_index * BLOCK_SIZE
-            block_rect_y = grid_start_y + row_index * BLOCK_SIZE
+            #block_rect_x = grid_start_x + col_index * BLOCK_SIZE
+            #block_rect_y = grid_start_y + row_index * BLOCK_SIZE
 
-            screen.blit(block.image, (block_rect_x, block_rect_y))
+            #screen.blit(block.image, (block_rect_x, block_rect_y))
 
-            block_text = wrap_text(block.block_name, font_small, BLOCK_SIZE - 10)
-            text_height = sum(font_small.size(line)[1] for line in block_text)
-            # Adjust button_rect to align with bottom of block_rect
-            button_rect = pygame.Rect(
-                block_rect_x, block_rect_y + BLOCK_SIZE - text_height - 10, 
-                BLOCK_SIZE, text_height + 10)
-            pygame.draw.rect(screen, WHITE, button_rect)
-            y_offset = button_rect.top + (button_rect.height - text_height)  # Center text vertically
+        block_text = wrap_text(block.block_name, font_small, BLOCK_SIZE - 10)
+        text_height = sum(font_small.size(line)[1] for line in block_text)
+        # Adjust button_rect to align with bottom of block_rect
+        button_rect = pygame.Rect(
+            block.rect.x, block.rect.y + BLOCK_SIZE - text_height - 10,
+            BLOCK_SIZE, text_height + 10)
+        pygame.draw.rect(screen, WHITE, button_rect)
 
-            for line in block_text:
-                text = font_small.render(line, True, BLACK)
-                text_rect = text.get_rect(center=(button_rect.centerx, y_offset))
-                screen.blit(text, text_rect)
-                y_offset += font_small.size(line)[1]  # Move down for the next line
+        y_offset = button_rect.top + (button_rect.height - text_height)  # Center text vertically
+        for line in block_text:
+            text = font_small.render(line, True, BLACK)
+            text_rect = text.get_rect(center=(button_rect.centerx, y_offset))
+            screen.blit(text, text_rect)
+            y_offset += font_small.size(line)[1]  # Move down for the next line
 
     # Draw neighbourhood name
     pygame.draw.rect(screen, ORANGE, (10, viewport_frame_height + 10, viewport_frame_width, 20))
@@ -292,32 +297,34 @@ def draw_inventory_panel(screen, player, font_large):
     pygame.draw.rect(screen, WHITE, (panel_x, panel_y, panel_width, panel_height), 2)
 
     # Draw equipped sub-panel
-    pygame.draw.rect(screen, GRAY, (equipped_panel_x, equipped_panel_y, equipped_panel_width, equipped_panel_height))
-    pygame.draw.rect(screen, WHITE, (equipped_panel_x, equipped_panel_y, equipped_panel_width, equipped_panel_height), 2)
+    pygame.draw.rect(screen, WHITE, (equipped_panel_x, equipped_panel_y, equipped_panel_width, equipped_panel_height))
+    pygame.draw.rect(screen, BLACK, (equipped_panel_x, equipped_panel_y, equipped_panel_width, equipped_panel_height), 2)
 
     # Draw "Equipped" label
-    equipped_label = font_large.render("Equipped", True, WHITE)
+    equipped_label = font_large.render("Equipped", True, BLACK)
     label_rect = equipped_label.get_rect(center=(equipped_panel_x + equipped_panel_width // 2, equipped_panel_y + 20))
     screen.blit(equipped_label, label_rect)
 
     # Render equipped item (if any)
     if player.weapon:
         # Draw enlarged equipped item
-        enlarged_image = pygame.transform.scale(player.weapon.image, (64, 64))
+        enlarged_image = pygame.transform.scale(player.weapon.sprite.image, (64, 64))
         equipped_item_x = equipped_panel_x + (equipped_panel_width - 64) // 2
         equipped_item_y = equipped_panel_y + 40
         screen.blit(enlarged_image, (equipped_item_x, equipped_item_y))
 
     # Draw inventory sub-panel
-    pygame.draw.rect(screen, GRAY, (inventory_panel_x, inventory_panel_y, inventory_panel_width, inventory_panel_height))
-    pygame.draw.rect(screen, WHITE, (inventory_panel_x, inventory_panel_y, inventory_panel_width, inventory_panel_height), 2)
+    pygame.draw.rect(screen, WHITE, (inventory_panel_x, inventory_panel_y, inventory_panel_width, inventory_panel_height))
+    pygame.draw.rect(screen, BLACK, (inventory_panel_x, inventory_panel_y, inventory_panel_width, inventory_panel_height), 2)
 
-    # Render inventory items
+    # Position inventory items
     item_x = inventory_panel_x + 10  # Start with padding
     item_y = inventory_panel_y + (inventory_panel_height // 2 - 16)  # Center items vertically
     for item in player.inventory:
-        # Draw item image
-        screen.blit(item.image, (item_x, item_y))
+        
+        # Update item rect with its position
+        item.rect.x = item_x
+        item.rect.y = item_y
 
         # Highlight the equipped item
         if item == player.weapon:

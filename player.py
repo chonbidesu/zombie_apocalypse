@@ -36,6 +36,8 @@ class Player:
         self.leave_button = leave_button
         self.lights_on = pygame.sprite.Group()
         self.generator_installed = pygame.sprite.Group()
+        self.weapon_group = pygame.sprite.Group()
+        self.firearm_group = pygame.sprite.Group()
 
     def assign_starting_trait(self, occupation):
         """Assigns a starting trait based on the player's occupation."""
@@ -180,28 +182,34 @@ class Player:
             attributes = WEAPONS[item_name]
             if item_name in MELEE_WEAPONS:
                 # Create a melee weapon
-                return Weapon(
+                weapon = Weapon(
                     name=item_name,
                     image_file=attributes['image_file'],
                     damage=attributes['damage'],
                     durability=attributes['durability']
                 )
+                self.weapon_group.add(weapon)
+                return weapon
             elif item_name in FIREARMS:
                 # Create a firearm
-                return Weapon(
+                weapon = Weapon(
                     name=item_name,
                     image_file=attributes['image_file'],
                     damage=attributes['damage'],
                     loaded_ammo=attributes['loaded_ammo'],
                     max_ammo=attributes['max_ammo']
                 )
+                self.weapon_group.add(weapon)
+                self.firearm_group.add(weapon)
+                return weapon
         elif item_name in ITEMS:
             # Create a regular item
             attributes = ITEMS[item_name]
-            return Item(
+            item = Item(
                 name=item_name,
                 image_file=attributes['image_file']
             )
+            return item
 
     def increment_ticker(self):
         """Increments the ticker to track player actions."""
