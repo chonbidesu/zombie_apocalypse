@@ -3,22 +3,63 @@ import random
 import pygame
 from settings import *
 
+class CharacterSprite(pygame.sprite.Sprite):
+    """A detailed zombie sprite for the description panel."""
+    def __init__(self, zombie, image_path, panel_position):
+        super().__init__()
+        self.image = pygame.image.load(image_path).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (100, 150))  # Example size
+        self.rect = self.image.get_rect(center=panel_position)
+        self.zombie = zombie  # Reference to the parent zombie
+
+
 class Zombie(pygame.sprite.Sprite):
     """Represents a zombie in the city."""
-    def __init__(self, x, y, city):
-        self.x, self.y = x, y
-        self.city = city
+    def __init__(self, x_groups, y_groups, x, y):
+        self.x_groups, self.y_groups = x_groups, y_groups
         self.hp = ZOMBIE_START_HP
         self.action_points = 0
         self.is_dead = False
         self.inside = False
-        self.image = pygame.Surface((20,20))
+        self.start_location = x, y
+        self.x_groups[x].add.(self)
+        self.y_groups[y].add.(self)
+
+        self.image = pygame.Surface((10,10))
         self.image.fill((0, 255, 0))
         self.rect = self.image.get_rect()
 
-    def update_position(self):
+        # Character image
+        self.character_sprite = None
+
+    def get_coordinates(self):
+        """Get the zombie's (x, y) position in the city."""
+        for x, group in self.x_groups.items():
+            if self in group:
+                x_coordinate = x
+                break
+
+        for y, group in self.y_groups.items():
+            if self in group:
+                y_coordinate = y
+                break
+
+        return x_coordinate, y_coordinate
+
+    def update_position(self, new_x, new_y):
         """Updates the position of the zombie's sprite rect based on city coordinates."""
-        self.rect.topleft = (self.x * 50 + 15, self.y * 50 + 15)  # Adjust offsets as needed
+        current_x, current_y = self.get_coordinates()
+
+        self.x_groups[current_x].remove(self)
+        self.y_groups[current_y].remove(self)
+        self.x_groups[new_x].add(self)
+        self.y_groups[new_y].add(self)
+        self.rect.topleft = (new_x * BLOCK_SIZE, new_y * BLOCK_SIZE)  # Adjust offsets as needed
+
+    def update_character_sprite(self, player, panel_position):
+        """Update the character sprite for the description panel."""
+        current_x, current_y = self.get_coordinates()
+        
 
     def gain_action_point(self):
         self.action_points += 1
