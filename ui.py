@@ -108,34 +108,6 @@ def draw_viewport(screen, player, viewport_group, font_small):
 
     viewport_group.draw(screen)
 
-    for block in viewport_group:
-
-    # for row_index, row in enumerate(viewport_rows):
-        # for col_index, block in enumerate(row):
-            # if block is None:
-            #    continue
-
-            # Calculate the block's position relative to the viewport
-            #block_rect_x = grid_start_x + col_index * BLOCK_SIZE
-            #block_rect_y = grid_start_y + row_index * BLOCK_SIZE
-
-            #screen.blit(block.image, (block_rect_x, block_rect_y))
-
-        block_text = wrap_text(block.block_name, font_small, BLOCK_SIZE - 10)
-        text_height = sum(font_small.size(line)[1] for line in block_text)
-        # Adjust button_rect to align with bottom of block_rect
-        button_rect = pygame.Rect(
-            block.rect.x, block.rect.y + BLOCK_SIZE - text_height - 10,
-            BLOCK_SIZE, text_height + 10)
-        pygame.draw.rect(screen, WHITE, button_rect)
-
-        y_offset = button_rect.top + (button_rect.height - text_height)  # Center text vertically
-        for line in block_text:
-            text = font_small.render(line, True, BLACK)
-            text_rect = text.get_rect(center=(button_rect.centerx, y_offset))
-            screen.blit(text, text_rect)
-            y_offset += font_small.size(line)[1]  # Move down for the next line
-
     # Draw neighbourhood name
     pygame.draw.rect(screen, ORANGE, (10, viewport_frame_height + 10, viewport_frame_width, 20))
     neighbourhood_name = get_neighbourhood(current_block, neighbourhood_groups)

@@ -3,6 +3,7 @@ import pygame
 import sys
 import random
 from pygame.locals import *
+from collections import defaultdict
 
 
 from settings import *
@@ -53,33 +54,10 @@ player = Player(
 zombie_group = pygame.sprite.Group()
 zombie_display_group = pygame.sprite.Group()
 
-zombie = zombie.Zombie(x_groups, y_groups, zombie_group, 51, 51)
+zombie1 = zombie.Zombie(x_groups, y_groups, zombie_group, 51, 51)
+zombie2 = zombie.Zombie(x_groups, y_groups, zombie_group, 51, 51)
 
-# Apply zoomed-in image of street grid to street sprites to randomize street appearance
-def apply_zoomed_image(block_image):
-    """Apply a zoomed-in portion of the block image."""
-    street_group = city_generation.outdoor_type_groups['Street']
-    image_width, image_height = block_image.get_width(), block_image.get_height()
 
-    # Define the zoom-in factor (e.g., 2x zoom = 50% of the original size)
-    zoom_factor = 2
-    zoom_width, zoom_height = image_width // zoom_factor, image_height // zoom_factor
-
-    for sprite in street_group:
-        # Generate random top-left coordinates for the zoomed-in area
-        zoom_x = random.randint(0, image_width - zoom_width)
-        zoom_y = random.randint(0, image_height - zoom_height)
-
-        # Extract the zoomed-in portion
-        zoomed_surface = block_image.subsurface((zoom_x, zoom_y, zoom_width, zoom_height))
-
-        # Scale it to the target block size and assign to sprite
-        zoomed_surface = pygame.transform.scale(zoomed_surface, (BLOCK_SIZE, BLOCK_SIZE))
-        sprite.image = zoomed_surface
-
-# Load the street images
-street_image = pygame.image.load(BLOCK_IMAGES['Street'])
-apply_zoomed_image(street_image)
 
 # Get (x, y) of a specific sprite
 def get_sprite_coordinates(sprite):
@@ -146,22 +124,34 @@ def update_viewport():
                     viewport_group.add(block)
         viewport_rows.append(row)
 
-            # Update zombies in the viewport
+    # Update zombies in the viewport
+    zombies_at_coordinates = defaultdict(list)
     for zombie in zombie_group:
         zombie_x, zombie_y = zombie.get_coordinates()
-
+        zombies_at_coordinates[(zombie_x, zombie_y)].append(zombie)
+    
+    for (zombie_x, zombie_y), zombies in zombies_at_coordinates.items():
         # Check if the zombie is within the 3x3 viewport
         if player_x - 1 <= zombie_x <= player_x + 1 and player_y - 1 <= zombie_y <= player_y + 1:
             # Update zombie rect to align with its block's position
             col_offset = zombie_x - player_x
             row_offset = zombie_y - player_y
-            zombie.rect = pygame.Rect(
-                grid_start_x + col_offset * BLOCK_SIZE + BLOCK_SIZE // 4,  # Center the mini-square
-                grid_start_y + row_offset * BLOCK_SIZE + BLOCK_SIZE // 4,
-                BLOCK_SIZE // 2,
-                BLOCK_SIZE // 2
-            )
-            viewport_group.add(zombie)
+            base_x = grid_start_x + col_offset * BLOCK_SIZE
+            base_y = grid_start_y + row_offset * BLOCK_SIZE
+
+            zombie_width = BLOCK_SIZE // 6
+            total_zombie_width = len(zombies) * zombie_width
+            row_start_x = base_x + (BLOCK_SIZE - total_zombie_width) // 2
+
+            # Get your zombies in a row
+            for index, zombie in enumerate(zombies):
+                zombie.rect = pygame.Rect(
+                    row_start_x + index * zombie_width,
+                    base_y + (BLOCK_SIZE - zombie_width) // 2,
+                    zombie_width,
+                    zombie_width
+                )
+                viewport_group.add(zombie)
 
     return viewport_rows
 
@@ -271,13 +261,6 @@ def main():
 
     while running:
         screen.fill(DARK_GREEN)
-
-        character_sprite = zombie.update_character_sprite(player, (100, 100))
-        if character_sprite:
-            if character_sprite not in zombie_display_group:
-                zombie_display_group.add(character_sprite)
-        else:
-            zombie_display_group.remove(character_sprite)
 
         events = pygame.event.get()
         for event in events:

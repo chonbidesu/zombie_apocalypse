@@ -71,6 +71,7 @@ def generate_city(x_groups, y_groups):
         building_group.add(building_block)
         cityblock_group.add(building_block)
         block_type = random.choice(building_types)
+        building_block.block_type = block_type
         image_filename = BLOCK_IMAGES[block_type]
         image = pygame.image.load(image_filename)
         image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
@@ -81,6 +82,10 @@ def generate_city(x_groups, y_groups):
         building_block.block_name = block_name
         building_block.block_desc = block_desc
         building_block.generate_descriptions(descriptions, block_type)
+        
+        font_small = pygame.font.SysFont(None, 16)
+        building_block.render_label(font_small)
+        
         block_pool.append(building_block)
 
     # Generate 2500 outdoor blocks
@@ -89,6 +94,7 @@ def generate_city(x_groups, y_groups):
         outdoor_group.add(outdoor_block)
         cityblock_group.add(outdoor_block)
         block_type = random.choice(outdoor_types)
+        outdoor_block.block_type = block_type
         image_filename = BLOCK_IMAGES[block_type]
         image = pygame.image.load(image_filename)
         image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
@@ -99,6 +105,13 @@ def generate_city(x_groups, y_groups):
         outdoor_block.block_name = block_name
         outdoor_block.block_desc = block_desc
         outdoor_block.generate_descriptions(descriptions, block_type)
+        
+        if block_type == 'Street':
+            outdoor_block.apply_zoomed_image(image)
+
+        font_small = pygame.font.SysFont(None, 16)
+        outdoor_block.render_label(font_small)
+        
         block_pool.append(outdoor_block)
 
     # Generate 2500 street blocks
@@ -107,6 +120,7 @@ def generate_city(x_groups, y_groups):
         outdoor_group.add(street_block)
         cityblock_group.add(street_block)
         block_type = 'Street'
+        street_block.block_type = block_type
         image_filename = BLOCK_IMAGES[block_type]
         image = pygame.image.load(image_filename)
         image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
@@ -117,6 +131,12 @@ def generate_city(x_groups, y_groups):
         street_block.block_name = block_name
         street_block.block_desc = block_desc
         street_block.generate_descriptions(descriptions, block_type)
+        
+        street_block.apply_zoomed_image(image)
+
+        font_small = pygame.font.SysFont(None, 16)
+        street_block.render_label(font_small)
+        
         block_pool.append(street_block)
 
     random.shuffle(block_pool)

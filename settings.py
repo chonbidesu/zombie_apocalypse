@@ -55,7 +55,7 @@ FIREARMS = ['Shotgun', 'Pistol']
 BLOCK_IMAGES = {
     "FireStation": "assets/fire_station.bmp",
     "PoliceDepartment": "assets/police_department.bmp",
-    "Street": "assets/streets.gif",
+    "Street": "assets/streets.bmp",
     "Park": "assets/park.bmp",
     "Carpark": "assets/carpark.bmp",
     "Cemetery": "assets/cemetery.bmp",

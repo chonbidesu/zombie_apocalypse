@@ -15,6 +15,7 @@ class CityBlock(pygame.sprite.Sprite):
         self.zoom_x = None
         self.zoom_y = None
         self.observations = []
+        self.block_type = None
 
         # Sprite image setup
         self.image = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
@@ -38,6 +39,49 @@ class CityBlock(pygame.sprite.Sprite):
             # Default descriptions if block type is not found
             self.block_outside_desc = "This place shows signs of decay and neglect."
 
+    def render_label(self, font_small):
+        """Render the block label onto the block's surface."""
+        block_text = wrap_text(self.block_name, font_small, BLOCK_SIZE - 10)
+        text_height = sum(font_small.size(line)[1] for line in block_text)
+
+        image_copy = self.image.copy()
+
+        label_rect = pygame.Rect(
+            0, BLOCK_SIZE - text_height - 10, BLOCK_SIZE, text_height + 10
+        )
+        pygame.draw.rect(image_copy, WHITE, label_rect)
+
+        # Draw text onto the block surface
+        y_offset = label_rect.top + 10
+        for line in block_text:
+            text_surface = font_small.render(line, True, BLACK)
+            text_rect = text_surface.get_rect(center=(BLOCK_SIZE // 2, y_offset))
+            image_copy.blit(text_surface, text_rect)
+            y_offset += font_small.size(line)[1]
+
+        self.image = image_copy
+
+    def apply_zoomed_image(self, block_image):
+        """Apply a zoomed-in portion of the block image for street appearance."""
+        if self.block_type == "Street":
+            image_width, image_height = block_image.get_width(), block_image.get_height()
+
+            # Define the zoom-in factor (e.g., 2x zoom = 50% of the original size)
+            zoom_factor = 2
+            zoom_width, zoom_height = image_width // zoom_factor, image_height // zoom_factor
+
+            # Generate random top-left coordinates for the zoomed-in area
+            self.zoom_x = random.randint(0, image_width - zoom_width)
+            self.zoom_y = random.randint(0, image_height - zoom_height)
+
+            # Extract the zoomed-in portion
+            zoomed_surface = block_image.subsurface((self.zoom_x, self.zoom_y, zoom_width, zoom_height))
+
+            # Scale it to the target block size and assign it to the sprite
+            self.image = pygame.transform.scale(zoomed_surface, (BLOCK_SIZE, BLOCK_SIZE))
+
+            font_small = pygame.font.SysFont(None, 16)
+            self.render_label(font_small)
 
 class BuildingBlock(CityBlock):
     """A block with a building that can be barricaded and searched."""
@@ -119,3 +163,27 @@ class BuildingBlock(CityBlock):
         
         def item_search(self, modifier):
             return False
+        
+# Handle text wrapping
+def wrap_text(text, font, max_width):
+    """Wrap the text to fit inside a given width."""
+    lines = []
+    words = text.split(" ")
+    current_line = ""
+
+    for word in words:
+        # Check if adding the word exceeds the width
+        test_line = current_line + (word if current_line == "" else " " + word)
+        test_width, _ = font.size(test_line)
+
+        if test_width <= max_width:
+            current_line = test_line  # Add the word to the current line
+        else:
+            if current_line != "":
+                lines.append(current_line)  # Append the current line if it's not empty
+            current_line = word  # Start a new line with the current word
+
+    if current_line != "":  # Append the last line if it has any content
+        lines.append(current_line)
+
+    return lines
