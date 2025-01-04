@@ -39,7 +39,7 @@ class CityBlock(pygame.sprite.Sprite):
             # Default descriptions if block type is not found
             self.block_outside_desc = "This place shows signs of decay and neglect."
 
-    def render_label(self, font_small):
+    def render_label(self):
         """Render the block label onto the block's surface."""
         block_text = wrap_text(self.block_name, font_small, BLOCK_SIZE - 10)
         text_height = sum(font_small.size(line)[1] for line in block_text)
@@ -80,8 +80,7 @@ class CityBlock(pygame.sprite.Sprite):
             # Scale it to the target block size and assign it to the sprite
             self.image = pygame.transform.scale(zoomed_surface, (BLOCK_SIZE, BLOCK_SIZE))
 
-            font_small = pygame.font.SysFont(None, 16)
-            self.render_label(font_small)
+            self.render_label()
 
 class BuildingBlock(CityBlock):
     """A block with a building that can be barricaded and searched."""

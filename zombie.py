@@ -40,12 +40,12 @@ class Zombie(pygame.sprite.Sprite):
 
     def get_coordinates(self):
         """Get the zombie's (x, y) position in the city."""
-        for x, group in self.x_groups.items():
+        for x, group in enumerate(self.x_groups):
             if self in group:
                 x_coordinate = x
                 break
 
-        for y, group in self.y_groups.items():
+        for y, group in enumerate(self.y_groups):
             if self in group:
                 y_coordinate = y
                 break
@@ -60,7 +60,7 @@ class Zombie(pygame.sprite.Sprite):
         self.y_groups[current_y].remove(self)
         self.x_groups[new_x].add(self)
         self.y_groups[new_y].add(self)
-        self.rect.topleft = (new_x * BLOCK_SIZE, new_y * BLOCK_SIZE)  # Adjust offsets as needed
+        # self.rect.topleft = (new_x * BLOCK_SIZE, new_y * BLOCK_SIZE)  # Adjust offsets as needed
 
     def update_character_sprite(self, player, panel_position):
         """Update the character sprite for the description panel."""
@@ -198,41 +198,4 @@ class Zombie(pygame.sprite.Sprite):
             "Action Points": self.action_points,
             "Dead": self.is_dead,
             "Dead Body Visible": self.dead_body_visible
-        }
-
-# Draw zombies on grid
-def draw_zombies(grid_start_x, grid_start_y, grid, city, player, zombie_group):
-    """Displays zombie sprites on the 3x3 grid."""
-    for row in range(3):
-        for col in range(3):
-            grid_x = grid_start_x + col * 50
-            grid_y = grid_start_y + row * 50
-
-            x, y = grid[row][col]  # Grid represents coordinates of blocks in the city
-            block = city[y][x]
-
-            if hasattr(block, 'zombies'):
-                for zombie in block.zombies:
-                    if zombie.inside == player.inside and not zombie.is_dead:
-                        zombie.update_position()
-                        zombie.rect.center = (grid_x + 25, grid_y + 25)  # Adjust position to center of block
-                        zombie_group.add(zombie)
-
-
-# Zombie population management
-def populate_city_with_zombies(city, count):
-    """Populates the city with an initial zombie population."""
-    zombies = []
-    for _ in range(count):
-        while True:
-            x = random.randint(0, 99)
-            y = random.randint(0, 99)
-            if not hasattr(city[y][x], 'zombies'):  # Ensure block can have zombies
-                city[y][x].zombies = []
-
-            if len(city[y][x].zombies) < 5:  # Limit zombies per block
-                zombie = Zombie(x, y, city)
-                city[y][x].zombies.append(zombie)
-                zombies.append(zombie)
-                break
-    return zombies        
+        }    

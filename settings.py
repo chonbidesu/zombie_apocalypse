@@ -1,4 +1,5 @@
 # settings.py
+import pygame
 
 # Screen dimensions
 SCREEN_WIDTH = 1200
@@ -20,6 +21,12 @@ CHAT_LINES = 10
 BARRICADE_CHANCE = 0.5
 FUEL_DURATION = 50
 ZOMBIE_START_HP = 50
+
+# Fonts
+pygame.init()
+font_small = pygame.font.SysFont(None, 16)
+font_large = pygame.font.SysFont(None, 26)
+font_chat = pygame.font.SysFont(None, 21)
 
 # Colors
 WHITE = (255, 255, 255)
