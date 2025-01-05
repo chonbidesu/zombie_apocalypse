@@ -16,11 +16,32 @@ class CityBlock(pygame.sprite.Sprite):
         self.zoom_y = None
         self.observations = []
         self.block_type = None
+        self._image = None
 
-        # Sprite image setup
-        self.image = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
-        self.image.fill((0, 0, 255))
-        self.rect = self.image.get_rect()
+    @property
+    def image(self):
+        if not self._image:
+            self._load_image()
+        return self._image
+    
+    @image.setter
+    def image(self, value):
+        self._image = value
+
+    def _load_image(self):
+        """Lazy-load the image when accessed."""
+        if self.block_type == 'Street' and self.zoom_x is not None and self.zoom_y is not None:
+            base_image = pygame.image.load(BLOCK_IMAGES[self.block_type]).convert_alpha()
+            zoom_width, zoom_height = base_image.get_width() // 2, base_image.get_height() // 2
+            zoomed_surface = base_image.subsurface((self.zoom_x, self.zoom_y, zoom_width, zoom_height))
+            self._image = pygame.transform.scale(zoomed_surface, (BLOCK_SIZE, BLOCK_SIZE))
+        else:
+            self._image = pygame.image.load(BLOCK_IMAGES[self.block_type]).convert_alpha()
+            self._image = pygame.transform.scale(self._image, (BLOCK_SIZE, BLOCK_SIZE))
+        self.render_label()
+
+    def unload_image(self):
+        self._image = None
 
     def generate_descriptions(self, descriptions_data, block_type):
         self.block_type = block_type

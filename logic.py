@@ -62,6 +62,12 @@ def update_viewport(player, zombie_group, zombie_display_group):
                 blocks = set(player.x_groups[block_x]) & set(player.y_groups[block_y]) & set(player.city.cityblock_group)
                 if blocks:
                     block = next(iter(blocks))
+
+                    # Load the block's image if not already loaded
+                    if block.image is None:
+                        block.render_label()
+                        block.image # Trigger lazy load
+
                     block.rect = pygame.Rect(
                         grid_start_x + col_offset * BLOCK_SIZE,
                         grid_start_y + row_offset * BLOCK_SIZE,
@@ -69,6 +75,10 @@ def update_viewport(player, zombie_group, zombie_display_group):
                         BLOCK_SIZE
                     )
                     viewport_group.add(block)
+
+    for block in player.city.cityblock_group:
+        if block not in viewport_group:
+            block.unload_image()
 
     # Update zombies in the viewport
     zombies_at_coordinates = defaultdict(list)

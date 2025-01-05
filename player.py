@@ -56,8 +56,6 @@ class Player:
             "Police Officer": "Combat Training",
         }
         return traits.get(occupation, "Survivor Instinct")
-
-
     
     def gain_skill(self, skill):
         """Adds a skill to the player's skill list depending on their state."""
@@ -156,10 +154,17 @@ class Player:
     def increment_ticker(self):
         """Increments the ticker to track player actions."""
         self.ticker += 1
+
+        # Check buildings for fuel expiry
         for building in self.city.building_group:
             if hasattr(building, 'fuel_expiration') and building.fuel_expiration < self.ticker:
                 if building in self.lights_on:
                     self.lights_on.remove(building)
+
+        # Each zombie gains an action point
+        for zombie in self.zombie_group:
+            zombie.action_points += 1
+            zombie.take_action(self)
 
     # Start of player actions
 

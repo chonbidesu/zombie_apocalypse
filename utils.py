@@ -45,6 +45,14 @@ def get_filtered_sprites_at(x, y, group, x_groups, y_groups):
     
     return filtered_sprites
 
+# Get the city block at (x, y)
+def get_block_at_xy(player, x, y):
+    block = get_filtered_sprites_at(
+        x, y, player.city.cityblock_group, 
+        player.x_groups, player.y_groups
+    )
+    return block
+
 # Get the city block at player's current location
 def get_block_at_player(player):
     block_list = get_filtered_sprites_at(

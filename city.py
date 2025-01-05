@@ -73,21 +73,11 @@ class City:
             building_block = BuildingBlock()
             self.building_group.add(building_block)
             self.cityblock_group.add(building_block)
-            block_type = random.choice(self.building_types)
-            building_block.block_type = block_type
-            image_filename = BLOCK_IMAGES[block_type]
-            image = pygame.image.load(image_filename)
-            image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
-            building_block.image = image
-            self.building_type_groups[block_type].add(building_block)
-            block_name = self._get_unique_block_name(block_type)
-            block_desc = BLOCKNAME_DESC[block_type]
-            building_block.block_name = block_name
-            building_block.block_desc = block_desc
-            building_block.generate_descriptions(self.descriptions, block_type)
-            
-            building_block.render_label()
-            
+            building_block.block_type = random.choice(self.building_types)
+            self.building_type_groups[building_block.block_type].add(building_block)
+            building_block.block_name = self._get_unique_block_name(building_block.block_type)
+            building_block.block_desc = BLOCKNAME_DESC[building_block.block_type]
+            building_block.generate_descriptions(self.descriptions, building_block.block_type)          
             block_pool.append(building_block)
 
         # Generate 2500 outdoor blocks
@@ -95,24 +85,17 @@ class City:
             outdoor_block = CityBlock()
             self.outdoor_group.add(outdoor_block)
             self.cityblock_group.add(outdoor_block)
-            block_type = random.choice(self.outdoor_types)
-            outdoor_block.block_type = block_type
-            image_filename = BLOCK_IMAGES[block_type]
-            image = pygame.image.load(image_filename)
-            image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
-            outdoor_block.image = image
-            self.outdoor_type_groups[block_type].add(outdoor_block)
-            block_name = self._get_unique_block_name(block_type)
-            block_desc = BLOCKNAME_DESC[block_type]
-            outdoor_block.block_name = block_name
-            outdoor_block.block_desc = block_desc
-            outdoor_block.generate_descriptions(self.descriptions, block_type)
-            
-            if block_type == 'Street':
-                outdoor_block.apply_zoomed_image(image)
+            outdoor_block.block_type = random.choice(self.outdoor_types)
+            self.outdoor_type_groups[outdoor_block.block_type].add(outdoor_block)
+            outdoor_block.block_name = self._get_unique_block_name(outdoor_block.block_type)
+            outdoor_block.block_desc = BLOCKNAME_DESC[outdoor_block.block_type]
+            outdoor_block.generate_descriptions(self.descriptions, outdoor_block.block_type)
 
-            outdoor_block.render_label()
-            
+            if outdoor_block.block_type == 'Street':
+                base_width, base_height = 200, 200
+                outdoor_block.zoom_x = random.randint(0, base_width // 2)
+                outdoor_block.zoom_y = random.randint(0, base_height // 2)
+
             block_pool.append(outdoor_block)
 
         # Generate 2500 street blocks
@@ -120,22 +103,15 @@ class City:
             street_block = CityBlock()
             self.outdoor_group.add(street_block)
             self.cityblock_group.add(street_block)
-            block_type = 'Street'
-            street_block.block_type = block_type
-            image_filename = BLOCK_IMAGES[block_type]
-            image = pygame.image.load(image_filename)
-            image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
-            street_block.image = image
-            self.outdoor_type_groups[block_type].add(street_block)
-            block_name = self._get_unique_block_name(block_type)
-            block_desc = BLOCKNAME_DESC[block_type]
-            street_block.block_name = block_name
-            street_block.block_desc = block_desc
-            street_block.generate_descriptions(self.descriptions, block_type)
+            street_block.block_type = 'Street'
+            self.outdoor_type_groups[street_block.block_type].add(street_block)
+            street_block.block_name = self._get_unique_block_name(street_block.block_type)
+            street_block.block_desc = BLOCKNAME_DESC[street_block.block_type]
+            street_block.generate_descriptions(self.descriptions, street_block.block_type)
             
-            street_block.apply_zoomed_image(image)
-
-            street_block.render_label()
+            base_width, base_height = 200, 200
+            street_block.zoom_x = random.randint(0, base_width // 2)
+            street_block.zoom_y = random.randint(0, base_height // 2)
             
             block_pool.append(street_block)
 
@@ -247,16 +223,3 @@ class City:
 
                 # Store the neighbourhood group
                 self.neighbourhood_groups[neighbourhood_name] = neighbourhood_group
-
-    # Store zoom coordinates for street blocks to give streets variety
-    def initialize_zoom_coordinates(self, city):
-        for row in city:
-            for block in row:
-                if block.block_type == "Street":
-                    image_width, image_height = 200, 200
-                    zoom_factor = 2
-                    zoom_width, zoom_height = image_width // zoom_factor, image_height // zoom_factor
-                    
-                    # Precompute random zoom position
-                    block.zoom_x = random.randint(0, image_width - zoom_width)
-                    block.zoom_y = random.randint(0, image_height - zoom_height)

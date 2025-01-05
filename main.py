@@ -35,8 +35,6 @@ button_group = ui.create_button_group()
 # Create zombie groups
 zombie_group, zombie_display_group = logic.create_zombie_groups()
 
-zombie1 = zombie.Zombie(x_groups, y_groups, zombie_group, 51, 51)
-zombie2 = zombie.Zombie(x_groups, y_groups, zombie_group, 51, 51)
 
 # Create player
 player = Player(
@@ -44,6 +42,10 @@ player = Player(
     button_group, ui.update_observations, utils.get_block_at_player,
     name="Alice", occupation="Doctor", x=50, y=50, 
 )
+
+# TEST ZOMBIES
+zombie1 = zombie.Zombie(player, zombie_group, utils.get_block_at_xy, 51, 51)
+zombie2 = zombie.Zombie(player, zombie_group, utils.get_block_at_xy, 51, 51)
 
 # Initialize viewport based on player's starting position
 logic.update_viewport(player, zombie_group, zombie_display_group)

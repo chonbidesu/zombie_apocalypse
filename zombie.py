@@ -15,10 +15,12 @@ class CharacterSprite(pygame.sprite.Sprite):
 
 class Zombie(pygame.sprite.Sprite):
     """Represents a zombie in the city."""
-    def __init__(self, x_groups, y_groups, zombie_group, x, y):
+    def __init__(self, player, zombie_group, get_block_at_xy, x, y):
         super().__init__()
-        self.x_groups, self.y_groups = x_groups, y_groups
+        self.player = player
+        self.x_groups, self.y_groups = player.x_groups, player.y_groups
         self.zombie_group = zombie_group
+        self.get_block_at_xy = get_block_at_xy
         self.hp = ZOMBIE_START_HP
         self.action_points = 0
         self.is_dead = False
@@ -105,72 +107,81 @@ class Zombie(pygame.sprite.Sprite):
             self.character_sprite = None  # Remove the sprite if conditions aren't met
             return None
     
-    def gain_action_point(self):
-        self.action_points += 1
-
     def take_action(self, player):
         if self.action_points >= 1 and not self.is_dead:
-            target_building = self.find_lit_building()
-            if target_building:  # Move towards lit building if adjacent
-                if self.move_towards(target_building):
-                    self.action_points -= 2
-                else: # Attack barricades if in front of lit building
-                    self.action_points -= 1
-                    return self.attack_barricade(target_building)
-                
-            if (self.x, self.y) == player.location:  # Attack player if in same block
+            current_x, current_y = self.get_coordinates()
+            current_block = self.get_block_at_xy(player, current_x, current_y)
+            target_dy, target_dy = (None, None)
+
+            if (current_x, current_y) == player.location:  # Attack player if in same block
                 self.action_points -= 1
                 return self.attack(player)
+
+            if self.find_target_dxy():
+                target_dx, target_dy = self.find_target_dxy()            
+                if (target_dx, target_dy) == (0, 0):
+                    if current_block.barricade.level < 0 and not self.inside:
+                        return self.attack_barricade(current_block)
+                    elif current_block.barricade.level == 0 and not self.inside:
+                        return self.enter()
+                elif self.action_points >= 2:
+                    return self.move_towards(target_dx, target_dy)
+
             elif self.action_points >= 2:  # Move if no player or lit building to act upon
-                self.action_points -= 2
                 return self.move()
+             
+
         elif self.is_dead and self.action_points >= 20:  # Stand up if dead
             self.stand_up()
         return "Zombie does nothing."
 
-    def find_lit_building(self):
-        """Finds adjacent lit buildings."""
-        adjacent_positions = [
-            (self.x + 1, self.y),
-            (self.x - 1, self.y),
-            (self.x, self.y + 1),
-            (self.x, self.y - 1)
-        ]
-        lit_buildings = []
+    def find_target_dxy(self):
+        """Finds a nearby lit building."""
+        current_x, current_y = self.get_coordinates()
+        current_block = self.get_block_at_xy(self.player, current_x, current_y)
+        lit_buildings_dxy = []
 
-        for x, y in adjacent_positions:
-            if 0 <= x < 100 and 0 <= y < 100:
-                block = self.city[y][x]
-                if hasattr(block, "lights_on") and block.lights_on:
-                    lit_buildings.append(block)
+        if self.player.location == (current_x, current_y) or current_block in self.player.lights_on:
+            return (0, 0)
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                if dx == 0 and dy == 0:
+                    continue
 
-        return random.choice(lit_buildings) if lit_buildings else None
+                adjacent_x = current_x + dx
+                adjacent_y = current_y + dy
 
-    def move_towards(self, building):
+                if self.player.location == (adjacent_x, adjacent_y):
+                    return (dx, dy)
+
+                adjacent_block = self.get_block_at_xy(self.player, adjacent_x, adjacent_y)
+                if adjacent_block in self.player.lights_on:
+                    lit_buildings_dxy.append((dx, dy))
+
+        return random.choice(lit_buildings_dxy) if lit_buildings_dxy else None
+
+    def move_towards(self, dx, dy):
         """Moves towards the given building if not already in front."""
-        block = self.city[self.y][self.x]
-        if block.lights_on:
-            return False  # Already in front of a lit building.
-
-        if building.x > self.x:
-            self.x += 1
-        elif building.x < self.x:
-            self.x -= 1
-        elif building.y > self.y:
-            self.y += 1
-        elif building.y < self.y:
-            self.y -= 1
-        return True
+        current_x, current_y = self.get_coordinates()
+        new_x = current_x + dx
+        new_y = current_y + dy
+        
+        if dx == 0 and dy == 0:
+            return False
+        self.action_points -= 2
+        return self.update_position(new_x, new_y)
+        
 
     def attack_barricade(self, building):
         """Attacks the barricades of the given building."""
-        if hasattr(building, "barricade_level") and building.barricade.barricade_level > 0:
-            if hasattr(building, "barricade_health") and building.barricade.barricade_health > 0:
+        if hasattr(building.barricade, "level") and building.barricade.level > 0:
+            if hasattr(building.barricade, "health") and building.barricade.health > 0:
                 if random.random() < 0.3:  # 30% chance to successfully attack barricades
-                    building.barricade.barricade_health -= 10
-                    if building.barricade.barricade_health <= 0:  # Reduce barricade level if health reaches 0
-                        building.barricade.barricade_health = 30  # Reset health for the next level
+                    building.barricade.health -= 10
+                    if building.barricade.health <= 0:  # Reduce barricade level if health reaches 0
+                        building.barricade.health = 30  # Reset health for the next level
                         building.barricade.adjust_barricade_level(-1)
+                        self.action_points -= 1
                         return "Zombie reduces barricade level!"
                     return "Zombie damages barricade."
             return "Zombie attack on barricade fails."
@@ -179,20 +190,27 @@ class Zombie(pygame.sprite.Sprite):
     def move(self):
         """Randomly moves the zombie to an adjacent block."""
         dx, dy = random.choice([(0, 1), (0, -1), (1, 0), (-1, 0)])
-        new_x, new_y = self.x + dx, self.y + dy
+        current_x, current_y = self.get_coordinates()
+        new_x, new_y = current_x + dx, current_y + dy
 
         if 0 <= new_x < 100 and 0 <= new_y < 100:  # Ensure within city bounds
-            self.x = new_x
-            self.y = new_y
-            return "Zombie moves."
-        return "Zombie cannot move."
+            self.action_points -= 2
+            return self.update_position(new_x, new_y)
+        return False
 
     def attack(self, player):
         """Attempts to attack a player if in the same block."""
-        if (self.x, self.y) == player.location:
-            player.take_damage(10)  # Zombies deal 10 damage
-            return "Zombie attacks the player!"
-        return "No target to attack."
+        if random.random() < 0.3:
+            self.action_points -= 1
+            return player.take_damage(10)  # Zombies deal 10 damage
+        else:
+            return False
+
+    def enter(self):
+        """Enter a building."""
+        self.action_points -= 1
+        self.inside = True
+        return "Zombie enters the building."
 
     def take_damage(self, amount):
         """Reduces the zombie's health."""
