@@ -62,23 +62,49 @@ class Zombie(pygame.sprite.Sprite):
         self.y_groups[new_y].add(self)
         # self.rect.topleft = (new_x * BLOCK_SIZE, new_y * BLOCK_SIZE)  # Adjust offsets as needed
 
-    def update_character_sprite(self, player, panel_position):
-        """Update the character sprite for the description panel."""
-        current_x, current_y = self.get_coordinates()
-        if (current_x, current_y) == player.location:
-            if not self.character_sprite:
-                # Create the character sprite if not already present
-                image_path = "assets/zombie_character.png"
-                self.character_sprite = CharacterSprite(self, image_path, panel_position)
-            else:
-                # Update position if the sprite already exists
-                self.character_sprite.rect.center = panel_position
-            return self.character_sprite # Return the sprite to be added to the group
-        else:
-            self.character_sprite = None # Remove the sprite when not on player's square
-            return None
-        
+    def update_character_sprite(self, player, index, total_zombies):
+        """
+        Update the character sprite for the description panel.
 
+        Args:
+            player (Player): The player object.
+            index (int): The index of the zombie among zombies at the same location.
+            total_zombies (int): The total number of zombies at the location.
+        """
+        current_x, current_y = self.get_coordinates()
+        if (current_x, current_y) == player.location and player.inside == self.inside:
+            # Calculate the setting_image dimensions and position
+            description_start_x = SCREEN_WIDTH // 3 + 10
+            description_width = SCREEN_WIDTH * 2 // 3 - 10
+            setting_image_width = description_width * 5 // 6
+            setting_image_height = (setting_image_width * 4) // 9
+            setting_image_x = description_start_x + (description_width - setting_image_width) // 2
+            setting_image_y = 10
+
+            # Calculate zombie sprite row alignment
+            zombie_width = setting_image_width // max(total_zombies, 1)  # Space for each zombie
+            zombie_width = min(zombie_width, 50)  # Limit zombie width
+            total_row_width = total_zombie_width = zombie_width * total_zombies
+
+            # Center the row horizontally within the setting_image
+            row_start_x = setting_image_x + (setting_image_width - total_row_width) // 2
+            row_y = setting_image_y + setting_image_height - 10  # Align to bottom edge with padding
+
+            # Calculate the position for this zombie
+            zombie_x = row_start_x + index * zombie_width
+
+            # Update or create the character sprite
+            if not self.character_sprite:
+                image_path = "assets/zombie_character.png"
+                self.character_sprite = CharacterSprite(self, image_path, (zombie_x, row_y))
+            else:
+                self.character_sprite.rect.midbottom = (zombie_x + zombie_width // 2, row_y)
+
+            return self.character_sprite  # Return the sprite to be added to the group
+        else:
+            self.character_sprite = None  # Remove the sprite if conditions aren't met
+            return None
+    
     def gain_action_point(self):
         self.action_points += 1
 

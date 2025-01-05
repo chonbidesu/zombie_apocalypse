@@ -9,7 +9,7 @@ def get_sprite_coordinates(sprite, x_groups, y_groups):
             x_coordinate = x
             break
 
-    for y, group in y_groups.items():
+    for y, group in enumerate(y_groups):
         if sprite in group:
             y_coordinate = y
             break
@@ -17,8 +17,8 @@ def get_sprite_coordinates(sprite, x_groups, y_groups):
     return x_coordinate, y_coordinate
  
 # Get the target of the mouse click
-def get_click_target(mouse_pos, player, viewport_group):
-    current_block = get_block_at_player(player)
+def get_click_target(mouse_pos, player, city, viewport_group):
+    current_block = get_block_at_player(player, city)
     if current_block.rect.collidepoint(mouse_pos):
         return 'current block', current_block
     for sprite in player.inventory:

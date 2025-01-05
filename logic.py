@@ -46,7 +46,7 @@ def calculate_grid_start():
 
 # Update viewport centered on player
 viewport_group = pygame.sprite.Group()
-def update_viewport(player, city, zombie_group):
+def update_viewport(player, city, zombie_group, zombie_display_group):
     viewport_group.empty()
     player_x, player_y = player.location
 
@@ -68,11 +68,11 @@ def update_viewport(player, city, zombie_group):
                         BLOCK_SIZE,
                         BLOCK_SIZE
                     )
-                    print(f"Adding block to viewport: {block.block_name} at {block.rect}")
                     viewport_group.add(block)
 
     # Update zombies in the viewport
     zombies_at_coordinates = defaultdict(list)
+    zombie_display_group.empty()
     for zombie in zombie_group:
         zombie_x, zombie_y = zombie.get_coordinates()
         zombies_at_coordinates[(zombie_x, zombie_y)].append(zombie)
@@ -114,3 +114,9 @@ def update_viewport(player, city, zombie_group):
                             zombie_width
                         )
                         viewport_group.add(zombie)
+
+        # Update zombie characters in the description panel
+        for index, zombie in enumerate(zombies_at_coordinates[zombie_x, zombie_y]):
+            character_sprite = zombie.update_character_sprite(player, index, len(zombies_at_coordinates[zombie_x, zombie_y]))
+            if character_sprite:
+                zombie_display_group.add(character_sprite)

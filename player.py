@@ -215,14 +215,14 @@ class Player:
         else:
             return f"You are standing in front of {current_block.block_desc} called {current_block.block_name}."
 
-    def enter(self, player, city):
+    def enter(self, city):
         current_block = self.get_block_at_player(self, city)
         if current_block in city.building_group:
             if not self.inside:
                 if current_block.barricade.level <= 4:
                     self.increment_ticker(city)
                     self.inside = True
-                    self.update_observations(player, city)
+                    self.update_observations(self, city)
                     for button in self.button_group:
                         if button.name == 'enter':
                             self.button_group.remove(button)
@@ -233,13 +233,13 @@ class Player:
             return "You are already inside."
         return "This is not a building."
 
-    def leave(self, player, city):
+    def leave(self, city):
         current_block = self.get_block_at_player(self, city)
         if current_block in city.building_group:
             if self.inside:
                 self.increment_ticker(city)
                 self.inside = False
-                self.update_observations(player, city)
+                self.update_observations(self, city)
                 for button in self.button_group:
                     if button.name == 'leave':
                         self.button_group.remove(button)
@@ -283,7 +283,8 @@ class Player:
         else:
             return "You search but there is nothing to be found."
         
-    def install_generator(self, current_block, city):
+    def install_generator(self, city):
+        current_block = self.get_block_at_player(self, city)
         if current_block in self.generator_installed:
             return "Generator is already installed."
         else:
@@ -291,7 +292,8 @@ class Player:
             self.generator_installed.add(current_block)
             return "You install a generator. It needs fuel to operate."
         
-    def fuel_generator(self, current_block, city):
+    def fuel_generator(self, city):
+        current_block = self.get_block_at_player(self, city)
         if current_block in self.lights_on:
             return "Generator already has fuel."
         elif current_block not in self.generator_installed:

@@ -40,13 +40,13 @@ def get_viewport_dxy(sprite, player, get_sprite_coordinates):
 
 # Check whether the current block is a building
 def is_building(player, city):
-    current_block = player.get_block_at_player()
+    current_block = player.get_block_at_player(player, city)
     if current_block in city.building_group:
         return True
 
 # Create a context-sensitive popup menu based on the target
 def create_context_menu(target, player, city, get_sprite_coordinates,  NonBlockingPopupMenu, sprite=None):
-    global popup_menu, menu_viewport_dxy, menu_item
+    global menu_viewport_dxy, menu_item
     if target == 'item':
         if sprite is not None:
             if sprite in player.weapon_group:
@@ -69,10 +69,10 @@ def create_context_menu(target, player, city, get_sprite_coordinates,  NonBlocki
     elif target == 'screen':
         return None
 
-    popup_menu = NonBlockingPopupMenu(menu_data)
+    return NonBlockingPopupMenu(menu_data)
 
 # Handle menu actions
-def handle_menu_action(player, update_viewport, menu_name, action, chat_history):
+def handle_menu_action(player, city, update_viewport, zombie_group, zombie_display_group, menu_name, action, chat_history):
     if menu_name == 'Item':
         if action == 'Equip':
             player.weapon.empty()
@@ -83,10 +83,10 @@ def handle_menu_action(player, update_viewport, menu_name, action, chat_history)
             menu_item.kill()
     elif menu_name == 'Actions':
         if action == 'Barricade':
-            result = player.barricade()
+            result = player.barricade(city)
             chat_history.append(result)
         elif action == 'Search':
-            result = player.search()
+            result = player.search(city)
             chat_history.append(result)
         elif action == 'Enter':
             player.inside = True
@@ -98,9 +98,9 @@ def handle_menu_action(player, update_viewport, menu_name, action, chat_history)
             player.button_group.add(player.enter_button)
     elif menu_name == 'Go':
         if action == 'Move':
-            player.move(menu_viewport_dxy[0], menu_viewport_dxy[1])
+            player.move(menu_viewport_dxy[0], menu_viewport_dxy[1], city)
             print(f"Moving to {menu_viewport_dxy}")
-    update_viewport()          
+    update_viewport(player, city, zombie_group, zombie_display_group)          
 
 ## Sprite cursor also runs while menu is posted.
 class Cursor(object):

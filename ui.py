@@ -167,7 +167,7 @@ def description(player, city):
 # Draw description panel
 description_panel_image = pygame.image.load("assets/description_panel.png")
 
-def draw_description_panel(screen, player, city):
+def draw_description_panel(screen, player, city, zombie_display_group):
     """Draw the description panel on the right side of the screen."""
 
     description_start_x = SCREEN_WIDTH // 3 + 10
@@ -203,6 +203,7 @@ def draw_description_panel(screen, player, city):
     setting_image_x = description_start_x + (description_width - setting_image_width) // 2
     setting_image_y = 50
     screen.blit(scaled_setting_image, (setting_image_x, setting_image_y))
+    zombie_display_group.draw(screen)
 
     # Get the description text and wrap it to fit within the panel
     text_start_y = setting_image_y + setting_image_height + 20
