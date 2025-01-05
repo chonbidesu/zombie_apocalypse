@@ -84,12 +84,12 @@ def get_neighbourhood(block, neighbourhood_groups):
 # Draw viewport
 viewport_frame = pygame.image.load('assets/viewport_frame.png')
 
-def draw_viewport(screen, player, city, viewport_group):
+def draw_viewport(screen, player, viewport_group):
     """Draw the 3x3 viewport representing the player's surroundings."""
     
     viewport_frame_width, viewport_frame_height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2
     # grid_start_x, grid_start_y = (viewport_frame_width // 9) + 12, (viewport_frame_height // 9) + 12
-    current_block = player.get_block_at_player(player, city)
+    current_block = player.get_block_at_player(player)
 
     scaled_viewport_frame = pygame.transform.scale(viewport_frame, (viewport_frame_width, viewport_frame_height))
     screen.blit(scaled_viewport_frame, (10, 10))
@@ -98,7 +98,7 @@ def draw_viewport(screen, player, city, viewport_group):
 
     # Draw neighbourhood name
     pygame.draw.rect(screen, ORANGE, (10, viewport_frame_height + 10, viewport_frame_width, 20))
-    neighbourhood_name = get_neighbourhood(current_block, city.neighbourhood_groups)
+    neighbourhood_name = get_neighbourhood(current_block, player.city.neighbourhood_groups)
     text = font_small.render(neighbourhood_name, True, WHITE)
     screen.blit(text, ((viewport_frame_width // 2) - (text.get_width() // 2), viewport_frame_height + 15))
 
@@ -121,8 +121,8 @@ def draw_actions_panel(screen):
     title_rect = title_text.get_rect(center=(panel_x + panel_width // 2, panel_y + 20))
     screen.blit(title_text, title_rect)
 
-def get_current_observations(player, city):
-    current_block = player.get_block_at_player(player, city)
+def get_current_observations(player):
+    current_block = player.get_block_at_player(player)
     current_observations = ""
     if player.inside:
         current_observations += f'You are standing inside {current_block.block_name}. '
@@ -138,7 +138,7 @@ def get_current_observations(player, city):
             else:
                 current_observations += "It is out of fuel. "
     else:
-        if current_block in city.building_group:
+        if current_block in player.city.building_group:
             current_observations += f'You are standing outside {current_block.block_desc}. A sign reads "{current_block.block_name}". '
             current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
             if current_block in player.lights_on:
@@ -147,27 +147,27 @@ def get_current_observations(player, city):
             current_observations += f'You are standing in {current_block.block_desc}.'
     return current_observations
 
-def update_observations(player, city):
+def update_observations(player):
     """Update the observations list based on the player's current state."""
-    current_block = player.get_block_at_player(player, city)
+    current_block = player.get_block_at_player(player)
     current_block.observations.clear()  # Clear existing observations
     if player.inside:
-        current_block.observations.append(get_current_observations(player, city))
+        current_block.observations.append(get_current_observations(player))
         current_block.observations.append(current_block.block_inside_desc)
     else:
-        current_block.observations.append(get_current_observations(player, city))
+        current_block.observations.append(get_current_observations(player))
         current_block.observations.append(current_block.block_outside_desc)
 
-def description(player, city):
+def description(player):
     """Return the current list of observations as a list."""
-    current_block = player.get_block_at_player(player, city)
-    update_observations(player, city)  # Ensure observations are current
+    current_block = player.get_block_at_player(player)
+    update_observations(player)  # Ensure observations are current
     return current_block.observations
 
 # Draw description panel
 description_panel_image = pygame.image.load("assets/description_panel.png")
 
-def draw_description_panel(screen, player, city, zombie_display_group):
+def draw_description_panel(screen, player, zombie_display_group):
     """Draw the description panel on the right side of the screen."""
 
     description_start_x = SCREEN_WIDTH // 3 + 10
@@ -178,11 +178,11 @@ def draw_description_panel(screen, player, city, zombie_display_group):
     screen.blit(scaled_panel_image, (description_start_x, 10))
 
     # Determine the setting image
-    current_block = player.get_block_at_player(player, city)
-    for group, blocks in city.outdoor_type_groups.items():
+    current_block = player.get_block_at_player(player)
+    for group, blocks in player.city.outdoor_type_groups.items():
         if current_block in blocks:
             block_type = group.lower()
-    for group, blocks in city.building_type_groups.items():
+    for group, blocks in player.city.building_type_groups.items():
         if current_block in blocks:
             block_type = group.lower()
     image_suffix = "inside" if player.inside else "outside"
@@ -208,7 +208,7 @@ def draw_description_panel(screen, player, city, zombie_display_group):
     # Get the description text and wrap it to fit within the panel
     text_start_y = setting_image_y + setting_image_height + 20
     paragraphs = []
-    current_observations = description(player, city)
+    current_observations = description(player)
     for observation in current_observations:
         wrapped_text = wrap_text(observation, font_large, description_width - 100)  # 50px padding on each side
         for line in wrapped_text:

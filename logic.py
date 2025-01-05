@@ -46,7 +46,7 @@ def calculate_grid_start():
 
 # Update viewport centered on player
 viewport_group = pygame.sprite.Group()
-def update_viewport(player, city, zombie_group, zombie_display_group):
+def update_viewport(player, zombie_group, zombie_display_group):
     viewport_group.empty()
     player_x, player_y = player.location
 
@@ -59,7 +59,7 @@ def update_viewport(player, city, zombie_group, zombie_display_group):
 
             #Ensure block coordinates are within city bounds
             if 0 <= block_x < len(player.x_groups) and 0 <= block_y < len(player.y_groups):
-                blocks = set(player.x_groups[block_x]) & set(player.y_groups[block_y]) & set(city.cityblock_group)
+                blocks = set(player.x_groups[block_x]) & set(player.y_groups[block_y]) & set(player.city.cityblock_group)
                 if blocks:
                     block = next(iter(blocks))
                     block.rect = pygame.Rect(
