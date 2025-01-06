@@ -21,34 +21,60 @@ class Button(pygame.sprite.Sprite):
     def __init__(self, name, button_group, x, y):
         super().__init__()
         self.name = name
-        self.image_up = pygame.image.load(f"assets/{name}_up.bmp")
-        self.image_up = pygame.transform.scale(self.image_up, (100, 49))
-        self.image_down = pygame.image.load(f"assets/{name}_down.bmp")
-        self.image_down = pygame.transform.scale(self.image_down, (100, 49))
-        self.image = self.image_up
-        self.rect = self.image.get_rect(topleft = (x, y))
-        self.is_pressed = False
+        self.x, self.y = x, y
         self.button_group = button_group
+        self.is_pressed = False
+        self._image_up = None  # Private attributes for lazy-loaded images
+        self._image_down = None
+        self.rect = pygame.Rect(x, y, 100, 49)  # Initial rect size (scale later when image is loaded)
+
+    @property
+    def image_up(self):
+        """Lazy load the 'up' image when first accessed."""
+        if self._image_up is None:
+            self._image_up = pygame.image.load(f"assets/{self.name}_up.bmp")
+            self._image_up = pygame.transform.scale(self._image_up, (100, 49))  # Scale when loading
+        return self._image_up
+
+    @property
+    def image_down(self):
+        """Lazy load the 'down' image when first accessed."""
+        if self._image_down is None:
+            self._image_down = pygame.image.load(f"assets/{self.name}_down.bmp")
+            self._image_down = pygame.transform.scale(self._image_down, (100, 49))  # Scale when loading
+        return self._image_down
+
+    @property
+    def image(self):
+        """Return the current image based on button state."""
+        if self.is_pressed:
+            return self.image_down
+        else:
+            return self.image_up
+
+    @image.setter
+    def image(self, value):
+        """Setter for image, in case the image needs to be manually set."""
+        # This can be used if you want to manually change the image
+        pass
 
     def handle_event(self, event):
         """Handle mouse events to change button state."""
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
-                self.image = self.image_down
                 self.is_pressed = True
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             if self.is_pressed:
-                self.image = self.image_up
                 self.is_pressed = False
                 if self.rect.collidepoint(event.pos):
-                    return self.name # Return the button name when clicked
+                    return self.name  # Return the button name when clicked
                 
         return None
     
     def update(self):
         """Update the button's visual state."""
-        # The image has already been changed in handle_event; nothing extra needed here
-        pass
+        # Update image based on button press state
+        self.image = self.image  # This just triggers the lazy loading based on current state
 
 # Handle text wrapping
 def wrap_text(text, font, max_width):

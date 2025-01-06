@@ -191,7 +191,6 @@ class City:
             new_block = BuildingBlock()
             new_block.block_name = source_block.block_name
             new_block.block_desc = source_block.block_desc
-            new_block.image = source_block.image
             new_block.generate_descriptions(self.descriptions, block_type)
 
             # Update group memberships

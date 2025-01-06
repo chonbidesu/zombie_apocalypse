@@ -44,6 +44,55 @@ class Player:
                 self.leave_button = sprite
         self.button_group.remove(self.leave_button)
 
+    # Override to allow for pickling
+    def __getstate__(self):
+        # Extract the current state of the object
+        state = self.__dict__.copy()
+
+        # Remove or unset any surfaces or non-pickleable attributes (like sprite images)
+        # For sprites, replace with their names or identifiers (or leave as None)
+        state['inventory'] = [item.name for item in self.inventory]  # Store item names as a list
+        state['weapon'] = self.weapon.sprite.name if self.weapon.sprite else None  # Store weapon name or None
+        state['lights_on'] = [block.id for block in self.lights_on]  # Store block IDs or other identifiers
+        state['generator_installed'] = [block.id for block in self.generator_installed]
+        
+        # Unset surfaces or any graphical data
+        for item in self.inventory:
+            item.image = None  # Remove surface from item
+        if self.weapon.sprite:
+            self.weapon.sprite.image = None  # Remove surface from weapon
+        
+        return state
+
+    def __setstate__(self, state):
+        # Rebuild the object from the saved state
+        self.__dict__.update(state)
+
+        # Recreate the pygame sprite groups based on the saved state
+        self.inventory = pygame.sprite.Group()
+        for item_name in self.inventory:
+            item = self.create_item(item_name)  # Create the item based on name
+            self.inventory.add(item)
+        
+        if self.weapon:
+            self.weapon.add(self.create_item(self.weapon))
+        
+        self.lights_on = pygame.sprite.Group()
+        self.generator_installed = pygame.sprite.Group()
+        # Assume a mechanism to map IDs back to sprite groups, e.g., map `block.id` to a block object
+
+        # Reload surfaces dynamically
+        for item in self.inventory:
+            item.image = self.load_image(item.image_file)  # Reload the item's image
+        if self.weapon.sprite:
+            self.weapon.sprite.image = self.load_image(self.weapon.sprite.image_file)  # Reload the weapon's image
+
+    def load_image(self, image_file):
+        """Load an image dynamically based on its file path."""
+        return pygame.image.load(image_file)
+
+        
+
     def assign_starting_trait(self, occupation):
         """Assigns a starting trait based on the player's occupation."""
         traits = {

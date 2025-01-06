@@ -7,19 +7,33 @@ class CharacterSprite(pygame.sprite.Sprite):
     """A detailed zombie sprite for the description panel."""
     def __init__(self, zombie, image_path, panel_position):
         super().__init__()
-        self.image = pygame.image.load(image_path).convert_alpha()
-        self.image = pygame.transform.scale(self.image, (100, 150))  # Example size
-        self.rect = self.image.get_rect(center=panel_position)
         self.zombie = zombie  # Reference to the parent zombie
+        self._image = None  # Private attribute for image
+        self.image_path = image_path  # Store the path for lazy loading
+        self.rect = pygame.Rect(panel_position, (100, 150))  # Example size for sprite rect
+
+    @property
+    def image(self):
+        """Lazy load the image when accessed."""
+        if self._image is None:
+            # Load and transform the image when it's first needed
+            self._image = pygame.image.load(self.image_path).convert_alpha()
+            self._image = pygame.transform.scale(self._image, (100, 150))  # Scale to desired size
+        return self._image
+
+    @image.setter
+    def image(self, value):
+        """Setter for image, useful if you need to manually set the image."""
+        self._image = value
 
 
 class Zombie(pygame.sprite.Sprite):
     """Represents a zombie in the city."""
-    def __init__(self, player, zombie_group, get_block_at_xy, x, y):
+    def __init__(self, player, get_block_at_xy, x, y):
         super().__init__()
         self.player = player
         self.x_groups, self.y_groups = player.x_groups, player.y_groups
-        self.zombie_group = zombie_group
+        self.zombie_group = player.zombie_group
         self.get_block_at_xy = get_block_at_xy
         self.hp = ZOMBIE_START_HP
         self.action_points = 0
@@ -33,11 +47,11 @@ class Zombie(pygame.sprite.Sprite):
         self.zombie_group.add(self)
 
         # Set up viewport sprite
-        self.image = pygame.Surface((10,10))
-        self.image.fill((0, 255, 0))
+        self.image = pygame.Surface((10, 10))  # Placeholder surface
+        self.image.fill((0, 255, 0))  # Example fill color (green)
         self.rect = self.image.get_rect()
 
-        # Character image
+        # Character sprite will be lazily loaded
         self.character_sprite = None
 
     def get_coordinates(self):
@@ -62,7 +76,6 @@ class Zombie(pygame.sprite.Sprite):
         self.y_groups[current_y].remove(self)
         self.x_groups[new_x].add(self)
         self.y_groups[new_y].add(self)
-        # self.rect.topleft = (new_x * BLOCK_SIZE, new_y * BLOCK_SIZE)  # Adjust offsets as needed
 
     def update_character_sprite(self, player, index, total_zombies):
         """
@@ -86,7 +99,7 @@ class Zombie(pygame.sprite.Sprite):
             # Calculate zombie sprite row alignment
             zombie_width = setting_image_width // max(total_zombies, 1)  # Space for each zombie
             zombie_width = min(zombie_width, 50)  # Limit zombie width
-            total_row_width = total_zombie_width = zombie_width * total_zombies
+            total_row_width = zombie_width * total_zombies
 
             # Center the row horizontally within the setting_image
             row_start_x = setting_image_x + (setting_image_width - total_row_width) // 2
@@ -106,7 +119,7 @@ class Zombie(pygame.sprite.Sprite):
         else:
             self.character_sprite = None  # Remove the sprite if conditions aren't met
             return None
-    
+            
     def take_action(self, player):
         if self.action_points >= 1 and not self.is_dead:
             current_x, current_y = self.get_coordinates()

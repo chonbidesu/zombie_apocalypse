@@ -45,7 +45,7 @@ def is_building(player):
         return True
 
 # Create a context-sensitive popup menu based on the target
-def create_context_menu(target, player, city, get_sprite_coordinates,  NonBlockingPopupMenu, sprite=None):
+def create_context_menu(target, player, get_sprite_coordinates,  NonBlockingPopupMenu, sprite=None):
     global menu_viewport_dxy, menu_item
     if target == 'item':
         if sprite is not None:
@@ -72,7 +72,7 @@ def create_context_menu(target, player, city, get_sprite_coordinates,  NonBlocki
     return NonBlockingPopupMenu(menu_data)
 
 # Handle menu actions
-def handle_menu_action(player, update_viewport, zombie_group, zombie_display_group, menu_name, action, chat_history):
+def handle_menu_action(player, update_viewport, zombie_display_group, menu_name, action, chat_history):
     if menu_name == 'Item':
         if action == 'Equip':
             player.weapon.empty()
@@ -98,7 +98,7 @@ def handle_menu_action(player, update_viewport, zombie_group, zombie_display_gro
         if action == 'Move':
             player.move(menu_viewport_dxy[0], menu_viewport_dxy[1])
             print(f"Moving to {menu_viewport_dxy}")
-    update_viewport(player, zombie_group, zombie_display_group)          
+    update_viewport(player, zombie_display_group)          
 
 ## Sprite cursor also runs while menu is posted.
 class Cursor(object):

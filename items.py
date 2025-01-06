@@ -6,17 +6,22 @@ class Item(pygame.sprite.Sprite):
     def __init__(self, name, image_file=None):
         super().__init__()
         self.name = name
+        self._image_file = image_file
+        self._image = None
 
-        # Load and scale the image if provided
-        if image_file:
-            self.image = pygame.image.load(image_file)
-            self.image = pygame.transform.scale(self.image, (32, 32))  # Default size for item sprites
-        else:
-            self.image = pygame.Surface((32, 32))
-            self.image.fill((128, 128, 128))  # Default placeholder gray color
+        self.rect = pygame.Rect(0, 0, 32, 32)
 
-        # Create a rect for positioning
-        self.rect = self.image.get_rect()
+    @property
+    def image(self):
+        """Lazy-load the image when it is accessed."""
+        if self._image is None:
+            if self._image_file:
+                self._image = pygame.image.load(self._image_file)
+                self._image = pygame.transform.scale(self._image, (32, 32))
+            else:
+                self._image = pygame.Surface((32, 32))
+                self._image.fill ((128, 128, 128))
+        return self._image
 
 class Weapon(Item):
     """Base class for all weapons."""

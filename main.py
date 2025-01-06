@@ -1,10 +1,11 @@
 # main.py
+import os
+import pickle
 import pygame
 import sys
 import random
 from pygame.locals import *
 from collections import defaultdict
-
 
 from settings import *
 from player import Player
@@ -14,6 +15,7 @@ import logic
 import utils
 import menus
 import zombie
+import saveload
 
 # Initialize Pygame
 pygame.init()
@@ -23,44 +25,83 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Zombie Apocalypse")
 clock = pygame.time.Clock()
 
-# Initialize coordinates
-x_groups, y_groups = logic.create_xy_groups()
+class GameInitializer:
+    def __init__(self):
+        self.player = None
+        self.city = None
+        self.zombie_group = None
+        self.zombie_display_group = None
+        self.cursor = menus.Cursor()
+        self.button_group = None
+        self.popup_menu = None
 
-# Initialize city
-city = City(x_groups, y_groups)
+        self.initialize_game()
 
-# Create buttons
-button_group = ui.create_button_group()
+    def initialize_game(self):
+        """Initialize the game state by loading or creating a new game."""
+        try:
+            game_state = saveload.GameState.load_game("savegame.pkl")
+            self.player, self.city, self.zombie_group = game_state.reconstruct_game(
+                Player, City, Zombie, Item
+            )
+            # Create the zombie display group separately
+            self.zombie_display_group = logic.create_zombie_groups()[1]
+            self.button_group = self.player.button_group
+            print("Game loaded successfully.")
+        except FileNotFoundError:
+            print("Save file not found. Creating a new game.")
+            # Generate a new game if save file doesn't exist
+            self.create_new_game()
 
-# Create zombie groups
-zombie_group, zombie_display_group = logic.create_zombie_groups()
+    def create_new_game(self):
+        """Generate a new game state."""
+        # Initialize coordinates
+        x_groups, y_groups = logic.create_xy_groups()
+
+        # Initialize city
+        self.city = City(x_groups, y_groups)
+
+        # Create buttons
+        self.button_group = ui.create_button_group()
+
+        # Create zombie groups
+        self.zombie_group, self.zombie_display_group = logic.create_zombie_groups()
+
+        # Create player
+        self.player = Player(
+            self.city, x_groups, y_groups, self.zombie_group,
+            self.button_group, ui.update_observations, utils.get_block_at_player,
+            name="Alice", occupation="Doctor", x=50, y=50,
+        )
+
+        # TEST ZOMBIES
+        zombie1 = zombie.Zombie(self.player, utils.get_block_at_xy, 51, 51)
+        zombie2 = zombie.Zombie(self.player, utils.get_block_at_xy, 51, 51)
+
+        # Initialize viewport based on player's starting position
+        logic.update_viewport(self.player, self.zombie_display_group)
+
+        print("New game created.")
+
+    def save_game(self):
+        """Save the game state to a file."""
+        game_state = saveload.GameState(self.player, self.city, self.zombie_group)
+        saveload.GameState.save_game("savegame.pkl", self.player, self.city, self.zombie_group)
+        print("Game saved successfully.")
+
+    def quit_game(self):
+        """Handle cleanup and save the game on exit."""
+        self.save_game()
+        pygame.quit()
+        sys.exit()
 
 
-# Create player
-player = Player(
-    city, x_groups, y_groups, zombie_group,
-    button_group, ui.update_observations, utils.get_block_at_player,
-    name="Alice", occupation="Doctor", x=50, y=50, 
-)
-
-# TEST ZOMBIES
-zombie1 = zombie.Zombie(player, zombie_group, utils.get_block_at_xy, 51, 51)
-zombie2 = zombie.Zombie(player, zombie_group, utils.get_block_at_xy, 51, 51)
-
-# Initialize viewport based on player's starting position
-logic.update_viewport(player, zombie_group, zombie_display_group)
-
-# Initialize cursor
-cursor = menus.Cursor()
-
-menu_viewport_dxy = None
-menu_item = None
-popup_menu = None
+# Initialize game
+game = GameInitializer()
 
 # Main game loop
 def main():
     running = True
-    global popup_menu
     chat_history = ["The city is in ruins. Can you make it through the night?", 
                     "Use 'w', 'a', 's', 'd' to move. ESC to quit."
                     ]
@@ -72,31 +113,33 @@ def main():
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
-                running = False
+                saveload.Gamestate.save_game("save_game.pkl", game.player, game.city, game.zombie_group)
+                game.quit_game()
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    running = False
+                    saveload.GameState.save_game("save_game.pkl", game.player, game.city, game.zombie_group)
+                    game.quit_game()
 
                 # Arrow key movement
-                if event.key == pygame.K_UP and player.move(0, -1):
-                    logic.update_viewport(player, zombie_group, zombie_display_group)
-                elif event.key == pygame.K_DOWN and player.move(0, 1):
-                    logic.update_viewport(player, zombie_group, zombie_display_group)
-                elif event.key == pygame.K_LEFT and player.move(-1, 0):                    
-                    logic.update_viewport(player, zombie_group, zombie_display_group)
-                elif event.key == pygame.K_RIGHT and player.move(1, 0):
-                    logic.update_viewport(player, zombie_group, zombie_display_group)
+                if event.key == pygame.K_UP and game.player.move(0, -1):
+                    logic.update_viewport(game.player, game.zombie_display_group)
+                elif event.key == pygame.K_DOWN and game.player.move(0, 1):
+                    logic.update_viewport(game.player, game.zombie_display_group)
+                elif event.key == pygame.K_LEFT and game.player.move(-1, 0):                    
+                    logic.update_viewport(game.player, game.zombie_display_group)
+                elif event.key == pygame.K_RIGHT and game.player.move(1, 0):
+                    logic.update_viewport(game.player, game.zombie_display_group)
 
                 # WASD movement
-                if event.key == pygame.K_w and player.move(0, -1):
-                    logic.update_viewport(player, zombie_group, zombie_display_group)
-                elif event.key == pygame.K_s and player.move(0, 1):
-                    logic.update_viewport(player, zombie_group, zombie_display_group)
-                elif event.key == pygame.K_a and player.move(-1, 0):                    
-                    logic.update_viewport(player, zombie_group, zombie_display_group)
-                elif event.key == pygame.K_d and player.move(1, 0):
-                    logic.update_viewport(player, zombie_group, zombie_display_group)
+                if event.key == pygame.K_w and game.player.move(0, -1):
+                    logic.update_viewport(game.player, game.zombie_display_group)
+                elif event.key == pygame.K_s and game.player.move(0, 1):
+                    logic.update_viewport(game.player, game.zombie_display_group)
+                elif event.key == pygame.K_a and game.player.move(-1, 0):                    
+                    logic.update_viewport(game.player, game.zombie_display_group)
+                elif event.key == pygame.K_d and game.player.move(1, 0):
+                    logic.update_viewport(game.player, game.zombie_display_group)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4: # Scroll up
@@ -108,76 +151,76 @@ def main():
 
             elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:
                 mouse_pos = pygame.mouse.get_pos()
-                target, sprite = utils.get_click_target(mouse_pos, player, logic.viewport_group)
-                popup_menu = menus.create_context_menu(target, player, utils.get_sprite_coordinates, menus.NonBlockingPopupMenu, sprite)
-                if popup_menu:
-                    popup_menu.show()
+                target, sprite = utils.get_click_target(mouse_pos, game.player, logic.viewport_group)
+                game.popup_menu = menus.create_context_menu(target, game.player, utils.get_sprite_coordinates, menus.NonBlockingPopupMenu, sprite)
+                if game.popup_menu:
+                    game.popup_menu.show()
 
             elif event.type == MOUSEMOTION:
-                cursor.rect.center = event.pos
+                game.cursor.rect.center = event.pos
 
-            for button in button_group:
+            for button in game.button_group:
                 action = button.handle_event(event)
                 if action:
                     if action == 'barricade':
-                        if hasattr(player, 'barricade') and callable(player.barricade):
-                            result = player.barricade()
+                        if hasattr(game.player, 'barricade') and callable(game.player.barricade):
+                            result = game.player.barricade()
                             chat_history.append(result)
-                            logic.update_viewport(player, zombie_group, zombie_display_group)
+                            logic.update_viewport(game.player, game.zombie_display_group)
                         else:
                             chat_history.append(f"You can't barricade here.")
                     elif action == 'search':
-                        if hasattr(player, 'search') and callable(player.search):
-                            result = player.search()
+                        if hasattr(game.player, 'search') and callable(game.player.search):
+                            result = game.player.search()
                             chat_history.append(result)
-                            logic.update_viewport(player, zombie_group, zombie_display_group)
+                            logic.update_viewport(game.player, game.zombie_display_group)
                         else:
                             chat_history.append(f"There is nothing to search here.")
                     elif action == 'enter':
-                        if hasattr(player, 'enter') and callable(player.enter):
-                            result = player.enter()
+                        if hasattr(game.player, 'enter') and callable(game.player.enter):
+                            result = game.player.enter()
                             chat_history.append(result)
-                            logic.update_viewport(player, zombie_group, zombie_display_group)
+                            logic.update_viewport(game.player, game.zombie_display_group)
                         else:
                             chat_history.append(f"There is no building to enter here.")
                     elif action == 'leave':
-                        if hasattr(player, 'leave') and callable(player.leave):
-                            result = player.leave()
+                        if hasattr(game.player, 'leave') and callable(game.player.leave):
+                            result = game.player.leave()
                             chat_history.append(result)
-                            logic.update_viewport(player, zombie_group, zombie_display_group)
+                            logic.update_viewport(game.player, game.zombie_display_group)
                         else:
                             chat_history.append(f"You are already outside.")
 
         # Draw game elements to screen
-        ui.draw_viewport(screen, player, logic.viewport_group)
+        ui.draw_viewport(screen, game.player, logic.viewport_group)
         ui.draw_actions_panel(screen)
-        button_group.update()
-        button_group.draw(screen)
-        ui.draw_description_panel(screen, player, zombie_display_group)
+        game.button_group.update()
+        game.button_group.draw(screen)
+        ui.draw_description_panel(screen, game.player, game.zombie_display_group)
         ui.draw_chat(screen, chat_history, scroll_offset)
-        ui.draw_status(screen, player)
-        ui.draw_inventory_panel(screen, player)
-        player.inventory.update()
-        player.inventory.draw(screen)
+        ui.draw_status(screen, game.player)
+        ui.draw_inventory_panel(screen, game.player)
+        game.player.inventory.update()
+        game.player.inventory.draw(screen)
 
-        if popup_menu:
-            popup_menu.handle_events(events)
-            popup_menu.draw()
+        if game.popup_menu:
+            game.popup_menu.handle_events(events)
+            game.popup_menu.draw()
 
         for event in events:
             if event.type == pygame.USEREVENT and event.code == 'MENU':
                 if event.name is None:
-                    popup_menu = None
+                    game.popup_menu = None
                 else:
                     menus.handle_menu_action(
-                        player, logic.update_viewport, 
-                        zombie_group, zombie_display_group, 
+                        game.player, logic.update_viewport, 
+                        game.zombie_display_group, 
                         event.name, event.text, chat_history
                     )
-                    popup_menu = None
+                    game.popup_menu = None
 
-        cursor.update()
-        cursor.draw()
+        game.cursor.update()
+        game.cursor.draw()
 
         pygame.display.flip()
         clock.tick(FPS)

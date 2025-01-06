@@ -1,6 +1,9 @@
 # settings.py
 import pygame
 
+# Saved game file
+SAVE_FILE = "savegame.pkl"
+
 # Screen dimensions
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
