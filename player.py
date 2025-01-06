@@ -35,6 +35,7 @@ class Player:
         self.lights_on = pygame.sprite.Group()
         self.generator_installed = pygame.sprite.Group()
         self.weapon_group = pygame.sprite.Group()
+        self.melee_group = pygame.sprite.Group()
         self.firearm_group = pygame.sprite.Group()
 
         for sprite in self.button_group:

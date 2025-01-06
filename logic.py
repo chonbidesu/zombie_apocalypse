@@ -14,12 +14,6 @@ def create_xy_groups():
         y_groups.append(pygame.sprite.Group())
     return x_groups, y_groups
 
-# Create zombie groups
-def create_zombie_groups():
-    zombie_group = pygame.sprite.Group()
-    zombie_display_group = pygame.sprite.Group()
-    return zombie_group, zombie_display_group
-
 # Zombie population management
 #def populate_city_with_zombies(city, count):
 #    """Populates the city with an initial zombie population."""

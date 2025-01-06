@@ -57,6 +57,12 @@ WEAPONS = {
     'Pistol': {'image_file': 'assets/pistol.bmp', 'damage': 20, 'loaded_ammo': 7, 'max_ammo': 7},
 }
 
+ITEM_TYPES = [
+    'First Aid Kit', 'Portable Generator', 'Fuel Can', 'Map',
+    'Shotgun Shell', 'Pistol Clip', 'Crowbar', 'Fire Axe',
+    'Shovel', 'Shotgun', 'Pistol',
+]
+
 # Categorization for weapons
 MELEE_WEAPONS = ['Crowbar', 'Fire Axe', 'Shovel']
 FIREARMS = ['Shotgun', 'Pistol']

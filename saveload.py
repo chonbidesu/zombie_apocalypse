@@ -46,9 +46,9 @@ class Gamestate:
             "inside": player.inside,
             "inventory": [
                 {
-                    "item_type": item.item_type,
                     "name": item.name,
-                    "attributes": item.get_attributes(),  # Assumes a method to serialize attributes
+                    "is_equipped": item in player.weapon,
+                    **item.get_attributes()
                 }
                 for item in player.inventory
             ],
@@ -88,6 +88,11 @@ class Gamestate:
         x_groups, y_groups = create_xy_groups()
         city = city_class(x_groups, y_groups)
         button_group = button_group
+
+        # Clear x_groups and y_groups
+        for i in range(100):
+            city.x_groups[i].empty()
+            city.y_groups[i].empty()
 
         # Reconstruct blocks
         for block_data in self.city_data["blocks"]:
@@ -143,23 +148,29 @@ class Gamestate:
             y=self.player_data["y"],
             inside=self.player_data["inside"],
         )
+        
         for item_data in self.player_data["inventory"]:
-            item = item_class(
-                item_type=item_data["item_type"],
-                name=item_data["name"],
-                attributes=item_data["attributes", {}],
-            )
+            item = item_class(name=item_data["name"])
+
+            _ = item._image # Trigger lazy-loading of images
+
             player.inventory.add(item)
 
-        # Restore equipped weapon
-        weapon_name = self.player_data.get("Weapon")
-        if weapon_name:
-            weapon = item_class(
-                item_type="weapon",
-                name=weapon_name,
-                attributes=WEAPONS.get(weapon_name, {})
-            )
-            player.weapon.add(weapon)
+            if "durability" in item_data:
+                item.durability = item_data["durability"]
+            if "loaded_ammo" in item_data:
+                item.loaded_ammo = item_data["loaded_ammo"]
+
+            if item_data.get("is_equipped", False):
+                player.weapon.add(item)
+
+                if item_data["name"] in MELEE_WEAPONS:
+                    player.weapon_group.add(item)
+                    player.melee_group.add(item)
+                elif item_data["name"] in FIREARMS:
+                    player.weapon_group.add(item)
+                    player.firearm_group.add(item)
+
 
         player.hp = self.player_data.get("hp", player.max_hp)
         player.ticker = self.player_data.get("ticker", 0)

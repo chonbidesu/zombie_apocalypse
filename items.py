@@ -23,6 +23,9 @@ class Item(pygame.sprite.Sprite):
                 self._image.fill ((128, 128, 128))
         return self._image
 
+    def get_attributes(self):
+        return {}
+
 class Weapon(Item):
     """Base class for all weapons."""
     def __init__(self, name, damage, durability=None, loaded_ammo=None, max_ammo=None, image_file=None):
@@ -31,3 +34,11 @@ class Weapon(Item):
         self.durability = durability
         self.loaded_ammo = loaded_ammo
         self.max_ammo = max_ammo
+
+    def get_attributes(self):
+        attributes = {}
+        if self.durability is not None:
+            attributes['durability'] = self.durability
+        if self.loaded_ammo is not None:
+            attributes['loaded_ammo'] = self.loaded_ammo
+        return attributes

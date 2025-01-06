@@ -12,15 +12,11 @@ class City:
         self.x_groups, self.y_groups = x_groups, y_groups
         self.descriptions = self.load_descriptions_from_csv("assets/descriptions.csv")
         self.block_name_pool = {}
-        self.building_types = ['FireStation', 'PoliceDepartment', 'Hospital', 'Library', 'Church', 
-                      'Warehouse', 'AutoRepair', 'Factory', 'School', 'NecroTechLab', 
-                      'Junkyard', 'Museum', 'Nightclub', 'Pub', 'Mall']
-        self.outdoor_types = ['Street', 'Park', 'Cemetery', 'Monument', 'Carpark']
         self.neighbourhood_groups = {}
 
-        self.building_type_groups = {block_type: pygame.sprite.Group() for block_type in self.building_types}
+        self.building_type_groups = {block_type: pygame.sprite.Group() for block_type in BUILDING_TYPES}
         self.building_group = pygame.sprite.Group()
-        self.outdoor_type_groups = {block_type: pygame.sprite.Group() for block_type in self.outdoor_types}
+        self.outdoor_type_groups = {block_type: pygame.sprite.Group() for block_type in OUTDOOR_TYPES}
         self.outdoor_group = pygame.sprite.Group()
         self.cityblock_group = pygame.sprite.Group()
 
@@ -73,7 +69,7 @@ class City:
             building_block = BuildingBlock()
             self.building_group.add(building_block)
             self.cityblock_group.add(building_block)
-            building_block.block_type = random.choice(self.building_types)
+            building_block.block_type = random.choice(BUILDING_TYPES)
             self.building_type_groups[building_block.block_type].add(building_block)
             building_block.block_name = self._get_unique_block_name(building_block.block_type)
             building_block.block_desc = BLOCKNAME_DESC[building_block.block_type]
@@ -85,7 +81,7 @@ class City:
             outdoor_block = CityBlock()
             self.outdoor_group.add(outdoor_block)
             self.cityblock_group.add(outdoor_block)
-            outdoor_block.block_type = random.choice(self.outdoor_types)
+            outdoor_block.block_type = random.choice(OUTDOOR_TYPES)
             self.outdoor_type_groups[outdoor_block.block_type].add(outdoor_block)
             outdoor_block.block_name = self._get_unique_block_name(outdoor_block.block_type)
             outdoor_block.block_desc = BLOCKNAME_DESC[outdoor_block.block_type]
