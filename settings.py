@@ -189,6 +189,11 @@ NEIGHBOURHOODS = {
     100: "Miltown"
 }
 
+BUILDING_TYPES = ['FireStation', 'PoliceDepartment', 'Hospital', 'Library', 'Church', 
+                'Warehouse', 'AutoRepair', 'Factory', 'School', 'NecroTechLab', 
+                'Junkyard', 'Museum', 'Nightclub', 'Pub', 'Mall']
+OUTDOOR_TYPES = ['Street', 'Park', 'Cemetery', 'Monument', 'Carpark']
+
 # Paths to block name files
 BLOCKNAME_LISTS_FOLDER = "blockname_lists"
 BLOCKNAME_FILES = {

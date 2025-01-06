@@ -9,9 +9,9 @@ from items import Item, Weapon
 
 class Player:
     """Represents the player's character."""
-    def __init__(self, city, x_groups, y_groups, zombie_group,
+    def __init__(self, city, x_groups, y_groups,
                  button_group, update_observations, get_block_at_player,
-                 name, occupation, x, y):
+                 name, occupation, x, y, inside=False):
         self.name = name
         self.occupation = occupation
         self.skills = []  # Skills active when human
@@ -20,7 +20,7 @@ class Player:
         self.max_hp = 100  # Maximum hit points
         self.hp = self.max_hp  # Current hit points
         self.location = (x, y)  # Initial location in the 100x100 grid
-        self.inside = False
+        self.inside = inside
         self.starting_trait = self.assign_starting_trait(occupation)
         self.is_dead = False  # Status of the player
         self.search_chances = self.load_search_chances("assets/search.csv")
@@ -28,7 +28,7 @@ class Player:
         self.city = city
         self.x_groups = x_groups
         self.y_groups = y_groups
-        self.zombie_group = zombie_group
+        self.zombie_group = pygame.sprite.Group()
         self.button_group = button_group
         self.update_observations = update_observations
         self.get_block_at_player = get_block_at_player

@@ -16,6 +16,8 @@ import utils
 import menus
 import zombie
 import saveload
+import items
+import blocks
 
 # Initialize Pygame
 pygame.init()
@@ -29,8 +31,6 @@ class GameInitializer:
     def __init__(self):
         self.player = None
         self.city = None
-        self.zombie_group = None
-        self.zombie_display_group = None
         self.cursor = menus.Cursor()
         self.button_group = None
         self.popup_menu = None
@@ -40,20 +40,22 @@ class GameInitializer:
     def initialize_game(self):
         """Initialize the game state by loading or creating a new game."""
         try:
-            game_state = saveload.GameState.load_game("savegame.pkl")
+            game_state = saveload.Gamestate.load_game("savegame.pkl")
+            self.button_group = ui.create_button_group()
             self.player, self.city, self.zombie_group = game_state.reconstruct_game(
-                Player, City, Zombie, Item
+                Player, City, zombie.Zombie, items.Item, blocks.BuildingBlock, blocks.CityBlock, self.button_group,
+                logic.create_xy_groups, ui.update_observations, utils.get_block_at_player, utils.get_block_at_xy,
             )
             # Create the zombie display group separately
-            self.zombie_display_group = logic.create_zombie_groups()[1]
-            self.button_group = self.player.button_group
-            print("Game loaded successfully.")
-        except FileNotFoundError:
-            print("Save file not found. Creating a new game.")
-            # Generate a new game if save file doesn't exist
-            self.create_new_game()
+            self.zombie_display_group = pygame.sprite.Group()
+            logic.update_viewport(self.player, self.zombie_display_group)
 
-    def create_new_game(self):
+        except (FileNotFoundError, EOFError, pickle.UnpicklingError):
+            print("Save file not found or corrupted. Creating a new game.")
+            # Generate a new game if save file doesn't exist
+            self._create_new_game()
+
+    def _create_new_game(self):
         """Generate a new game state."""
         # Initialize coordinates
         x_groups, y_groups = logic.create_xy_groups()
@@ -64,12 +66,12 @@ class GameInitializer:
         # Create buttons
         self.button_group = ui.create_button_group()
 
-        # Create zombie groups
-        self.zombie_group, self.zombie_display_group = logic.create_zombie_groups()
+        # Create zombie display group
+        self.zombie_display_group = pygame.sprite.Group()
 
         # Create player
         self.player = Player(
-            self.city, x_groups, y_groups, self.zombie_group,
+            self.city, x_groups, y_groups,
             self.button_group, ui.update_observations, utils.get_block_at_player,
             name="Alice", occupation="Doctor", x=50, y=50,
         )
@@ -85,9 +87,7 @@ class GameInitializer:
 
     def save_game(self):
         """Save the game state to a file."""
-        game_state = saveload.GameState(self.player, self.city, self.zombie_group)
-        saveload.GameState.save_game("savegame.pkl", self.player, self.city, self.zombie_group)
-        print("Game saved successfully.")
+        saveload.Gamestate.save_game("savegame.pkl", self.player)
 
     def quit_game(self):
         """Handle cleanup and save the game on exit."""
@@ -113,12 +113,10 @@ def main():
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
-                saveload.Gamestate.save_game("save_game.pkl", game.player, game.city, game.zombie_group)
                 game.quit_game()
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    saveload.GameState.save_game("save_game.pkl", game.player, game.city, game.zombie_group)
                     game.quit_game()
 
                 # Arrow key movement
@@ -159,7 +157,7 @@ def main():
             elif event.type == MOUSEMOTION:
                 game.cursor.rect.center = event.pos
 
-            for button in game.button_group:
+            for button in game.player.button_group:
                 action = button.handle_event(event)
                 if action:
                     if action == 'barricade':
@@ -194,8 +192,8 @@ def main():
         # Draw game elements to screen
         ui.draw_viewport(screen, game.player, logic.viewport_group)
         ui.draw_actions_panel(screen)
-        game.button_group.update()
-        game.button_group.draw(screen)
+        game.player.button_group.update()
+        game.player.button_group.draw(screen)
         ui.draw_description_panel(screen, game.player, game.zombie_display_group)
         ui.draw_chat(screen, chat_history, scroll_offset)
         ui.draw_status(screen, game.player)
