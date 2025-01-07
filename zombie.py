@@ -29,11 +29,12 @@ class CharacterSprite(pygame.sprite.Sprite):
 
 class Zombie(pygame.sprite.Sprite):
     """Represents a zombie in the city."""
-    def __init__(self, player, get_block_at_xy, x, y):
+    def __init__(self, player, get_block_at_xy, zombie_display_group, x, y):
         super().__init__()
         self.player = player
         self.x_groups, self.y_groups = player.x_groups, player.y_groups
         self.zombie_group = player.zombie_group
+        self.zombie_display_group = zombie_display_group
         self.get_block_at_xy = get_block_at_xy
         self.hp = ZOMBIE_START_HP
         self.action_points = 0
@@ -68,6 +69,22 @@ class Zombie(pygame.sprite.Sprite):
 
         return x_coordinate, y_coordinate
 
+    def update_zombie_sprites(player, zombie_group, zombie_display_group):
+        """Update character sprites for zombies visible in the description panel."""
+        zombie_display_group.empty()  # Clear previous sprites
+
+        zombies_here = [
+            zombie for zombie in zombie_group
+            if zombie.get_coordinates() == player.location and zombie.inside == player.inside
+        ]
+
+        for index, zombie in enumerate(zombies_here):
+            character_sprite = zombie.update_character_sprite(player, index, len(zombies_here))
+            if character_sprite:  # Ensure the sprite is being created
+                zombie_display_group.add(character_sprite)  # Add to display group
+                print(f"Added zombie sprite at index {index}")  # Debug message
+
+
     def update_position(self, new_x, new_y):
         """Updates the position of the zombie's sprite rect based on city coordinates."""
         current_x, current_y = self.get_coordinates()
@@ -88,34 +105,32 @@ class Zombie(pygame.sprite.Sprite):
         """
         current_x, current_y = self.get_coordinates()
         if (current_x, current_y) == player.location and player.inside == self.inside:
-            # Calculate the setting_image dimensions and position
+            # Description panel and setting image dimensions
             description_start_x = SCREEN_WIDTH // 3 + 10
             description_width = SCREEN_WIDTH * 2 // 3 - 10
             setting_image_width = description_width * 5 // 6
             setting_image_height = (setting_image_width * 4) // 9
             setting_image_x = description_start_x + (description_width - setting_image_width) // 2
-            setting_image_y = 10
+            setting_image_y = 50
 
-            # Calculate zombie sprite row alignment
-            zombie_width = setting_image_width // max(total_zombies, 1)  # Space for each zombie
-            zombie_width = min(zombie_width, 50)  # Limit zombie width
+            # Align zombies in a row within the setting image
+            zombie_width = min(setting_image_width // max(total_zombies, 1), 50)  # Limit zombie width to 50
             total_row_width = zombie_width * total_zombies
-
-            # Center the row horizontally within the setting_image
             row_start_x = setting_image_x + (setting_image_width - total_row_width) // 2
-            row_y = setting_image_y + setting_image_height - 10  # Align to bottom edge with padding
+            row_y = setting_image_y + setting_image_height - 10  # Align to the bottom of the setting image
 
-            # Calculate the position for this zombie
+            # Calculate position for this zombie
             zombie_x = row_start_x + index * zombie_width
 
-            # Update or create the character sprite
+            # Create or update the sprite
             if not self.character_sprite:
                 image_path = "assets/zombie_character.png"
                 self.character_sprite = CharacterSprite(self, image_path, (zombie_x, row_y))
             else:
                 self.character_sprite.rect.midbottom = (zombie_x + zombie_width // 2, row_y)
 
-            return self.character_sprite  # Return the sprite to be added to the group
+            return self.character_sprite
+
         else:
             self.character_sprite = None  # Remove the sprite if conditions aren't met
             return None

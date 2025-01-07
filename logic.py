@@ -5,15 +5,6 @@ import pygame
 
 from settings import *
 
-# Create dictionaries to manage the x, y coordinate groups
-def create_xy_groups():
-    x_groups = []
-    y_groups = []
-    for _ in range(100):
-        x_groups.append(pygame.sprite.Group())
-        y_groups.append(pygame.sprite.Group())
-    return x_groups, y_groups
-
 # Zombie population management
 #def populate_city_with_zombies(city, count):
 #    """Populates the city with an initial zombie population."""
@@ -38,9 +29,31 @@ def calculate_grid_start():
     grid_start_y = (SCREEN_HEIGHT // 5)
     return grid_start_x, grid_start_y
 
+def update_zombie_sprites(player, zombie_group, zombie_display_group):
+    """
+    Update the character sprites for all zombies and repopulate the display group.
+
+    Args:
+        player (Player): The player object.
+        zombie_group (pygame.sprite.Group): The group of all zombies.
+        zombie_display_group (pygame.sprite.Group): The group of sprites to display.
+    """
+    zombie_display_group.empty()  # Clear the display group
+
+    # Get zombies at the player's location
+    zombies_here = [
+        zombie for zombie in zombie_group
+        if zombie.get_coordinates() == player.location and zombie.inside == player.inside
+    ]
+
+    # Update character sprites and add them to the display group
+    for index, zombie in enumerate(zombies_here):
+        zombie.update_character_sprite(player, index, len(zombies_here), zombie_display_group)
+
+
 # Update viewport centered on player
 viewport_group = pygame.sprite.Group()
-def update_viewport(player, zombie_display_group):
+def update_viewport(player, city):
     viewport_group.empty()
     player_x, player_y = player.location
 
@@ -52,31 +65,30 @@ def update_viewport(player, zombie_display_group):
             block_x, block_y = player_x + col_offset, player_y + row_offset
 
             #Ensure block coordinates are within city bounds
-            if 0 <= block_x < len(player.x_groups) and 0 <= block_y < len(player.y_groups):
-                blocks = set(player.x_groups[block_x]) & set(player.y_groups[block_y]) & set(player.city.cityblock_group)
-                if blocks:
-                    block = next(iter(blocks))
+            if 0 <= block_x < CITY_SIZE and 0 <= block_y < CITY_SIZE:
+                block = city.block(block_x, block_y)
+                if block:
+                    pass ############################
 
                     # Load the block's image if not already loaded
-                    if block.image is None:
-                        block.render_label()
-                        block.image # Trigger lazy load
+#                    if block.image is None:
+#                        block.render_label()
+#                        block.image # Trigger lazy load
 
-                    block.rect = pygame.Rect(
-                        grid_start_x + col_offset * BLOCK_SIZE,
-                        grid_start_y + row_offset * BLOCK_SIZE,
-                        BLOCK_SIZE,
-                        BLOCK_SIZE
-                    )
-                    viewport_group.add(block)
+#                    block.rect = pygame.Rect(
+#                        grid_start_x + col_offset * BLOCK_SIZE,
+#                        grid_start_y + row_offset * BLOCK_SIZE,
+#                        BLOCK_SIZE,
+#                        BLOCK_SIZE
+#                    )
+#                    viewport_group.add(block)
 
-    for block in player.city.cityblock_group:
-        if block not in viewport_group:
-            block.unload_image()
+#    for block in player.city.cityblock_group:
+#        if block not in viewport_group:
+#            block.unload_image()
 
     # Update zombies in the viewport
     zombies_at_coordinates = defaultdict(list)
-    zombie_display_group.empty()
     for zombie in player.zombie_group:
         zombie_x, zombie_y = zombie.get_coordinates()
         zombies_at_coordinates[(zombie_x, zombie_y)].append(zombie)
@@ -118,9 +130,3 @@ def update_viewport(player, zombie_display_group):
                             zombie_width
                         )
                         viewport_group.add(zombie)
-
-        # Update zombie characters in the description panel
-        for index, zombie in enumerate(zombies_at_coordinates[zombie_x, zombie_y]):
-            character_sprite = zombie.update_character_sprite(player, index, len(zombies_at_coordinates[zombie_x, zombie_y]))
-            if character_sprite:
-                zombie_display_group.add(character_sprite)

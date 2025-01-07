@@ -148,21 +148,25 @@ def draw_actions_panel(screen):
     screen.blit(title_text, title_rect)
 
 def get_current_observations(player):
+    """Get the current observations based on the player's surroundings."""
     current_block = player.get_block_at_player(player)
     current_observations = ""
+
+    # Inside building observations
     if player.inside:
         current_observations += f'You are standing inside {current_block.block_name}. '
         if not current_block in player.lights_on:
             current_observations += 'With the lights out, you can hardly see anything. '
         current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
-        
-        # Check if the building has a running generator.
+
+        # Check if the building has a running generator
         if current_block in player.generator_installed:
             current_observations += "A portable generator has been set up here. "
             if current_block in player.lights_on:
                 current_observations += "It is running. "
             else:
                 current_observations += "It is out of fuel. "
+    # Outside building observations
     else:
         if current_block in player.city.building_group:
             current_observations += f'You are standing outside {current_block.block_desc}. A sign reads "{current_block.block_name}". '
@@ -171,7 +175,29 @@ def get_current_observations(player):
                 current_observations += "Lights are on inside. "
         else:
             current_observations += f'You are standing in {current_block.block_desc}.'
+
+    # Add observations for zombies and dead bodies
+    zombies_here = [
+        zombie for zombie in player.zombie_group
+        if zombie.get_coordinates() == player.location and zombie.inside == player.inside
+    ]
+    living_zombies = [zombie for zombie in zombies_here if not zombie.is_dead]
+    dead_zombies = [zombie for zombie in zombies_here if zombie.is_dead]
+
+    if living_zombies:
+        if len(living_zombies) == 1:
+            current_observations += "There is a lone zombie here. "
+        else:
+            current_observations += f"There are {len(living_zombies)} zombies here. "
+
+    if dead_zombies:
+        if len(dead_zombies) == 1:
+            current_observations += "You see a dead body."
+        else:
+            current_observations += f"You see {len(dead_zombies)} dead bodies."
+
     return current_observations
+
 
 def update_observations(player):
     """Update the observations list based on the player's current state."""

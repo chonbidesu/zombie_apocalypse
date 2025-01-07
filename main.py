@@ -42,13 +42,12 @@ class GameInitializer:
         try:
             game_state = saveload.Gamestate.load_game("savegame.pkl")
             self.button_group = ui.create_button_group()
+            self.zombie_display_group = pygame.sprite.Group()
             self.player, self.city, self.zombie_group = game_state.reconstruct_game(
-                Player, City, zombie.Zombie, items.Item, blocks.BuildingBlock, blocks.CityBlock, self.button_group,
+                Player, City, zombie.Zombie, items.Item, blocks.BuildingBlock, blocks.CityBlock, 
                 logic.create_xy_groups, ui.update_observations, utils.get_block_at_player, utils.get_block_at_xy,
             )
-            # Create the zombie display group separately
-            self.zombie_display_group = pygame.sprite.Group()
-            logic.update_viewport(self.player, self.zombie_display_group)
+            logic.update_viewport(self.player)
 
         except (FileNotFoundError, EOFError, pickle.UnpicklingError):
             print("Save file not found or corrupted. Creating a new game.")
@@ -57,11 +56,9 @@ class GameInitializer:
 
     def _create_new_game(self):
         """Generate a new game state."""
-        # Initialize coordinates
-        x_groups, y_groups = logic.create_xy_groups()
 
         # Initialize city
-        self.city = City(x_groups, y_groups)
+        self.city = City()
 
         # Create buttons
         self.button_group = ui.create_button_group()
@@ -71,17 +68,16 @@ class GameInitializer:
 
         # Create player
         self.player = Player(
-            self.city, x_groups, y_groups,
-            self.button_group, ui.update_observations, utils.get_block_at_player,
+            self.city, self.button_group, ui.update_observations, utils.get_block_at_player,
             name="Alice", occupation="Doctor", x=50, y=50,
         )
 
         # TEST ZOMBIES
-        zombie1 = zombie.Zombie(self.player, utils.get_block_at_xy, 51, 51)
-        zombie2 = zombie.Zombie(self.player, utils.get_block_at_xy, 51, 51)
+        zombie1 = zombie.Zombie(self.player, utils.get_block_at_xy, self.zombie_display_group, 51, 51)
+        zombie2 = zombie.Zombie(self.player, utils.get_block_at_xy, self.zombie_display_group, 51, 51)
 
         # Initialize viewport based on player's starting position
-        logic.update_viewport(self.player, self.zombie_display_group)
+        logic.update_viewport(self.player)
 
         print("New game created.")
 
@@ -121,23 +117,23 @@ def main():
 
                 # Arrow key movement
                 if event.key == pygame.K_UP and game.player.move(0, -1):
-                    logic.update_viewport(game.player, game.zombie_display_group)
+                    logic.update_viewport(game.player)
                 elif event.key == pygame.K_DOWN and game.player.move(0, 1):
-                    logic.update_viewport(game.player, game.zombie_display_group)
+                    logic.update_viewport(game.player)
                 elif event.key == pygame.K_LEFT and game.player.move(-1, 0):                    
-                    logic.update_viewport(game.player, game.zombie_display_group)
+                    logic.update_viewport(game.player)
                 elif event.key == pygame.K_RIGHT and game.player.move(1, 0):
-                    logic.update_viewport(game.player, game.zombie_display_group)
+                    logic.update_viewport(game.player)
 
                 # WASD movement
                 if event.key == pygame.K_w and game.player.move(0, -1):
-                    logic.update_viewport(game.player, game.zombie_display_group)
+                    logic.update_viewport(game.player)
                 elif event.key == pygame.K_s and game.player.move(0, 1):
-                    logic.update_viewport(game.player, game.zombie_display_group)
+                    logic.update_viewport(game.player)
                 elif event.key == pygame.K_a and game.player.move(-1, 0):                    
-                    logic.update_viewport(game.player, game.zombie_display_group)
+                    logic.update_viewport(game.player)
                 elif event.key == pygame.K_d and game.player.move(1, 0):
-                    logic.update_viewport(game.player, game.zombie_display_group)
+                    logic.update_viewport(game.player)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4: # Scroll up
@@ -164,32 +160,33 @@ def main():
                         if hasattr(game.player, 'barricade') and callable(game.player.barricade):
                             result = game.player.barricade()
                             chat_history.append(result)
-                            logic.update_viewport(game.player, game.zombie_display_group)
+                            logic.update_viewport(game.player)
                         else:
                             chat_history.append(f"You can't barricade here.")
                     elif action == 'search':
                         if hasattr(game.player, 'search') and callable(game.player.search):
                             result = game.player.search()
                             chat_history.append(result)
-                            logic.update_viewport(game.player, game.zombie_display_group)
+                            logic.update_viewport(game.player)
                         else:
                             chat_history.append(f"There is nothing to search here.")
                     elif action == 'enter':
                         if hasattr(game.player, 'enter') and callable(game.player.enter):
                             result = game.player.enter()
                             chat_history.append(result)
-                            logic.update_viewport(game.player, game.zombie_display_group)
+                            logic.update_viewport(game.player)
                         else:
                             chat_history.append(f"There is no building to enter here.")
                     elif action == 'leave':
                         if hasattr(game.player, 'leave') and callable(game.player.leave):
                             result = game.player.leave()
                             chat_history.append(result)
-                            logic.update_viewport(game.player, game.zombie_display_group)
+                            logic.update_viewport(game.player)
                         else:
                             chat_history.append(f"You are already outside.")
 
         # Draw game elements to screen
+        logic.update_zombie_sprites(game.player, game.zombie_display_group)
         ui.draw_viewport(screen, game.player, logic.viewport_group)
         ui.draw_actions_panel(screen)
         game.player.button_group.update()

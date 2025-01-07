@@ -47,9 +47,6 @@ ITEMS = {
     'Map': {'image_file': 'assets/map.bmp'},
     'Shotgun Shell': {'image_file': 'assets/shotgun_shell.bmp'},
     'Pistol Clip': {'image_file': 'assets/pistol_clip.bmp'},
-}
-
-WEAPONS = {
     'Crowbar': {'image_file': 'assets/crowbar.bmp', 'damage': 8, 'durability': 100},
     'Fire Axe': {'image_file': 'assets/fire_axe.bmp', 'damage': 15, 'durability': 80},
     'Shovel': {'image_file': 'assets/shovel.bmp', 'damage': 10, 'durability': 90},

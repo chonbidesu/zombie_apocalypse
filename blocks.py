@@ -1,50 +1,20 @@
 # blocks.py
 import random
 from collections import defaultdict
-import pygame
 
 from settings import *
 
-class CityBlock(pygame.sprite.Sprite):
+class CityBlock:
     """Base class for a city block."""
     def __init__(self):
-        super().__init__()
         self.block_name = 'City Block'
+        self.block_type = 'Street'
         self.block_desc = 'city block'
         self.block_outside_desc = 'A non-descript city block.'
-        self.zoom_x = None
-        self.zoom_y = None
         self.observations = []
-        self.block_type = None
-        self._image = None
+        self.neighbourhood = ''
 
-    @property
-    def image(self):
-        if not self._image:
-            self._load_image()
-        return self._image
-    
-    @image.setter
-    def image(self, value):
-        self._image = value
-
-    def _load_image(self):
-        """Lazy-load the image when accessed."""
-        if self.block_type == 'Street' and self.zoom_x is not None and self.zoom_y is not None:
-            base_image = pygame.image.load(BLOCK_IMAGES[self.block_type]).convert_alpha()
-            zoom_width, zoom_height = base_image.get_width() // 2, base_image.get_height() // 2
-            zoomed_surface = base_image.subsurface((self.zoom_x, self.zoom_y, zoom_width, zoom_height))
-            self._image = pygame.transform.scale(zoomed_surface, (BLOCK_SIZE, BLOCK_SIZE))
-        else:
-            self._image = pygame.image.load(BLOCK_IMAGES[self.block_type]).convert_alpha()
-            self._image = pygame.transform.scale(self._image, (BLOCK_SIZE, BLOCK_SIZE))
-        self.render_label()
-
-    def unload_image(self):
-        self._image = None
-
-    def generate_descriptions(self, descriptions_data, block_type):
-        self.block_type = block_type
+    def generate_descriptions(self, descriptions_data):
         if self.block_type in descriptions_data:
             data = descriptions_data[self.block_type]
             
@@ -111,8 +81,7 @@ class BuildingBlock(CityBlock):
         self.fuel_expiration = 0
         self.block_inside_desc = 'The inside of a building.'
 
-    def generate_descriptions(self, descriptions_data, block_type):
-        self.block_type = block_type
+    def generate_descriptions(self, descriptions_data):
         if self.block_type in descriptions_data:
             data = descriptions_data[self.block_type]
             
@@ -183,27 +152,3 @@ class BuildingBlock(CityBlock):
         
         def item_search(self, modifier):
             return False
-        
-# Handle text wrapping
-def wrap_text(text, font, max_width):
-    """Wrap the text to fit inside a given width."""
-    lines = []
-    words = text.split(" ")
-    current_line = ""
-
-    for word in words:
-        # Check if adding the word exceeds the width
-        test_line = current_line + (word if current_line == "" else " " + word)
-        test_width, _ = font.size(test_line)
-
-        if test_width <= max_width:
-            current_line = test_line  # Add the word to the current line
-        else:
-            if current_line != "":
-                lines.append(current_line)  # Append the current line if it's not empty
-            current_line = word  # Start a new line with the current word
-
-    if current_line != "":  # Append the last line if it has any content
-        lines.append(current_line)
-
-    return lines

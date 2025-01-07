@@ -3,7 +3,7 @@
 from settings import *
 
 # Get (x, y) of a specific sprite
-def get_sprite_coordinates(sprite, x_groups, y_groups):
+def get_sprite_coordinates(sprite):
     for x, group in enumerate(x_groups):
         if sprite in group:
             x_coordinate = x

@@ -8,24 +8,19 @@ from blocks import CityBlock, BuildingBlock
 from settings import *
 
 class City:
-    def __init__(self, x_groups, y_groups):
-        self.x_groups, self.y_groups = x_groups, y_groups
-        self.descriptions = self.load_descriptions_from_csv("assets/descriptions.csv")
+    def __init__(self):
+        self.descriptions = self._load_descriptions_from_csv("assets/descriptions.csv")
         self.block_name_pool = {}
-        self.neighbourhood_groups = {}
-
-        self.building_type_groups = {block_type: pygame.sprite.Group() for block_type in BUILDING_TYPES}
-        self.building_group = pygame.sprite.Group()
-        self.outdoor_type_groups = {block_type: pygame.sprite.Group() for block_type in OUTDOOR_TYPES}
-        self.outdoor_group = pygame.sprite.Group()
-        self.cityblock_group = pygame.sprite.Group()
 
         self._load_block_names()
-        self.generate_city()
-        self.generate_neighbourhoods()
+        self.grid = self._generate_city()
+
+    def block(self, x, y):
+        """Retrieve a block at coordinates."""
+        return self.grid[y][x]
 
     # Load descriptive phrases of city blocks from CSV file for assembly
-    def load_descriptions_from_csv(self, file_path):
+    def _load_descriptions_from_csv(self, file_path):
         descriptions = defaultdict(lambda: {"inside": defaultdict(list), "outside": defaultdict(list)})
         with open(file_path, "r", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
@@ -59,135 +54,130 @@ class City:
         else:
             return f"{block_type} (Generic)"  # Fallback if no names are left
 
-    def generate_city(self):
+    def _generate_city(self):
         """Generate a pool of 10,000 block sprites"""
         self._load_block_names()
         block_pool = []
+        block_pool = self._generate_buildings(block_pool)
+        block_pool = self._generate_outdoor_spaces(block_pool)
+        block_pool = self._generate_streets(block_pool)
+        random.shuffle(block_pool)
+        grid = self._assign_xy(block_pool)
+        grid = self._spread_malls(grid)
+        grid = self._generate_neighbourhoods(grid)
+        return grid
 
+    def _generate_buildings(self, block_pool):
         # Generate 5000 building blocks
         for _ in range(CITY_SIZE * 50):
             building_block = BuildingBlock()
-            self.building_group.add(building_block)
-            self.cityblock_group.add(building_block)
             building_block.block_type = random.choice(BUILDING_TYPES)
-            self.building_type_groups[building_block.block_type].add(building_block)
             building_block.block_name = self._get_unique_block_name(building_block.block_type)
             building_block.block_desc = BLOCKNAME_DESC[building_block.block_type]
             building_block.generate_descriptions(self.descriptions, building_block.block_type)          
             block_pool.append(building_block)
+        return block_pool
 
+    def _generate_outdoor_spaces(self, block_pool):
         # Generate 2500 outdoor blocks
         for _ in range(CITY_SIZE * 25):
             outdoor_block = CityBlock()
-            self.outdoor_group.add(outdoor_block)
-            self.cityblock_group.add(outdoor_block)
             outdoor_block.block_type = random.choice(OUTDOOR_TYPES)
-            self.outdoor_type_groups[outdoor_block.block_type].add(outdoor_block)
             outdoor_block.block_name = self._get_unique_block_name(outdoor_block.block_type)
             outdoor_block.block_desc = BLOCKNAME_DESC[outdoor_block.block_type]
             outdoor_block.generate_descriptions(self.descriptions, outdoor_block.block_type)
-
-            if outdoor_block.block_type == 'Street':
-                base_width, base_height = 200, 200
-                outdoor_block.zoom_x = random.randint(0, base_width // 2)
-                outdoor_block.zoom_y = random.randint(0, base_height // 2)
-
             block_pool.append(outdoor_block)
+        return block_pool
 
+    def _generate_streets(self, block_pool):
         # Generate 2500 street blocks
         for _ in range(CITY_SIZE * 25):
             street_block = CityBlock()
-            self.outdoor_group.add(street_block)
-            self.cityblock_group.add(street_block)
             street_block.block_type = 'Street'
-            self.outdoor_type_groups[street_block.block_type].add(street_block)
             street_block.block_name = self._get_unique_block_name(street_block.block_type)
             street_block.block_desc = BLOCKNAME_DESC[street_block.block_type]
-            street_block.generate_descriptions(self.descriptions, street_block.block_type)
-            
-            base_width, base_height = 200, 200
-            street_block.zoom_x = random.randint(0, base_width // 2)
-            street_block.zoom_y = random.randint(0, base_height // 2)
-            
+            street_block.generate_descriptions(self.descriptions, street_block.block_type)         
             block_pool.append(street_block)
+        return block_pool
 
-        random.shuffle(block_pool)
-
+    def _assign_xy(self, block_pool):
         # Now, randomly place blocks into a 100x100 grid
+        grid = []
         for y in range(CITY_SIZE):
+            row = []
             for x in range(CITY_SIZE):
                 block = block_pool.pop()
-                self.x_groups[x].add(block)
-                self.y_groups[y].add(block)
+                block.x = x
+                block.y = y
+                row.append(block)
+            grid.append(row)
+        return grid
 
+    def _spread_malls(self, grid):
         # Implement mall spreading logic
         mall_sizes = {}  # Track the size of each mall (keyed by block_name)
 
-        for y, blocks_in_row in enumerate(self.y_groups):
-            for x, block_set in enumerate(self.x_groups):
-                for block in block_set:
-                    if block in self.building_type_groups['Mall']:
-                        # Get or initialize the mall size
-                        mall_name = block.block_name
-                        if mall_name not in mall_sizes:
-                            mall_sizes[mall_name] = 1  # Start with the original block
+        for y, row in enumerate(grid):
+            for x, block in enumerate(grid[row]):
+                if block in self.building_type_groups['Mall']:
+                    # Get or initialize the mall size
+                    mall_name = block.block_name
+                    if mall_name not in mall_sizes:
+                        mall_sizes[mall_name] = 1  # Start with the original block
 
-                        # Skip if the mall has reached its maximum size
-                        if mall_sizes[mall_name] >= 4:
-                            continue
+                    # Skip if the mall has reached its maximum size
+                    if mall_sizes[mall_name] >= 4:
+                        continue
 
-                        # Try to expand the mall to adjacent blocks
-                        right_spread = False
-                        below_spread = False
+                    # Try to expand the mall to adjacent blocks
+                    #right_spread = False
+                    #below_spread = False
 
-                        # Right neighbor
-                        if x + 1 < len(self.x_groups):  # Ensure within bounds
-                            adjacent_blocks = set(self.x_groups[x + 1]) & set(blocks_in_row)
-                            for right_block in adjacent_blocks:
-                                if right_block in self.outdoor_type_groups['Street'] and mall_sizes[mall_name] < 4:
-                                    new_block = self._replace_block(right_block, block, 'Mall')
-                                    if new_block:
-                                        self.x_groups[x + 1].remove(right_block)
-                                        self.y_groups[y].remove(right_block)
-                                        self.x_groups[x + 1].add(new_block)
-                                        self.y_groups[y].add(new_block)
-                                        mall_sizes[mall_name] += 1
-                                        right_spread = True
+                    # Right neighbor
+                    if x + 1 < CITY_SIZE:  # Ensure within bounds
+                        adjacent_blocks = [grid[y - 1][x + 1], grid[y][x + 1], grid[y + 1][x + 1]]
+                        for right_block in adjacent_blocks:
+                            if right_block.block_type == 'Street' and mall_sizes[mall_name] < 4:
+                                new_block = self._replace_block(right_block, block, 'Mall', right_block.x, right_block.y)
+                                if new_block:
+                                    mall_sizes[mall_name] += 1
+                                    #right_spread = True
+                                    right_block = new_block
 
-                        # Bottom neighbor
-                        if y + 1 < len(self.y_groups):  # Ensure within bounds
-                            adjacent_blocks = set(self.y_groups[y + 1]) & set(block_set)
-                            for bottom_block in adjacent_blocks:
-                                if bottom_block in self.outdoor_type_groups['Street'] and mall_sizes[mall_name] < 4:
-                                    new_block = self._replace_block(bottom_block, block, 'Mall')
-                                    if new_block:
-                                        self.x_groups[x].remove(bottom_block)
-                                        self.y_groups[y + 1].remove(bottom_block)
-                                        self.x_groups[x].add(new_block)
-                                        self.y_groups[y + 1].add(new_block)
-                                        mall_sizes[mall_name] += 1
-                                        below_spread = True
+                    # Bottom neighbor
+                    if y + 1 < CITY_SIZE:  # Ensure within bounds
+                        adjacent_blocks = [grid[y + 1][x - 1], grid[y + 1][x], grid[y + 1][x + 1]]
+                        for bottom_block in adjacent_blocks:
+                            if bottom_block.block_type == 'Street' and mall_sizes[mall_name] < 4:
+                                new_block = self._replace_block(bottom_block, block, 'Mall', bottom_block.x, bottom_block.y)
+                                if new_block:
+                                    mall_sizes[mall_name] += 1
+                                    #below_spread = True
+                                    bottom_block = new_block
 
-                        # Diagonal neighbor (only if right or below spread occurred)
-                        if (right_spread or below_spread) and x + 1 < len(self.x_groups) and y + 1 < len(self.y_groups):
-                            diagonal_blocks = set(self.x_groups[x + 1]) & set(self.y_groups[y + 1])
-                            for diagonal_block in diagonal_blocks:
-                                if diagonal_block in self.outdoor_type_groups['Street'] and mall_sizes[mall_name] < 4:
-                                    new_block = self._replace_block(diagonal_block, block, 'Mall')
-                                    if new_block:
-                                        self.x_groups[x + 1].remove(diagonal_block)
-                                        self.y_groups[y + 1].remove(diagonal_block)
-                                        self.x_groups[x + 1].add(new_block)
-                                        self.y_groups[y + 1].add(new_block)
-                                        mall_sizes[mall_name] += 1
+                    # Diagonal neighbor (only if right or below spread occurred)
+                    #if (right_spread or below_spread) and x + 1 < CITY_SIZE and y + 1 < CITY_SIZE:
+                    #    diagonal_blocks = [grid[y - 1][x - 1], grid[y + 1][x], grid[y + 1][x + 1]]
+                    #    for diagonal_block in diagonal_blocks:
+                    #        if diagonal_block in self.outdoor_type_groups['Street'] and mall_sizes[mall_name] < 4:
+                    #            new_block = self._replace_block(diagonal_block, block, 'Mall')
+                    #            if new_block:
+                    #                self.x_groups[x + 1].remove(diagonal_block)
+                    #                self.y_groups[y + 1].remove(diagonal_block)
+                    #                self.x_groups[x + 1].add(new_block)
+                    #                self.y_groups[y + 1].add(new_block)
+                    #                mall_sizes[mall_name] += 1
 
-    def _replace_block(self, target_block, source_block, block_type):
+        return grid
+
+    def _replace_block(self, target_block, source_block, block_type, x, y):
         """Replace a target block with a new block of the specified type."""
         if target_block in self.outdoor_type_groups['Street']:
             new_block = BuildingBlock()
             new_block.block_name = source_block.block_name
             new_block.block_desc = source_block.block_desc
             new_block.generate_descriptions(self.descriptions, block_type)
+            new_block.x, new_block.y = x, y
 
             # Update group memberships
             self.outdoor_type_groups['Street'].remove(target_block)
@@ -201,20 +191,17 @@ class City:
         return None
 
 
-    def generate_neighbourhoods(self):
+    def _generate_neighbourhoods(self, grid):
         neighbourhood_index = 0
 
         for y_start in range(0, CITY_SIZE, NEIGHBOURHOOD_SIZE): # Iterate over rows in steps of 10
             for x_start in range(0, CITY_SIZE, NEIGHBOURHOOD_SIZE): # Iterate over columns in steps of 10
                 neighbourhood_name = list(NEIGHBOURHOODS.values())[neighbourhood_index]
-                neighbourhood_group = pygame.sprite.Group()
                 neighbourhood_index += 1
 
                 # Collect blocks and add to neighbourhood group
                 for y in range(y_start, y_start + NEIGHBOURHOOD_SIZE):
                     for x in range(x_start, x_start + NEIGHBOURHOOD_SIZE):
-                        block = set(self.x_groups[x]) & set(self.y_groups[y]) & set(self.cityblock_group)
-                        neighbourhood_group.add(block)
+                        grid[y][x].neighbourhood = neighbourhood_name
 
-                # Store the neighbourhood group
-                self.neighbourhood_groups[neighbourhood_name] = neighbourhood_group
+        return grid

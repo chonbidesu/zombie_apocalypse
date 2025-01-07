@@ -80,8 +80,8 @@ class Gamestate:
         print("Game loaded successfully.")
         return game_state
 
-    def reconstruct_game(self, player_class, city_class, zombie_class, item_class, building_class, outdoor_class, button_group,
-                         create_xy_groups, update_observations, get_block_at_player, get_block_at_xy,   
+    def reconstruct_game(self, player_class, city_class, zombie_class, weapon_class, building_class, outdoor_class, button_group,
+                         create_xy_groups, update_observations, get_block_at_player, get_block_at_xy, zombie_display_group,   
     ):
         """Reconstruct the game objects."""
         # Reconstruct city
@@ -149,28 +149,28 @@ class Gamestate:
             inside=self.player_data["inside"],
         )
         
+        # Reconstruct inventory
         for item_data in self.player_data["inventory"]:
-            item = item_class(name=item_data["name"])
+            # Create item using the predefined method
+            item = player.create_item(item_data["name"])
+            item.image_file = ITEMS[item.name]['image_file']
 
-            _ = item._image # Trigger lazy-loading of images
+            # Restore additional attributes
+            if item.name in MELEE_WEAPONS:  # For weapons, set weapon-specific attributes
+                item.durability = item_data.get("durability", item.durability)
+                player.weapon_group.add(item)
+                player.melee_group.add(item)
+            if item.name in FIREARMS:
+                item.loaded_ammo = item_data.get("loaded_ammo", item.loaded_ammo)
+                player.weapon_group.add(item)
+                player.firearm_group.add(item)
 
+            # Add item to the player's inventory
             player.inventory.add(item)
 
-            if "durability" in item_data:
-                item.durability = item_data["durability"]
-            if "loaded_ammo" in item_data:
-                item.loaded_ammo = item_data["loaded_ammo"]
-
+            # Check if the item is equipped
             if item_data.get("is_equipped", False):
                 player.weapon.add(item)
-
-                if item_data["name"] in MELEE_WEAPONS:
-                    player.weapon_group.add(item)
-                    player.melee_group.add(item)
-                elif item_data["name"] in FIREARMS:
-                    player.weapon_group.add(item)
-                    player.firearm_group.add(item)
-
 
         player.hp = self.player_data.get("hp", player.max_hp)
         player.ticker = self.player_data.get("ticker", 0)
@@ -185,6 +185,7 @@ class Gamestate:
             zombie = zombie_class(
                 player=player,
                 get_block_at_xy=get_block_at_xy,
+                zombie_display_group=zombie_display_group,
                 x=x,
                 y=y,
             )

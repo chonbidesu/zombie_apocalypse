@@ -168,33 +168,31 @@ class Player:
     def create_item(self, item_name):
         """Create an item or weapon based on its name."""
         # Check if the item is a weapon
-        if item_name in WEAPONS:
-            attributes = WEAPONS[item_name]
-            if item_name in MELEE_WEAPONS:
-                # Create a melee weapon
-                weapon = Weapon(
-                    name=item_name,
-                    image_file=attributes['image_file'],
-                    damage=attributes['damage'],
-                    durability=attributes['durability']
-                )
-                self.weapon_group.add(weapon)
-                return weapon
-            elif item_name in FIREARMS:
-                # Create a firearm
-                weapon = Weapon(
-                    name=item_name,
-                    image_file=attributes['image_file'],
-                    damage=attributes['damage'],
-                    loaded_ammo=attributes['loaded_ammo'],
-                    max_ammo=attributes['max_ammo']
-                )
-                self.weapon_group.add(weapon)
-                self.firearm_group.add(weapon)
-                return weapon
-        elif item_name in ITEMS:
+        attributes = ITEMS[item_name]
+        if item_name in MELEE_WEAPONS:
+            # Create a melee weapon
+            weapon = Weapon(
+                name=item_name,
+                image_file=attributes['image_file'],
+                damage=attributes['damage'],
+                durability=attributes['durability']
+            )
+            self.weapon_group.add(weapon)
+            return weapon
+        elif item_name in FIREARMS:
+            # Create a firearm
+            weapon = Weapon(
+                name=item_name,
+                image_file=attributes['image_file'],
+                damage=attributes['damage'],
+                loaded_ammo=attributes['loaded_ammo'],
+                max_ammo=attributes['max_ammo']
+            )
+            self.weapon_group.add(weapon)
+            self.firearm_group.add(weapon)
+            return weapon
+        elif item_name in ITEM_TYPES:
             # Create a regular item
-            attributes = ITEMS[item_name]
             item = Item(
                 name=item_name,
                 image_file=attributes['image_file']
