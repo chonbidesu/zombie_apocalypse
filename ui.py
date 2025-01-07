@@ -19,10 +19,13 @@ class DrawUI:
         self.viewport_group = self.create_viewport_group()
         self.button_group = self.create_button_group()
         self.zombie_display_group = pygame.sprite.Group()
+        self.enter_button = self.Button('enter', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
+        self.leave_button = self.Button('leave', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
 
     def draw(self, chat_history, scroll_offset):
         self.draw_viewport_frame()
         self.draw_neighbourhood_name()
+        self.update_action_buttons()
         self.draw_actions_panel()
         self.draw_chat(chat_history, scroll_offset)
         self.draw_description_panel()
@@ -53,8 +56,6 @@ class DrawUI:
         for i, button_name in enumerate(buttons):
             button = self.Button(button_name, x=40 + i * 120, y=(SCREEN_HEIGHT // 2) + 80)
             button_group.add(button)
-        leave_button = self.Button('leave', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
-        button_group.add(leave_button)
         return button_group
 
     # Handle text wrapping
@@ -99,6 +100,19 @@ class DrawUI:
         text = font_small.render(current_block.neighbourhood, True, WHITE)
         self.screen.blit(text, ((self.viewport_frame_width // 2) - (text.get_width() // 2), self.viewport_frame_height + 15))
 
+    # Update action buttons according to player status
+    def update_action_buttons(self):
+        if self.player.inside:
+            for button in self.button_group:
+                if button.name == 'enter':
+                    self.button_group.remove(button)
+                    self.button_group.add(self.leave_button)
+        else:
+            for button in self.button_group:
+                if button.name == 'leave':
+                    self.button_group.remove(button)
+                    self.button_group.add(self.enter_button)
+
     # Draw actions panel
     def draw_actions_panel(self):
         """Draw the Available Actions panel with button sprites."""
@@ -117,6 +131,7 @@ class DrawUI:
         title_text = font_large.render("Available Actions", True, BLACK)
         title_rect = title_text.get_rect(center=(panel_x + panel_width // 2, panel_y + 20))
         self.screen.blit(title_text, title_rect)
+        self.button_group.draw(self.screen)
 
     def get_current_observations(self):
         """Get the current observations based on the player's surroundings."""
@@ -132,7 +147,7 @@ class DrawUI:
             current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
 
             # Check if the building has a running generator
-            if current_block in self.player.generator_installed:
+            if current_block.generator_installed:
                 current_observations += "A portable generator has been set up here. "
                 if current_block.lights_on:
                     current_observations += "It is running. "
@@ -350,13 +365,15 @@ class DrawUI:
 
             # Highlight the equipped item
             if item == self.player.weapon:
-                pygame.draw.rect(self.screen, WHITE, (item_x - 2, item_y - 2, 36, 36), 2)
+                pygame.draw.rect(self.screen, DARK_GREEN, (item_x - 2, item_y - 2, 36, 36), 2)
 
             # Move to the next position
             item_x += 36  # Item width + spacing
             if item_x + 36 > inventory_panel_x + inventory_panel_width:  # Wrap to next line if out of space
                 item_x = inventory_panel_x + 10
                 item_y += 36
+
+        self.player.inventory.draw(self.screen)
 
 
 

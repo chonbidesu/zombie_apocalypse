@@ -156,15 +156,14 @@ class Player:
             # If a player moves, they are no longer inside.
             if self.inside:
                 self.inside = False
-                self.button_group.remove(self.leave_button)
-                self.button_group.add(self.enter_button)
             self.location = (new_x, new_y)
             return True
         return False
 
     def barricade(self, modifier=1):
-        current_block = self.city.block(self.location)
-        if current_block in self.city.building_group and self.inside:
+        current_x, current_y = self.location
+        current_block = self.city.block(current_x, current_y)
+        if current_block.is_building and self.inside:
             success_chance = BARRICADE_CHANCE * modifier
             success_chance = max(0, min(success_chance, 1))  # Ensure the chance is between 0 and 1
             success = random.random() < success_chance
@@ -181,22 +180,20 @@ class Player:
             return "You can't barricade here."
 
     def where(self):
-        current_block = self.city.block(self.location)
+        current_x, current_y = self.location
+        current_block = self.city.block(current_x, current_y)
         if self.inside:
             return f"You are standing inside {current_block.block_desc} called {current_block.block_name}."
         else:
             return f"You are standing in front of {current_block.block_desc} called {current_block.block_name}."
 
     def enter(self):
-        current_block = self.city.block(self.location)
-        if current_block in self.city.building_group:
+        current_x, current_y = self.location
+        current_block = self.city.block(current_x, current_y)
+        if current_block.is_building:
             if not self.inside:
                 if current_block.barricade.level <= 4:
                     self.inside = True
-                    for button in self.button_group:
-                        if button.name == 'enter':
-                            self.button_group.remove(button)
-                    self.button_group.add(self.leave_button)
                     return "You entered the building."
                 else:
                     return "You can't find a way through the barricades."
@@ -204,20 +201,18 @@ class Player:
         return "This is not a building."
 
     def leave(self):
-        current_block = self.city.block(self.location)
+        current_x, current_y = self.location
+        current_block = self.city.block(current_x, current_y)
         if current_block.is_building:
             if self.inside:
                 self.inside = False
-                for button in self.button_group:
-                    if button.name == 'leave':
-                        self.button_group.remove(button)
-                self.button_group.add(self.enter_button)
                 return "You left the building."
             return "You are already outside."
         return "You can't leave this place."
 
     def search(self):
-        current_block = self.city.block(self.location)
+        current_x, current_y = self.location
+        current_block = self.city.block(current_x, current_y)
         if current_block.is_building:
             if self.inside:
                 if current_block.lights_on:
@@ -248,7 +243,8 @@ class Player:
             return "You search but there is nothing to be found."
         
     def install_generator(self):
-        current_block = self.city.block(self.location)
+        current_x, current_y = self.location
+        current_block = self.city.block(current_x, current_y)
         if current_block in self.generator_installed:
             return "Generator is already installed."
         else:
@@ -256,7 +252,8 @@ class Player:
             return "You install a generator. It needs fuel to operate."
         
     def fuel_generator(self):
-        current_block = self.city.block(self.location)
+        current_x, current_y = self.location
+        current_block = self.city.block(current_x, current_y)
         if current_block.lights_on:
             return "Generator already has fuel."
         elif current_block not in self.generator_installed:

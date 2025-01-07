@@ -39,18 +39,18 @@ def create_context_menu(target, player, NonBlockingPopupMenu, sprite=None):
                 menu_data = ['Item', 'Use', 'Drop']
         if sprite is not None:
             menu_item = sprite
-    elif target == 'current block' and target.block.is_building:
+    elif target == 'center block' and sprite.block.is_building:
         if not player.inside:
             menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
-        elif target == 'current block' and player.inside:
+        elif target == 'center block' and player.inside:
             menu_data = ['Actions', 'Barricade', 'Search', 'Leave']
-    elif target == 'current block' and not target.block.is_building:
+    elif target == 'center block' and not sprite.block.is_building:
         menu_data = ['Actions', 'Search']
     elif target == 'block':
         menu_data = ['Go', 'Move']
         if sprite is not None:
             menu_viewport_dxy = (sprite.dx, sprite.dy)
-    elif target == 'screen':
+    else:
         return None
 
     return NonBlockingPopupMenu(menu_data)

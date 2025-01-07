@@ -72,7 +72,7 @@ class GameInitializer:
 
     def save_game(self):
         """Save the game state to a file."""
-        saveload.Gamestate.save_game("savegame.pkl", self.player)
+        saveload.Gamestate.save_game("savegame.pkl", self.player, self.city, self.zombies)
 
     def quit_game(self):
         """Handle cleanup and save the game on exit."""
@@ -171,11 +171,14 @@ def main():
                             chat_history.append(f"You are already outside.")
 
         # Draw game elements to screen
-        
+        game.game_ui.draw(chat_history, scroll_offset)
 
         if game.popup_menu:
             game.popup_menu.handle_events(events)
             game.popup_menu.draw()
+
+        game.cursor.update()
+        game.cursor.draw()
 
         for event in events:
             if event.type == pygame.USEREVENT and event.code == 'MENU':
@@ -183,16 +186,11 @@ def main():
                     game.popup_menu = None
                 else:
                     menus.handle_menu_action(
-                        game.player, game.game_ui.update_viewport, 
-                        game.zombie_display_group, 
-                        event.name, event.text, chat_history
+                        game.player, event.name, event.text, chat_history
                     )
                     game.game_ui.update_viewport()
                     game.popup_menu = None
 
-        game.game_ui.draw(chat_history, scroll_offset)
-        game.cursor.update()
-        game.cursor.draw()
 
         pygame.display.flip()
         clock.tick(FPS)

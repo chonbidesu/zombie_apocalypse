@@ -23,18 +23,17 @@ class Gamestate:
                     "block_name": block.block_name,
                     "block_desc": block.block_desc,
                     "block_outside_desc": block.block_outside_desc,
-                    "zoom_x": block.zoom_x,
-                    "zoom_y": block.zoom_y,
+                    "neighbourhood": block.neighbourhood,
                 }
                 if block.block_type in BUILDING_TYPES:
-                    block_data = {
+                    block_data.update({
                         "block_inside_desc": block.block_inside_desc,
                         "lights_on": block.lights_on,
                         "generator_installed": block.generator_installed,
                         "fuel_expiration": block.fuel_expiration,
                         "barricade_level": block.barricade.level,
                         "barricade_health": block.barricade.health,
-                    }
+                    })
                 city_data.append(block_data)
         return city_data
 
@@ -72,9 +71,9 @@ class Gamestate:
         return zombie_data
 
     @classmethod
-    def save_game(cls, file_path, player):
+    def save_game(cls, file_path, player, city, zombies):
         """Save the game state to a file."""
-        game_state = cls(player)
+        game_state = cls(player, city, zombies)
         with open(file_path, "wb") as file:
             pickle.dump(game_state, file)
         print("Game saved successfully.")
@@ -88,8 +87,7 @@ class Gamestate:
         return game_state
 
     def reconstruct_game(self, player_class, city_class, zombie_class, zombulate_class, 
-                         building_class, outdoor_class,
-                         get_block_at_xy, zombie_display_group,   
+                         building_class, outdoor_class,   
     ):
         """Reconstruct the game objects."""
         # Reconstruct city
@@ -114,8 +112,6 @@ class Gamestate:
             block.block_name = block_data["block_name"]
             block.block_desc = block_data["block_desc"]
             block.block_outside_desc = block_data["block_outside_desc"]
-            block.zoom_x = block_data["zoom_x"]
-            block.zoom_y = block_data["zoom_y"]
             block.x = block_data["x"]
             block.y = block_data["y"]
             block.neighbourhood = block_data["neighbourhood"]
@@ -127,7 +123,6 @@ class Gamestate:
         # Reconstruct player
         player = player_class(
             city=city,
-            zombies=zombies,
             name=self.player_data.get("name", "Player"),
             occupation=self.player_data.get("occupation", "Survivor"),
             x=self.player_data["x"],
@@ -162,7 +157,7 @@ class Gamestate:
         player.ticker = self.player_data.get("ticker", 0)
 
         # Create zombie list
-        zombies = zombulate_class(player, city, get_block_at_xy, total_zombies=0)
+        zombies = zombulate_class(player, city, total_zombies=0)
 
         # Reconstruct zombies
         for zombie_data in self.zombie_data:
@@ -171,11 +166,7 @@ class Gamestate:
             inside = zombie_data["inside"]
 
             zombie = zombie_class(
-                player=player,
-                get_block_at_xy=get_block_at_xy,
-                zombie_display_group=zombie_display_group,
-                x=x,
-                y=y,
+                player=player, city=city, x=x, y=y,
             )
             zombie.inside = inside
             zombie.hp = zombie_data.get("hp", ZOMBIE_START_HP)
