@@ -9,9 +9,7 @@ from items import Item, Weapon
 
 class Player:
     """Represents the player's character."""
-    def __init__(self, city, x_groups, y_groups,
-                 button_group, update_observations, get_block_at_player,
-                 name, occupation, x, y, inside=False):
+    def __init__(self, city, name, occupation, x, y, inside=False):
         self.name = name
         self.occupation = occupation
         self.skills = []  # Skills active when human
@@ -26,73 +24,9 @@ class Player:
         self.search_chances = self.load_search_chances("assets/search.csv")
         self.ticker = 0  # Tracks the number of actions taken
         self.city = city
-        self.x_groups = x_groups
-        self.y_groups = y_groups
-        self.zombie_group = pygame.sprite.Group()
-        self.button_group = button_group
-        self.update_observations = update_observations
-        self.get_block_at_player = get_block_at_player
-        self.lights_on = pygame.sprite.Group()
-        self.generator_installed = pygame.sprite.Group()
         self.weapon_group = pygame.sprite.Group()
         self.melee_group = pygame.sprite.Group()
         self.firearm_group = pygame.sprite.Group()
-
-        for sprite in self.button_group:
-            if sprite.name == 'enter':
-                self.enter_button = sprite
-            elif sprite.name == 'leave':
-                self.leave_button = sprite
-        self.button_group.remove(self.leave_button)
-
-    # Override to allow for pickling
-    def __getstate__(self):
-        # Extract the current state of the object
-        state = self.__dict__.copy()
-
-        # Remove or unset any surfaces or non-pickleable attributes (like sprite images)
-        # For sprites, replace with their names or identifiers (or leave as None)
-        state['inventory'] = [item.name for item in self.inventory]  # Store item names as a list
-        state['weapon'] = self.weapon.sprite.name if self.weapon.sprite else None  # Store weapon name or None
-        state['lights_on'] = [block.id for block in self.lights_on]  # Store block IDs or other identifiers
-        state['generator_installed'] = [block.id for block in self.generator_installed]
-        
-        # Unset surfaces or any graphical data
-        for item in self.inventory:
-            item.image = None  # Remove surface from item
-        if self.weapon.sprite:
-            self.weapon.sprite.image = None  # Remove surface from weapon
-        
-        return state
-
-    def __setstate__(self, state):
-        # Rebuild the object from the saved state
-        self.__dict__.update(state)
-
-        # Recreate the pygame sprite groups based on the saved state
-        self.inventory = pygame.sprite.Group()
-        for item_name in self.inventory:
-            item = self.create_item(item_name)  # Create the item based on name
-            self.inventory.add(item)
-        
-        if self.weapon:
-            self.weapon.add(self.create_item(self.weapon))
-        
-        self.lights_on = pygame.sprite.Group()
-        self.generator_installed = pygame.sprite.Group()
-        # Assume a mechanism to map IDs back to sprite groups, e.g., map `block.id` to a block object
-
-        # Reload surfaces dynamically
-        for item in self.inventory:
-            item.image = self.load_image(item.image_file)  # Reload the item's image
-        if self.weapon.sprite:
-            self.weapon.sprite.image = self.load_image(self.weapon.sprite.image_file)  # Reload the weapon's image
-
-    def load_image(self, image_file):
-        """Load an image dynamically based on its file path."""
-        return pygame.image.load(image_file)
-
-        
 
     def assign_starting_trait(self, occupation):
         """Assigns a starting trait based on the player's occupation."""
@@ -199,20 +133,6 @@ class Player:
             )
             return item
 
-    def increment_ticker(self):
-        """Increments the ticker to track player actions."""
-        self.ticker += 1
-
-        # Check buildings for fuel expiry
-        for building in self.city.building_group:
-            if hasattr(building, 'fuel_expiration') and building.fuel_expiration < self.ticker:
-                if building in self.lights_on:
-                    self.lights_on.remove(building)
-
-        # Each zombie gains an action point
-        for zombie in self.zombie_group:
-            zombie.action_points += 1
-            zombie.take_action(self)
 
     # Start of player actions
 
@@ -221,7 +141,6 @@ class Player:
         for item in self.inventory:
             if item.name == item_name:
                 result = item.use()
-                self.increment_ticker()
                 if item.consumable:
                     self.remove_item(item)
                 return result
@@ -239,15 +158,13 @@ class Player:
                 self.inside = False
                 self.button_group.remove(self.leave_button)
                 self.button_group.add(self.enter_button)
-            self.increment_ticker()
             self.location = (new_x, new_y)
             return True
         return False
 
     def barricade(self, modifier=1):
-        current_block = self.get_block_at_player(self)
+        current_block = self.city.block(self.location)
         if current_block in self.city.building_group and self.inside:
-            self.increment_ticker()
             success_chance = BARRICADE_CHANCE * modifier
             success_chance = max(0, min(success_chance, 1))  # Ensure the chance is between 0 and 1
             success = random.random() < success_chance
@@ -264,20 +181,18 @@ class Player:
             return "You can't barricade here."
 
     def where(self):
-        current_block = self.get_block_at_player(self)
+        current_block = self.city.block(self.location)
         if self.inside:
             return f"You are standing inside {current_block.block_desc} called {current_block.block_name}."
         else:
             return f"You are standing in front of {current_block.block_desc} called {current_block.block_name}."
 
     def enter(self):
-        current_block = self.get_block_at_player(self)
+        current_block = self.city.block(self.location)
         if current_block in self.city.building_group:
             if not self.inside:
                 if current_block.barricade.level <= 4:
-                    self.increment_ticker()
                     self.inside = True
-                    self.update_observations(self)
                     for button in self.button_group:
                         if button.name == 'enter':
                             self.button_group.remove(button)
@@ -289,12 +204,10 @@ class Player:
         return "This is not a building."
 
     def leave(self):
-        current_block = self.get_block_at_player(self)
-        if current_block in self.city.building_group:
+        current_block = self.city.block(self.location)
+        if current_block.is_building:
             if self.inside:
-                self.increment_ticker()
                 self.inside = False
-                self.update_observations(self)
                 for button in self.button_group:
                     if button.name == 'leave':
                         self.button_group.remove(button)
@@ -304,14 +217,10 @@ class Player:
         return "You can't leave this place."
 
     def search(self):
-        current_block = self.get_block_at_player(self)
-        self.increment_ticker()
-        if current_block in self.city.building_group:
-            for group_type, group in self.city.building_type_groups.items():
-                if current_block in group:
-                    block_type = group_type
+        current_block = self.city.block(self.location)
+        if current_block.is_building:
             if self.inside:
-                if current_block in self.lights_on:
+                if current_block.lights_on:
                     multiplier = 1.5
                 else:
                     multiplier = 1.0
@@ -319,7 +228,7 @@ class Player:
                 random.shuffle(items)
 
                 for item_name in items:
-                    search_chance = self.search_chances[item_name].get(block_type, 0.0) # Default to 0.0 if item not found
+                    search_chance = self.search_chances[item_name].get(current_block.block_type, 0.0) # Default to 0.0 if item not found
                     if random.random() < search_chance * multiplier:
                         item = self.create_item(item_name)
                         if item is not None:
@@ -339,22 +248,20 @@ class Player:
             return "You search but there is nothing to be found."
         
     def install_generator(self):
-        current_block = self.get_block_at_player(self)
+        current_block = self.city.block(self.location)
         if current_block in self.generator_installed:
             return "Generator is already installed."
         else:
-            self.increment_ticker()
             self.generator_installed.add(current_block)
             return "You install a generator. It needs fuel to operate."
         
     def fuel_generator(self):
-        current_block = self.get_block_at_player(self)
-        if current_block in self.lights_on:
+        current_block = self.city.block(self.location)
+        if current_block.lights_on:
             return "Generator already has fuel."
         elif current_block not in self.generator_installed:
             return "You need to install a generator first."
         else:
-            self.increment_ticker()
             current_block.fuel_expiration = self.ticker + FUEL_DURATION
-            self.lights_on.add(current_block)
+            current_block.lights_on = True
             return "You fuel the generator. The lights are now on."

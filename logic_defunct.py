@@ -51,7 +51,6 @@ def update_zombie_sprites(player, zombie_group, zombie_display_group):
         zombie.update_character_sprite(player, index, len(zombies_here), zombie_display_group)
 
 
-# Update viewport centered on player
 viewport_group = pygame.sprite.Group()
 def update_viewport(player, city):
     viewport_group.empty()

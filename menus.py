@@ -28,24 +28,8 @@ shadow_color = Color(105,105,105)
 
 margin = 2
 
-# Get the offset from center for viewport blocks
-def get_viewport_dxy(sprite, player, get_sprite_coordinates):
-    center_x, center_y = player.location
-    block_x, block_y = get_sprite_coordinates(sprite, player.x_groups, player.y_groups)
-
-    dx = block_x - center_x
-    dy = block_y - center_y
-
-    return dx, dy
-
-# Check whether the current block is a building
-def is_building(player):
-    current_block = player.get_block_at_player(player)
-    if current_block in player.city.building_group:
-        return True
-
 # Create a context-sensitive popup menu based on the target
-def create_context_menu(target, player, get_sprite_coordinates,  NonBlockingPopupMenu, sprite=None):
+def create_context_menu(target, player, NonBlockingPopupMenu, sprite=None):
     global menu_viewport_dxy, menu_item
     if target == 'item':
         if sprite is not None:
@@ -55,24 +39,24 @@ def create_context_menu(target, player, get_sprite_coordinates,  NonBlockingPopu
                 menu_data = ['Item', 'Use', 'Drop']
         if sprite is not None:
             menu_item = sprite
-    elif target == 'current block' and is_building(player):
+    elif target == 'current block' and target.block.is_building:
         if not player.inside:
             menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
         elif target == 'current block' and player.inside:
             menu_data = ['Actions', 'Barricade', 'Search', 'Leave']
-    elif target == 'current block' and not is_building(player):
+    elif target == 'current block' and not target.block.is_building:
         menu_data = ['Actions', 'Search']
     elif target == 'block':
         menu_data = ['Go', 'Move']
         if sprite is not None:
-            menu_viewport_dxy = (get_viewport_dxy(sprite, player, get_sprite_coordinates))
+            menu_viewport_dxy = (sprite.dx, sprite.dy)
     elif target == 'screen':
         return None
 
     return NonBlockingPopupMenu(menu_data)
 
 # Handle menu actions
-def handle_menu_action(player, update_viewport, zombie_display_group, menu_name, action, chat_history):
+def handle_menu_action(player, menu_name, action, chat_history):
     if menu_name == 'Item':
         if action == 'Equip':
             player.weapon.empty()
@@ -98,7 +82,6 @@ def handle_menu_action(player, update_viewport, zombie_display_group, menu_name,
         if action == 'Move':
             player.move(menu_viewport_dxy[0], menu_viewport_dxy[1])
             print(f"Moving to {menu_viewport_dxy}")
-    update_viewport(player, zombie_display_group)          
 
 ## Sprite cursor also runs while menu is posted.
 class Cursor(object):

@@ -7,43 +7,47 @@ from collections import defaultdict
 from settings import *
 
 class Gamestate:
-    def __init__(self, player):
-        self.city_data = self._serialize_city(player.city)
+    def __init__(self, player, city, zombies):
+        self.city_data = self._serialize_city(city)
         self.player_data = self._serialize_player(player)
-        self.zombie_data = self._serialize_zombies(player.zombie_group)
+        self.zombie_data = self._serialize_zombies(zombies)
 
     def _serialize_city(self, city):
-        city_data = {
-            "blocks": [],
-            "neighbourhoods": list(city.neighbourhood_groups.keys()),
-        }
-        for y, group in enumerate(city.y_groups):
-            for block in group:
-                if block in city.cityblock_group:
-                    x = next(
-                        (x_index for x_index, x_group in enumerate(city.x_groups) if block in x_group),
-                        None,
-                    )
-                    if x is None:
-                        raise ValueError(f"Block {block} not found in x_groups")
-                    
+        city_data = []
+        for row in city.grid:
+            for block in row:
+                block_data = {
+                    "x": block.x,
+                    "y": block.y,
+                    "block_type": block.block_type,
+                    "block_name": block.block_name,
+                    "block_desc": block.block_desc,
+                    "block_outside_desc": block.block_outside_desc,
+                    "zoom_x": block.zoom_x,
+                    "zoom_y": block.zoom_y,
+                }
+                if block.block_type in BUILDING_TYPES:
                     block_data = {
-                        "x": x,
-                        "y": y,
-                        "block_type": block.block_type,
-                        "block_name": block.block_name,
-                        "block_desc": block.block_desc,
-                        "zoom_x": getattr(block, "zoom_x", None),
-                        "zoom_y": getattr(block, "zoom_y", None),
+                        "block_inside_desc": block.block_inside_desc,
+                        "lights_on": block.lights_on,
+                        "generator_installed": block.generator_installed,
+                        "fuel_expiration": block.fuel_expiration,
+                        "barricade_level": block.barricade.level,
+                        "barricade_health": block.barricade.health,
                     }
-                    city_data["blocks"].append(block_data)
+                city_data.append(block_data)
         return city_data
 
     def _serialize_player(self, player):
         return {
+            "name": player.name,
+            "occupation": player.occupation,
             "x": player.location[0],
             "y": player.location[1],
             "inside": player.inside,
+            "hp": player.hp,
+            "ticker": player.ticker,
+            "skills": player.skills,
             "inventory": [
                 {
                     "name": item.name,
@@ -54,13 +58,16 @@ class Gamestate:
             ],
         }
 
-    def _serialize_zombies(self, zombie_group):
+    def _serialize_zombies(self, zombies):
         zombie_data = []
-        for zombie in zombie_group:
+        for zombie in zombies.list:
             zombie_data.append({
-                "x": zombie.get_coordinates()[0],
-                "y": zombie.get_coordinates()[1],
+                "x": zombie.location[0],
+                "y": zombie.location[1],
                 "inside": zombie.inside,
+                "is dead": zombie.is_dead,
+                "action points": zombie.action_points,
+                "hp": zombie.hp,
             })
         return zombie_data
 
@@ -80,68 +87,47 @@ class Gamestate:
         print("Game loaded successfully.")
         return game_state
 
-    def reconstruct_game(self, player_class, city_class, zombie_class, weapon_class, building_class, outdoor_class, button_group,
-                         create_xy_groups, update_observations, get_block_at_player, get_block_at_xy, zombie_display_group,   
+    def reconstruct_game(self, player_class, city_class, zombie_class, zombulate_class, 
+                         building_class, outdoor_class,
+                         get_block_at_xy, zombie_display_group,   
     ):
         """Reconstruct the game objects."""
         # Reconstruct city
-        x_groups, y_groups = create_xy_groups()
-        city = city_class(x_groups, y_groups)
-        button_group = button_group
+        city = city_class()
+        city.grid = [[None for _ in range(CITY_SIZE)] for _ in range(CITY_SIZE)]
 
-        # Clear x_groups and y_groups
-        for i in range(100):
-            city.x_groups[i].empty()
-            city.y_groups[i].empty()
-
-        # Reconstruct blocks
-        for block_data in self.city_data["blocks"]:
+        # Reconstruct and replace city grid
+        for block_data in self.city_data:
             block_type = block_data["block_type"]
             if block_type in BUILDING_TYPES:
                 block = building_class()
-                city.building_group.add(block)
-                city.building_type_groups[block_type].add(block)
+                block.block_inside_desc = block_data["block_inside_desc"]
+                block.lights_on = block_data["lights_on"]
+                block.generator_installed = block_data["generator_installed"]
+                block.fuel_expiration = block_data["fuel_expiration"]
+                block.barricade.set_barricade_level(block_data["barricade_level"])
+                block.barricade.health = block_data["barricade_health"]
             else:
                 block = outdoor_class()
-                city.outdoor_group.add(block)
-                city.outdoor_type_groups[block_type].add(block)
 
             block.block_type = block_type
             block.block_name = block_data["block_name"]
             block.block_desc = block_data["block_desc"]
-            block.zoom_x = block_data.get("zoom_x")
-            block.zoom_y = block_data.get("zoom_y")
-            block.generate_descriptions(city.descriptions, block_type)
+            block.block_outside_desc = block_data["block_outside_desc"]
+            block.zoom_x = block_data["zoom_x"]
+            block.zoom_y = block_data["zoom_y"]
+            block.x = block_data["x"]
+            block.y = block_data["y"]
+            block.neighbourhood = block_data["neighbourhood"]
 
-            x = block_data["x"]
-            y = block_data["y"]
-            city.x_groups[x].add(block)
-            city.y_groups[y].add(block)
-            city.cityblock_group.add(block)
+            # Place the block in the correct position in the grid
+            city.grid[block.y][block.x] = block
 
-        # Reconstruct neighbourhood groups
-        for neighbourhood_name in self.city_data["neighbourhoods"]:
-            neighbourhood_group = pygame.sprite.Group()
-            for y_start in range(0, CITY_SIZE, NEIGHBOURHOOD_SIZE):
-                for x_start in range(0, CITY_SIZE, NEIGHBOURHOOD_SIZE):
-                    for y in range(y_start, y_start + NEIGHBOURHOOD_SIZE):
-                        for x in range(x_start, x_start + NEIGHBOURHOOD_SIZE):
-                            block = next(
-                                (b for b in city.x_groups[x] if b in city.y_groups[y]),
-                                None,
-                            )
-                            if block:
-                                neighbourhood_group.add(block)
-            city.neighbourhood_groups[neighbourhood_name] = neighbourhood_group
 
         # Reconstruct player
         player = player_class(
             city=city,
-            x_groups=city.x_groups,
-            y_groups=city.y_groups,
-            button_group=button_group,
-            update_observations = update_observations,
-            get_block_at_player = get_block_at_player,
+            zombies=zombies,
             name=self.player_data.get("name", "Player"),
             occupation=self.player_data.get("occupation", "Survivor"),
             x=self.player_data["x"],
@@ -175,8 +161,10 @@ class Gamestate:
         player.hp = self.player_data.get("hp", player.max_hp)
         player.ticker = self.player_data.get("ticker", 0)
 
+        # Create zombie list
+        zombies = zombulate_class(player, city, get_block_at_xy, total_zombies=0)
+
         # Reconstruct zombies
-        zombie_group = pygame.sprite.Group()
         for zombie_data in self.zombie_data:
             x = zombie_data["x"]
             y = zombie_data["y"]
@@ -193,6 +181,6 @@ class Gamestate:
             zombie.hp = zombie_data.get("hp", ZOMBIE_START_HP)
             zombie.action_points = zombie_data.get("action_points", 0)
             zombie.is_dead = zombie_data.get("is_dead", False)
+            zombies.list.append(zombie)
 
-
-        return player, city, zombie_group
+        return player, city, zombies

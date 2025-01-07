@@ -88,6 +88,18 @@ BLOCK_IMAGES = {
     "AutoRepair": "assets/auto_repair.bmp",
 }
 
+# Mapping integer values to descriptive barricade states
+BARRICADE_DESCRIPTIONS = [
+    "not barricaded",
+    "loosely barricaded",
+    "lightly barricaded",
+    "strongly barricaded",
+    "very strongly barricaded",
+    "heavily barricaded",
+    "very heavily barricaded",
+    "extremely heavily barricaded"
+]
+
 # List of neighbourhoods
 NEIGHBOURHOODS = {
     1: "Dakerstown",

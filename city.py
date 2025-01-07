@@ -4,6 +4,8 @@ import random
 import pygame
 from collections import defaultdict
 from pathlib import Path
+
+
 from blocks import CityBlock, BuildingBlock
 from settings import *
 
@@ -74,7 +76,7 @@ class City:
             building_block.block_type = random.choice(BUILDING_TYPES)
             building_block.block_name = self._get_unique_block_name(building_block.block_type)
             building_block.block_desc = BLOCKNAME_DESC[building_block.block_type]
-            building_block.generate_descriptions(self.descriptions, building_block.block_type)          
+            building_block.generate_descriptions(self.descriptions)          
             block_pool.append(building_block)
         return block_pool
 
@@ -85,7 +87,7 @@ class City:
             outdoor_block.block_type = random.choice(OUTDOOR_TYPES)
             outdoor_block.block_name = self._get_unique_block_name(outdoor_block.block_type)
             outdoor_block.block_desc = BLOCKNAME_DESC[outdoor_block.block_type]
-            outdoor_block.generate_descriptions(self.descriptions, outdoor_block.block_type)
+            outdoor_block.generate_descriptions(self.descriptions)
             block_pool.append(outdoor_block)
         return block_pool
 
@@ -96,7 +98,7 @@ class City:
             street_block.block_type = 'Street'
             street_block.block_name = self._get_unique_block_name(street_block.block_type)
             street_block.block_desc = BLOCKNAME_DESC[street_block.block_type]
-            street_block.generate_descriptions(self.descriptions, street_block.block_type)         
+            street_block.generate_descriptions(self.descriptions)         
             block_pool.append(street_block)
         return block_pool
 
@@ -118,8 +120,8 @@ class City:
         mall_sizes = {}  # Track the size of each mall (keyed by block_name)
 
         for y, row in enumerate(grid):
-            for x, block in enumerate(grid[row]):
-                if block in self.building_type_groups['Mall']:
+            for x, block in enumerate(row):
+                if block.block_type == 'Mall':
                     # Get or initialize the mall size
                     mall_name = block.block_name
                     if mall_name not in mall_sizes:
@@ -134,7 +136,7 @@ class City:
                     #below_spread = False
 
                     # Right neighbor
-                    if x + 1 < CITY_SIZE:  # Ensure within bounds
+                    if x + 1 < CITY_SIZE and 0 < y - 1 and y + 1 < CITY_SIZE:  # Ensure within bounds
                         adjacent_blocks = [grid[y - 1][x + 1], grid[y][x + 1], grid[y + 1][x + 1]]
                         for right_block in adjacent_blocks:
                             if right_block.block_type == 'Street' and mall_sizes[mall_name] < 4:
@@ -145,7 +147,7 @@ class City:
                                     right_block = new_block
 
                     # Bottom neighbor
-                    if y + 1 < CITY_SIZE:  # Ensure within bounds
+                    if y + 1 < CITY_SIZE and 0 < x - 1 and x + 1 < CITY_SIZE:  # Ensure within bounds
                         adjacent_blocks = [grid[y + 1][x - 1], grid[y + 1][x], grid[y + 1][x + 1]]
                         for bottom_block in adjacent_blocks:
                             if bottom_block.block_type == 'Street' and mall_sizes[mall_name] < 4:
@@ -172,22 +174,14 @@ class City:
 
     def _replace_block(self, target_block, source_block, block_type, x, y):
         """Replace a target block with a new block of the specified type."""
-        if target_block in self.outdoor_type_groups['Street']:
+        if target_block.block_type == 'Street':
             new_block = BuildingBlock()
             new_block.block_name = source_block.block_name
             new_block.block_desc = source_block.block_desc
-            new_block.generate_descriptions(self.descriptions, block_type)
+            new_block.generate_descriptions(self.descriptions)
             new_block.x, new_block.y = x, y
-
-            # Update group memberships
-            self.outdoor_type_groups['Street'].remove(target_block)
-            self.outdoor_group.remove(target_block)
-            self.cityblock_group.remove(target_block)
-
-            self.building_type_groups[block_type].add(new_block)
-            self.building_group.add(new_block)
-            self.cityblock_group.add(new_block)
             return new_block
+
         return None
 
 
