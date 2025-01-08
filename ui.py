@@ -166,6 +166,7 @@ class DrawUI:
         # Add observations for zombies and dead bodies
         zombies_here = [
             zombie for zombie in self.zombies.list
+            print(zombie.location)
             if zombie.location == self.player.location and zombie.inside == self.player.inside
         ]
         living_zombies = [zombie for zombie in zombies_here if not zombie.is_dead]
