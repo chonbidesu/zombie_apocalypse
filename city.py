@@ -35,17 +35,25 @@ class City:
         return descriptions
 
     def _load_block_names(self):
-        """Load block names from text files into a dictionary."""
-        for block_type, filename in BLOCKNAME_FILES.items():
-            filepath = Path(f"{BLOCKNAME_LISTS_FOLDER}/{filename}")
-            if filepath.exists():
-                with open(filepath, "r", encoding="utf-8") as f:
-                    contents = f.read()
-                names = contents.splitlines()
-                self.block_name_pool[block_type] = names
-            else:
-                print(f"Warning: {filepath} does not exist!")
+        """Load block names from assets/block_names.csv into a dictionary."""
+        csv_path = Path("assets/block_names.csv")
+        
+        if not csv_path.exists():
+            print(f"Error: {csv_path} does not exist!")
+            return
 
+        try:
+            with open(csv_path, "r", encoding="utf-8") as csv_file:
+                reader = csv.DictReader(csv_file)
+
+                # Populate block_name_pool from the CSV
+                for row in reader:
+                    for block_type, name in row.items():
+                        if name:  # Ignore empty cells
+                            self.block_name_pool.setdefault(block_type, []).append(name)
+
+        except Exception as e:
+            print(f"Error reading {csv_path}: {e}")
 
     def _get_unique_block_name(self, block_type):
         """Retrieve a block name for the given type."""
@@ -74,8 +82,8 @@ class City:
         for _ in range(CITY_SIZE * 50):
             building_block = BuildingBlock()
             building_block.block_type = random.choice(BUILDING_TYPES)
-            building_block.block_name = self._get_unique_block_name(building_block.block_type)
-            building_block.block_desc = BLOCKNAME_DESC[building_block.block_type]
+            building_block.block_name = self._get_unique_block_name(building_block.block_type.name)
+            building_block.block_desc = building_block.block_type.description
             building_block.generate_descriptions(self.descriptions)          
             block_pool.append(building_block)
         return block_pool
@@ -85,8 +93,8 @@ class City:
         for _ in range(CITY_SIZE * 25):
             outdoor_block = CityBlock()
             outdoor_block.block_type = random.choice(OUTDOOR_TYPES)
-            outdoor_block.block_name = self._get_unique_block_name(outdoor_block.block_type)
-            outdoor_block.block_desc = BLOCKNAME_DESC[outdoor_block.block_type]
+            outdoor_block.block_name = self._get_unique_block_name(outdoor_block.block_type.name)
+            outdoor_block.block_desc = outdoor_block.block_type.description
             outdoor_block.generate_descriptions(self.descriptions)
             block_pool.append(outdoor_block)
         return block_pool
@@ -95,9 +103,9 @@ class City:
         # Generate 2500 street blocks
         for _ in range(CITY_SIZE * 25):
             street_block = CityBlock()
-            street_block.block_type = 'Street'
-            street_block.block_name = self._get_unique_block_name(street_block.block_type)
-            street_block.block_desc = BLOCKNAME_DESC[street_block.block_type]
+            street_block.block_type = CityBlockType.STREET
+            street_block.block_name = self._get_unique_block_name(street_block.block_type.name)
+            street_block.block_desc = street_block.block_type.description
             street_block.generate_descriptions(self.descriptions)         
             block_pool.append(street_block)
         return block_pool
@@ -121,7 +129,7 @@ class City:
 
         for y, row in enumerate(grid):
             for x, block in enumerate(row):
-                if block.block_type == 'Mall':
+                if block.block_type == CityBlockType.MALL:
                     # Get or initialize the mall size
                     mall_name = block.block_name
                     if mall_name not in mall_sizes:
@@ -139,8 +147,8 @@ class City:
                     if x + 1 < CITY_SIZE and 0 < y - 1 and y + 1 < CITY_SIZE:  # Ensure within bounds
                         adjacent_blocks = [grid[y - 1][x + 1], grid[y][x + 1], grid[y + 1][x + 1]]
                         for right_block in adjacent_blocks:
-                            if right_block.block_type == 'Street' and mall_sizes[mall_name] < 4:
-                                new_block = self._replace_block(right_block, block, 'Mall', right_block.x, right_block.y)
+                            if right_block.block_type == CityBlockType.STREET and mall_sizes[mall_name] < 4:
+                                new_block = self._replace_block(right_block, block, 'MALL', right_block.x, right_block.y)
                                 if new_block:
                                     mall_sizes[mall_name] += 1
                                     #right_spread = True
@@ -150,8 +158,8 @@ class City:
                     if y + 1 < CITY_SIZE and 0 < x - 1 and x + 1 < CITY_SIZE:  # Ensure within bounds
                         adjacent_blocks = [grid[y + 1][x - 1], grid[y + 1][x], grid[y + 1][x + 1]]
                         for bottom_block in adjacent_blocks:
-                            if bottom_block.block_type == 'Street' and mall_sizes[mall_name] < 4:
-                                new_block = self._replace_block(bottom_block, block, 'Mall', bottom_block.x, bottom_block.y)
+                            if bottom_block.block_type == CityBlockType.STREET and mall_sizes[mall_name] < 4:
+                                new_block = self._replace_block(bottom_block, block, 'MALL', bottom_block.x, bottom_block.y)
                                 if new_block:
                                     mall_sizes[mall_name] += 1
                                     #below_spread = True
@@ -174,8 +182,9 @@ class City:
 
     def _replace_block(self, target_block, source_block, block_type, x, y):
         """Replace a target block with a new block of the specified type."""
-        if target_block.block_type == 'Street':
+        if target_block.block_type == CityBlockType.STREET:
             new_block = BuildingBlock()
+            new_block.block_type = getattr(CityBlockType, block_type)
             new_block.block_name = source_block.block_name
             new_block.block_desc = source_block.block_desc
             new_block.generate_descriptions(self.descriptions)

@@ -40,7 +40,7 @@ class DrawUI:
 
         for dy in range(-1, 2):
             for dx in range(-1, 2):
-                block_sprite = self.BlockSprite(dx, dy, self.player, self.city, self.grid_start_x, self.grid_start_y, self.wrap_text)
+                block_sprite = self.BlockSprite(dx, dy, self.player, self.city, self.zombies, self.grid_start_x, self.grid_start_y, self.wrap_text)
                 viewport_group.add(block_sprite)
         return viewport_group
 
@@ -166,7 +166,6 @@ class DrawUI:
         # Add observations for zombies and dead bodies
         zombies_here = [
             zombie for zombie in self.zombies.list
-            print(zombie.location)
             if zombie.location == self.player.location and zombie.inside == self.player.inside
         ]
         living_zombies = [zombie for zombie in zombies_here if not zombie.is_dead]
@@ -220,7 +219,7 @@ class DrawUI:
         current_x, current_y = self.player.location
         current_block = self.city.block(current_x, current_y)        
         image_suffix = "inside" if self.player.inside else "outside"
-        image_path = f"assets/{current_block.block_type.lower()}_{image_suffix}.png"
+        image_path = f"assets/{current_block.block_type.name.lower()}_{image_suffix}.png"
 
         try:
             setting_image = pygame.image.load(image_path)
@@ -387,7 +386,7 @@ class DrawUI:
         surrounding CityBlock objects.
         """
 
-        def __init__(self, dx, dy, player, city, grid_start_x, grid_start_y, wrap_text):
+        def __init__(self, dx, dy, player, city, zombies, grid_start_x, grid_start_y, wrap_text):
             """
             Initialize the BlockSprite.
 
@@ -402,6 +401,7 @@ class DrawUI:
             self.dy = dy
             self.player = player
             self.city = city
+            self.zombies = zombies
             self.block = None # The block this sprite represents
             self.is_building = False
             self.wrap_text = wrap_text
@@ -409,6 +409,7 @@ class DrawUI:
             self.viewport_y = grid_start_y + (dy + 1) * BLOCK_SIZE  # Translate relative dy to viewport position
             self.image = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
             self.rect = self.image.get_rect(topleft=(self.viewport_x, self.viewport_y))
+            self.viewport_zombies = []
 
 
         def update_data(self):
@@ -427,15 +428,35 @@ class DrawUI:
             if 0 <= target_x < CITY_SIZE and 0 <= target_y < CITY_SIZE:
                 self.block = self.city.block(target_x, target_y)  # Retrieve the CityBlock at (x, y)
 
-                image_filename = BLOCK_IMAGES[self.block.block_type]
+                image_filename = self.block.block_type.image_file
                 self.image = pygame.image.load(image_filename).convert_alpha()
                 self.image = pygame.transform.scale(self.image, (BLOCK_SIZE, BLOCK_SIZE))
 
-                if self.block.block_type == 'Street':
+                if self.block.block_type == CityBlockType.STREET:
                     self.apply_zoomed_image()
 
                 # Update the visual representation
                 self.draw_block_label()
+
+                self.viewport_zombies.clear()
+
+                # Add ViewportZombies if zombies are present in this block
+                matching_zombies = [
+                    zombie for zombie in self.zombies.list if zombie.location[0] == target_x and zombie.location[1] == target_y
+                ]
+                for index, zombie in enumerate(matching_zombies):
+                    viewport_zombie = self.ViewportZombie(zombie, index, len(matching_zombies))
+                    self.viewport_zombies.append(viewport_zombie)
+
+                # Draw the zombies onto the block image
+                self.draw_zombies()                            
+
+        def draw_zombies(self):
+            """Draw zombie sprites onto the block."""
+            for viewport_zombie in self.viewport_zombies:
+                zombie_image = viewport_zombie.image
+                zombie_rect = zombie_image.get_rect(center=viewport_zombie.position)
+                self.image.blit(zombie_image, zombie_rect)
 
         def draw_block_label(self):
             """Render the block label onto the block's surface."""
@@ -480,42 +501,23 @@ class DrawUI:
             self.image = pygame.transform.scale(zoomed_surface, (BLOCK_SIZE, BLOCK_SIZE))
 
 
-    class ViewportZombie(pygame.sprite.Sprite):
-        """A green square to represent a zombie in the viewport."""
-        def __init__(self, zombie, dx, dy):
-            """
-            Initialize the ViewportZombie sprite.
+        class ViewportZombie:
+            """A zombie sprite representation in the viewport."""
+            def __init__(self, zombie, index, total_zombies):
+                self.zombie = zombie
+                self.size = BLOCK_SIZE // 6  # Zombie size as a fraction of the block size
 
-            Args:
-                zombie (Zombie): Reference to the parent zombie object.
-                dx (int): Relative x position in the viewport (-1, 0, 1).
-                dy (int): Relative y position in the viewport (-1, 0, 1).
-                viewport_start_x (int): Top-left x-coordinate of the viewport.
-                viewport_start_y (int): Top-left y-coordinate of the viewport.
-            """
-            super().__init__()
-            self.zombie = zombie
-            self.dx = dx
-            self.dy = dy
-            self.image = pygame.Surface((BLOCK_SIZE // 2, BLOCK_SIZE // 2))  # Smaller green square
-            self.image.fill((0, 255, 0))  # Green color for zombies
-            self.rect = self.image.get_rect()
-            self.viewport_x = self.viewport_start_x + (dx + 1) * BLOCK_SIZE + (BLOCK_SIZE // 4)
-            self.viewport_y = self.viewport_start_y + (dy + 1) * BLOCK_SIZE + (BLOCK_SIZE // 4)
-            self.rect.topleft = (self.viewport_x, self.viewport_y)
+                # Calculate position for this zombie
+                row_width = total_zombies * self.size
+                row_start_x = (BLOCK_SIZE - row_width) // 2
+                self.position = (
+                    row_start_x + index * self.size + self.size // 2,
+                    BLOCK_SIZE // 2,
+                )
 
-        def update_position(self, dx, dy):
-            """
-            Update the zombie's position based on dx, dy in the viewport.
-            
-            Args:
-                dx (int): Updated relative x position.
-                dy (int): Updated relative y position.
-            """
-            self.rect.topleft = (
-                self.viewport_x + dx * BLOCK_SIZE,
-                self.viewport_y + dy * BLOCK_SIZE,
-            )
+                # Create the zombie image
+                self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
+                self.image.fill((0, 255, 0))  # Green square for zombies
 
 
     class ZombieSprite(pygame.sprite.Sprite):

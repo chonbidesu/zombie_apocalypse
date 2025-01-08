@@ -19,13 +19,13 @@ class Gamestate:
                 block_data = {
                     "x": block.x,
                     "y": block.y,
-                    "block_type": block.block_type,
+                    "block_type": block.block_type.name,
                     "block_name": block.block_name,
                     "block_desc": block.block_desc,
                     "block_outside_desc": block.block_outside_desc,
                     "neighbourhood": block.neighbourhood,
                 }
-                if block.block_type in BUILDING_TYPES:
+                if block.block_type.is_building:
                     block_data.update({
                         "block_inside_desc": block.block_inside_desc,
                         "lights_on": block.lights_on,
@@ -96,8 +96,8 @@ class Gamestate:
 
         # Reconstruct and replace city grid
         for block_data in self.city_data:
-            block_type = block_data["block_type"]
-            if block_type in BUILDING_TYPES:
+            block_type = getattr(CityBlockType, block_data["block_type"])
+            if block_type.is_building:
                 block = building_class()
                 block.block_inside_desc = block_data["block_inside_desc"]
                 block.lights_on = block_data["lights_on"]
@@ -105,6 +105,7 @@ class Gamestate:
                 block.fuel_expiration = block_data["fuel_expiration"]
                 block.barricade.set_barricade_level(block_data["barricade_level"])
                 block.barricade.health = block_data["barricade_health"]
+                block.is_building = True
             else:
                 block = outdoor_class()
 

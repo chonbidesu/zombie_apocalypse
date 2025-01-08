@@ -223,7 +223,7 @@ class Player:
                 random.shuffle(items)
 
                 for item_name in items:
-                    search_chance = self.search_chances[item_name].get(current_block.block_type, 0.0) # Default to 0.0 if item not found
+                    search_chance = self.search_chances[item_name].get(current_block.block_type.name, 0.0) # Default to 0.0 if item not found
                     if random.random() < search_chance * multiplier:
                         item = self.create_item(item_name)
                         if item is not None:

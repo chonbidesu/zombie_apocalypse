@@ -8,7 +8,7 @@ class CityBlock:
     """Base class for a city block."""
     def __init__(self):
         self.block_name = 'City Block'
-        self.block_type = 'Street'
+        self.block_type = None
         self.block_desc = 'city block'
         self.x, self.y = 0, 0
         self.block_outside_desc = 'A non-descript city block.'
@@ -17,8 +17,8 @@ class CityBlock:
         self.is_building = False
 
     def generate_descriptions(self, descriptions_data):
-        if self.block_type in descriptions_data:
-            data = descriptions_data[self.block_type]
+        if self.block_type.name in descriptions_data:
+            data = descriptions_data[self.block_type.name]
             
             # Randomly assemble outside descriptions
             outside = data.get("outside", defaultdict(list))
@@ -44,8 +44,8 @@ class BuildingBlock(CityBlock):
         self.generator_installed = False
 
     def generate_descriptions(self, descriptions_data):
-        if self.block_type in descriptions_data:
-            data = descriptions_data[self.block_type]
+        if self.block_type.name in descriptions_data:
+            data = descriptions_data[self.block_type.name]
             
             # Randomly assemble inside and outside descriptions
             inside = data.get("inside", defaultdict(list))

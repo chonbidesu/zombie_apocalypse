@@ -1,5 +1,6 @@
 # settings.py
 import pygame
+from enum import Enum
 
 # Saved game file
 SAVE_FILE = "savegame.pkl"
@@ -64,29 +65,37 @@ ITEM_TYPES = [
 MELEE_WEAPONS = ['Crowbar', 'Fire Axe', 'Shovel']
 FIREARMS = ['Shotgun', 'Pistol']
 
-# Images for block sprites
-BLOCK_IMAGES = {
-    "FireStation": "assets/fire_station.bmp",
-    "PoliceDepartment": "assets/police_department.bmp",
-    "Street": "assets/streets.bmp",
-    "Park": "assets/park.bmp",
-    "Carpark": "assets/carpark.bmp",
-    "Cemetery": "assets/cemetery.bmp",
-    "Monument": "assets/monument.bmp",
-    "Hospital": "assets/hospital.bmp",
-    "Mall": "assets/mall.bmp",
-    "Church": "assets/church.bmp",
-    "Warehouse": "assets/warehouse.bmp",
-    "Factory": "assets/factory.bmp",
-    "School": "assets/school.bmp",
-    "NecroTechLab": "assets/necrotech_lab.bmp",
-    "Junkyard": "assets/junkyard.bmp",
-    "Museum": "assets/museum.bmp",
-    "Nightclub": "assets/nightclub.bmp",
-    "Pub": "assets/pub.bmp",
-    "Library": "assets/library.bmp",
-    "AutoRepair": "assets/auto_repair.bmp",
-}
+# City block enum
+class CityBlockType(Enum):
+    FIRE_STATION = ("a fire station", True, "assets/fire_station.bmp")
+    POLICE_DEPARTMENT = ("a police department", True, "assets/police_department.bmp")
+    HOSPITAL = ("a hospital", True, "assets/hospital.bmp")
+    LIBRARY = ("a library", True, "assets/library.bmp")
+    CHURCH = ("a church", True, "assets/church.bmp")
+    WAREHOUSE = ("a warehouse", True, "assets/warehouse.bmp")
+    AUTO_REPAIR = ("an auto repair shop", True, "assets/auto_repair.bmp")
+    FACTORY = ("a factory", True, "assets/factory.bmp")
+    SCHOOL = ("a school", True, "assets/school.bmp")
+    NECROTECH_LAB = ("a NecroTech lab", True, "assets/necrotech_lab.bmp")
+    JUNKYARD = ("a junkyard", True, "assets/junkyard.bmp")
+    MUSEUM = ("a museum", True, "assets/museum.bmp")
+    NIGHTCLUB = ("a nightclub", True, "assets/nightclub.bmp")
+    PUB = ("a pub", True, "assets/pub.bmp")
+    MALL = ("a mall", True, "assets/mall.bmp")
+
+    STREET = ("a street", False, "assets/streets.bmp")
+    PARK = ("a park", False, "assets/park.bmp")
+    CEMETERY = ("a cemetery", False, "assets/cemetery.bmp")
+    MONUMENT = ("a monument", False, "assets/monument.bmp")
+    CARPARK = ("a carpark", False, "assets/carpark.bmp")
+
+    def __init__(self, description, is_building, image_file):
+        self.description = description
+        self.is_building = is_building
+        self.image_file = image_file
+
+BUILDING_TYPES = [block_type for block_type in CityBlockType if block_type.is_building]
+OUTDOOR_TYPES = [block_type for block_type in CityBlockType if not block_type.is_building]
 
 # Mapping integer values to descriptive barricade states
 BARRICADE_DESCRIPTIONS = [
@@ -202,59 +211,6 @@ NEIGHBOURHOODS = {
     98: "Danversbank",
     99: "Whittenside",
     100: "Miltown"
-}
-
-BUILDING_TYPES = ['FireStation', 'PoliceDepartment', 'Hospital', 'Library', 'Church', 
-                'Warehouse', 'AutoRepair', 'Factory', 'School', 'NecroTechLab', 
-                'Junkyard', 'Museum', 'Nightclub', 'Pub', 'Mall']
-OUTDOOR_TYPES = ['Street', 'Park', 'Cemetery', 'Monument', 'Carpark']
-
-# Paths to block name files
-BLOCKNAME_LISTS_FOLDER = "blockname_lists"
-BLOCKNAME_FILES = {
-    'Park': 'parks.txt',
-    'Cemetery': 'cemeteries.txt',
-    'Street': 'streets.txt',
-    'Monument': 'monuments.txt',
-    'Carpark': 'carparks.txt',
-    'PoliceDepartment': 'police_departments.txt',
-    'FireStation': 'fire_stations.txt',
-    'Hospital': 'hospitals.txt',
-    'Library': 'libraries.txt',
-    'Mall': 'malls.txt',
-    'Church': 'churches.txt',
-    'Warehouse': 'warehouses.txt',
-    'AutoRepair': 'auto_repairs.txt',
-    'Factory': 'factories.txt',
-    'School': 'schools.txt',
-    'NecroTechLab': 'necrotech_labs.txt',
-    'Junkyard': 'junkyards.txt',
-    'Museum': 'museums.txt',
-    'Nightclub': 'nightclubs.txt',
-    'Pub': 'pubs.txt'
-}
-
-BLOCKNAME_DESC = {
-    'Park': 'a park',
-    'Cemetery': 'a cemetery',
-    'Street': 'a street',
-    'Monument': 'a monument',
-    'Carpark': 'a carpark',
-    'PoliceDepartment': 'a police department',
-    'FireStation': 'a fire station',
-    'Hospital': 'a hospital',
-    'Library': 'a library',
-    'Mall': 'a mall',
-    'Church': 'a church',
-    'Warehouse': 'a warehouse',
-    'AutoRepair': 'an auto repair shop',
-    'Factory': 'a factory',
-    'School': 'a school',
-    'NecroTechLab': 'a NecroTech lab',
-    'Junkyard': 'a junkyard',
-    'Museum': 'a museum',
-    'Nightclub': 'a nightclub',
-    'Pub': 'a pub'
 }
 
 # Human Skills
