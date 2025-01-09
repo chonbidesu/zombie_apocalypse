@@ -7,18 +7,12 @@ from settings import *
 
 # pygame must be initialized before we can create a Font.
 pygame.init()
+
 try:
-    # "data.py" is a skellington-ism. The included custom version supports
-    # subdirectories by type.
-    import data
+    font = pygame.font.Font('data/Vera.ttf', 14)
 except:
-    print('warning: no data.py in module path: proceeding without it')
-finally:
-    try:
-        font = pygame.font.Font('data/Vera.ttf', 14)
-    except:
-        print('warning: cannot load font Vera.ttf: using system default')
-        font = pygame.font.SysFont(None, 20)
+    print('warning: cannot load font Vera.ttf: using system default')
+    font = pygame.font.SysFont(None, 20)
 
 bg_color = Color('grey')
 hi_color = Color(155,155,155)
@@ -59,7 +53,6 @@ def create_context_menu(target, player, sprite=None):
         context_menu.update({'target': menu_target})
     if menu_dxy:
         context_menu.update({'dxy': menu_dxy})
-    print(context_menu)
     return context_menu
 
 

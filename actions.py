@@ -142,6 +142,9 @@ class ActionHandler:
 
     def execute_action(self, action, chat_history, scroll_offset):
         """Execute the action based on ActionType."""
+        if action == ActionType.QUIT:
+            self.game.quit_game()
+
         player = self.game.player
         player.ticker += 1
 
@@ -208,8 +211,6 @@ class ActionHandler:
             self.game.menu_target = None
 
         # System actions
-        elif action == ActionType.QUIT:
-            self.game.quit_game()
         elif action == ActionType.SCROLL_UP:
             scroll_offset -= 1
         elif action == ActionType.SCROLL_DOWN:
