@@ -208,6 +208,7 @@ class ActionHandler:
             self.game.chat_history.append(f"Dropped {item.name}.")
             self.game.menu_target = None
 
+        self.game.game_ui.update_zombie_sprites()
 
     # Get the target of the mouse click
     def get_click_target(self, mouse_pos):

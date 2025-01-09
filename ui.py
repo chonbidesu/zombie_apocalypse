@@ -4,6 +4,7 @@ import pygame
 import random
 
 from settings import *
+import spritesheet
 
 class DrawUI:
     """A class to draw the ui panel to the screen."""
@@ -21,6 +22,8 @@ class DrawUI:
         self.zombie_sprite_group = pygame.sprite.Group()
         self.enter_button = self.Button('enter', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
         self.leave_button = self.Button('leave', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
+        self.sprite_sheet_image = pygame.image.load("assets/zombie_spritesheet.png").convert_alpha()
+        self.zombie_sprite_sheet = spritesheet.SpriteSheet(self.sprite_sheet_image)
 
     def draw(self, chat_history, scroll_offset):
         self.draw_viewport_frame()
@@ -207,18 +210,35 @@ class DrawUI:
 
     def update_zombie_sprites(self):
         """
-        Update the character sprites for all zombies and repopulate the sprite group.
+        Update the zombie sprites' visibility and position.
         """
-        self.zombie_sprite_group.empty()  # Clear the display group
-
-        # Get zombies at the player's location
+        # Keep track of zombies currently at the player's location
         zombies_here = [
             zombie for zombie in self.zombies.list
             if zombie.location == self.player.location and zombie.inside == self.player.inside
         ]
+
+        # Update existing sprites or create new ones if necessary
+        updated_sprites = []
         for zombie in zombies_here:
-            zombie_sprite = self.ZombieSprite(zombie, "assets/zombie_character.png")
-            self.zombie_sprite_group.add(zombie_sprite)
+            # Check if a sprite for this zombie already exists
+            existing_sprite = next(
+                (sprite for sprite in self.zombie_sprite_group if sprite.zombie == zombie), None
+            )
+            if existing_sprite:
+                updated_sprites.append(existing_sprite)
+            else:
+                # Create a new sprite for the zombie
+                new_sprite = self.ZombieSprite(
+                    zombie, self.zombie_sprite_sheet, 8, 264, 390, 0.5, (0, 0, 0)
+                )
+                self.zombie_sprite_group.add(new_sprite)
+                updated_sprites.append(new_sprite)
+
+        # Remove sprites for zombies that are no longer here
+        for sprite in list(self.zombie_sprite_group):
+            if sprite not in updated_sprites:
+                self.zombie_sprite_group.remove(sprite)
 
     def draw_description_panel(self):
         """Draw the description panel on the right side of the screen."""
@@ -251,13 +271,12 @@ class DrawUI:
         setting_image_x = description_start_x + (description_width - setting_image_width) // 2
         setting_image_y = 50
         self.screen.blit(scaled_setting_image, (setting_image_x, setting_image_y))
-        self.update_zombie_sprites()
 
         # Arrange zombie sprites in a row, aligning their bottom edges
-        zombie_width = 50  # Define the width for each zombie sprite (adjust as needed)
-        zombie_spacing = 10  # Define the spacing between sprites
+        zombie_width = 50  # Define the width for each zombie sprite
+        zombie_spacing = 50  # Define the spacing between sprites
         row_start_x = setting_image_x + (setting_image_width - len(self.zombie_sprite_group) * (zombie_width + zombie_spacing)) // 2
-        row_start_y = setting_image_y + setting_image_height  # Align with bottom edge of setting image
+        row_start_y = setting_image_y + setting_image_height + 20  # Align with bottom edge of setting image
 
         for index, sprite in enumerate(self.zombie_sprite_group):
             # Calculate position for each sprite
@@ -266,6 +285,7 @@ class DrawUI:
                 row_start_y
             )
 
+        self.zombie_sprite_group.update()
         self.zombie_sprite_group.draw(self.screen)
 
         # Get the description text and wrap it to fit within the panel
@@ -555,31 +575,42 @@ class DrawUI:
 
     class ZombieSprite(pygame.sprite.Sprite):
         """A detailed zombie sprite for the description panel."""
-        def __init__(self, zombie, image_path):
+        def __init__(self, zombie, sprite_sheet, frame_count, frame_width, frame_height, scale, colour):
             super().__init__()
             self.zombie = zombie  # Reference to the parent zombie
-            self._image = None  # Private attribute for image
-            self.image_path = image_path  # Store the path for lazy loading
+            self.sprite_sheet = sprite_sheet
+            self.frame_count = frame_count  # Total number of frames
+            self.frame_width = frame_width  # Width of each frame
+            self.frame_height = frame_height  # Height of each frame
+            self.scale = scale  # Scale factor for the frames
+            self.colour = colour  # Transparent color for the frames
+            self.current_frame = 0  # Current frame index
+            self.animation_speed = 0.15  # Animation speed (seconds per frame)
+            self.last_update_time = pygame.time.get_ticks()  # Time since the last frame update
 
-            # Load the image and initialize rect
-            self.image = self.image  # Trigger lazy loading of the image
-            self.rect = self.image.get_rect()  # Initialize rect based on the image size
-            self.rect.topleft = (0, 0)  # Default position (can be updated later)
+            # Set the initial image and rect
+            self.image = self.sprite_sheet.get_image(
+                frame=self.current_frame,
+                width=self.frame_width,
+                height=self.frame_height,
+                scale=self.scale,
+                colour=self.colour,
+            )
+            self.rect = self.image.get_rect()
 
-        @property
-        def image(self):
-            """Lazy load the image when accessed."""
-            if self._image is None:
-                # Load and transform the image when it's first needed
-                self._image = pygame.image.load(self.image_path).convert_alpha()
-                self._image = pygame.transform.scale(self._image, (100, 150))  # Scale to desired size
-            return self._image
-
-        @image.setter
-        def image(self, value):
-            """Setter for image, useful if you need to manually set the image."""
-            self._image = value
-
+        def update(self):
+            """Update the sprite's animation frame."""
+            now = pygame.time.get_ticks()
+            if now - self.last_update_time > self.animation_speed * 1000:  # Convert to milliseconds
+                self.last_update_time = now
+                self.current_frame = (self.current_frame + 1) % self.frame_count  # Loop through frames
+                self.image = self.sprite_sheet.get_image(
+                    frame=self.current_frame,
+                    width=self.frame_width,
+                    height=self.frame_height,
+                    scale=self.scale,
+                    colour=self.colour,
+                )
 
     class Button(pygame.sprite.Sprite):
         """A button that changes images on mouse events."""

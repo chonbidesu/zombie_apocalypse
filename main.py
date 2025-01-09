@@ -52,6 +52,7 @@ class GameInitializer:
                 blocks.BuildingBlock, blocks.CityBlock, self.chat_history,
             )
             self.game_ui = ui.DrawUI(screen, self.player, self.city, self.zombies)
+            self.game_ui.update_zombie_sprites()
 
         except (FileNotFoundError, EOFError, pickle.UnpicklingError):
             print("Save file not found or corrupted. Creating a new game.")
@@ -74,6 +75,7 @@ class GameInitializer:
 
         # Initialize UI
         self.game_ui = ui.DrawUI(screen, self.player, self.city, self.zombies)
+        self.game_ui.update_zombie_sprites()
 
         print("New game created.")
 

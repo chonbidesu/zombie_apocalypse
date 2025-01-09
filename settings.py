@@ -25,6 +25,7 @@ CHAT_LINES = 10
 BARRICADE_CHANCE = 0.5
 FUEL_DURATION = 50
 ZOMBIE_START_HP = 50
+ZOMBIE_CAPACITY = 6 # Limit of zombies per block
 
 # Fonts
 pygame.init()
