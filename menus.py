@@ -29,8 +29,9 @@ shadow_color = Color(105,105,105)
 margin = 2
 
 # Create a context-sensitive popup menu based on the target
-def create_context_menu(target, player, NonBlockingPopupMenu, sprite=None):
-    global menu_viewport_dxy, menu_item
+def create_context_menu(target, player, sprite=None):
+    menu_target = None
+    menu_dxy = None
     if target == 'item':
         if sprite is not None:
             if sprite in player.weapon_group:
@@ -38,7 +39,7 @@ def create_context_menu(target, player, NonBlockingPopupMenu, sprite=None):
             else:
                 menu_data = ['Item', 'Use', 'Drop']
         if sprite is not None:
-            menu_item = sprite
+            menu_target = sprite
     elif target == 'center block' and sprite.block.is_building:
         if not player.inside:
             menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
@@ -49,39 +50,18 @@ def create_context_menu(target, player, NonBlockingPopupMenu, sprite=None):
     elif target == 'block':
         menu_data = ['Go', 'Move']
         if sprite is not None:
-            menu_viewport_dxy = (sprite.dx, sprite.dy)
+            menu_dxy = (sprite.dx, sprite.dy)
     else:
         return None
 
-    return NonBlockingPopupMenu(menu_data)
+    context_menu = {'menu': NonBlockingPopupMenu(menu_data)}
+    if menu_target:
+        context_menu.update({'target': menu_target})
+    if menu_dxy:
+        context_menu.update({'dxy': menu_dxy})
+    print(context_menu)
+    return context_menu
 
-# Handle menu actions
-def handle_menu_action(player, menu_name, action, chat_history):
-    if menu_name == 'Item':
-        if action == 'Equip':
-            player.weapon.empty()
-            player.weapon.add(menu_item)
-        elif action == 'Use':
-            print(f"Using item!")
-        elif action == 'Drop':
-            menu_item.kill()
-    elif menu_name == 'Actions':
-        if action == 'Barricade':
-            result = player.barricade()
-            chat_history.append(result)
-        elif action == 'Search':
-            result = player.search()
-            chat_history.append(result)
-        elif action == 'Enter':
-            result = player.enter()
-            chat_history.append(result)
-        elif action == 'Leave':
-            result = player.leave()
-            chat_history.append(result)
-    elif menu_name == 'Go':
-        if action == 'Move':
-            player.move(menu_viewport_dxy[0], menu_viewport_dxy[1])
-            print(f"Moving to {menu_viewport_dxy}")
 
 ## Sprite cursor also runs while menu is posted.
 class Cursor(object):

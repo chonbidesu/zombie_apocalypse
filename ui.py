@@ -455,8 +455,11 @@ class DrawUI:
             """Draw zombie sprites onto the block."""
             for viewport_zombie in self.viewport_zombies:
                 zombie_image = viewport_zombie.image
-                zombie_rect = zombie_image.get_rect(center=viewport_zombie.position)
-                self.image.blit(zombie_image, zombie_rect)
+                zombie_rect = zombie_image.get_rect(center=viewport_zombie.position)                
+                if viewport_zombie.zombie.inside and self.player.inside and viewport_zombie.zombie.location == self.player.location:
+                    self.image.blit(zombie_image, zombie_rect)
+                elif not viewport_zombie.zombie.inside and not self.player.inside:
+                    self.image.blit(zombie_image, zombie_rect)
 
         def draw_block_label(self):
             """Render the block label onto the block's surface."""

@@ -155,7 +155,7 @@ class Gamestate:
                 player.weapon.add(item)
 
         player.hp = self.player_data.get("hp", player.max_hp)
-        player.ticker = self.player_data.get("ticker", 0)
+        player.ticker = self.player_data.get("ticker", 0) - 1
 
         # Create zombie list
         zombies = zombulate_class(player, city, total_zombies=0)
