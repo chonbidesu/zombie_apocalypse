@@ -15,7 +15,6 @@ import ui
 import zombulate
 import menus
 import saveload
-import items
 import blocks
 import actions
 

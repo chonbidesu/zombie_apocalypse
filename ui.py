@@ -18,7 +18,7 @@ class DrawUI:
         self.grid_start_x, self.grid_start_y = (self.viewport_frame_width // 9) + 12, (self.viewport_frame_height // 9) + 12
         self.viewport_group = self.create_viewport_group()
         self.button_group = self.create_button_group()
-        self.zombie_display_group = pygame.sprite.Group()
+        self.zombie_sprite_group = pygame.sprite.Group()
         self.enter_button = self.Button('enter', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
         self.leave_button = self.Button('leave', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
 
@@ -205,6 +205,21 @@ class DrawUI:
         self.update_observations()  # Ensure observations are current
         return current_block.observations
 
+    def update_zombie_sprites(self):
+        """
+        Update the character sprites for all zombies and repopulate the sprite group.
+        """
+        self.zombie_sprite_group.empty()  # Clear the display group
+
+        # Get zombies at the player's location
+        zombies_here = [
+            zombie for zombie in self.zombies.list
+            if zombie.location == self.player.location and zombie.inside == self.player.inside
+        ]
+        for zombie in zombies_here:
+            zombie_sprite = self.ZombieSprite(zombie, "assets/zombie_character.png")
+            self.zombie_sprite_group.add(zombie_sprite)
+
     def draw_description_panel(self):
         """Draw the description panel on the right side of the screen."""
 
@@ -236,7 +251,22 @@ class DrawUI:
         setting_image_x = description_start_x + (description_width - setting_image_width) // 2
         setting_image_y = 50
         self.screen.blit(scaled_setting_image, (setting_image_x, setting_image_y))
-        self.zombie_display_group.draw(self.screen)
+        self.update_zombie_sprites()
+
+        # Arrange zombie sprites in a row, aligning their bottom edges
+        zombie_width = 50  # Define the width for each zombie sprite (adjust as needed)
+        zombie_spacing = 10  # Define the spacing between sprites
+        row_start_x = setting_image_x + (setting_image_width - len(self.zombie_sprite_group) * (zombie_width + zombie_spacing)) // 2
+        row_start_y = setting_image_y + setting_image_height  # Align with bottom edge of setting image
+
+        for index, sprite in enumerate(self.zombie_sprite_group):
+            # Calculate position for each sprite
+            sprite.rect.midbottom = (
+                row_start_x + index * (zombie_width + zombie_spacing) + zombie_width // 2,
+                row_start_y
+            )
+
+        self.zombie_sprite_group.draw(self.screen)
 
         # Get the description text and wrap it to fit within the panel
         text_start_y = setting_image_y + setting_image_height + 20
@@ -525,12 +555,16 @@ class DrawUI:
 
     class ZombieSprite(pygame.sprite.Sprite):
         """A detailed zombie sprite for the description panel."""
-        def __init__(self, zombie, image_path, panel_position):
+        def __init__(self, zombie, image_path):
             super().__init__()
             self.zombie = zombie  # Reference to the parent zombie
             self._image = None  # Private attribute for image
             self.image_path = image_path  # Store the path for lazy loading
-            self.rect = pygame.Rect(panel_position, (100, 150))  # Example size for sprite rect
+
+            # Load the image and initialize rect
+            self.image = self.image  # Trigger lazy loading of the image
+            self.rect = self.image.get_rect()  # Initialize rect based on the image size
+            self.rect.topleft = (0, 0)  # Default position (can be updated later)
 
         @property
         def image(self):
@@ -545,6 +579,7 @@ class DrawUI:
         def image(self, value):
             """Setter for image, useful if you need to manually set the image."""
             self._image = value
+
 
     class Button(pygame.sprite.Sprite):
         """A button that changes images on mouse events."""
