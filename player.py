@@ -168,7 +168,7 @@ class Player:
             success_chance = max(0, min(success_chance, 1))  # Ensure the chance is between 0 and 1
             success = random.random() < success_chance
             if success:
-                add_barricade = current_block.barricade.adjust_barricade(1)
+                add_barricade = current_block.barricade.adjust_barricade_level(1)
                 if not add_barricade:
                     return "You can't add more barricades."
                 if current_block.barricade.level == 4:
@@ -192,9 +192,12 @@ class Player:
         current_block = self.city.block(current_x, current_y)
         if current_block.is_building:
             if not self.inside:
-                if current_block.barricade.level <= 4:
+                if current_block.barricade.level == 0:
                     self.inside = True
                     return "You entered the building."
+                if current_block.barricade.level <= 4:
+                    self.inside = True
+                    return "You climb through the barricades."
                 else:
                     return "You can't find a way through the barricades."
             return "You are already inside."

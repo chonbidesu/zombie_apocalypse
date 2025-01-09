@@ -34,8 +34,13 @@ class GameInitializer:
         self.popup_menu = None
         self.menu_target = None
         self.menu_dxy = None
-        self.action_handler = actions.ActionHandler(self)
+        self.chat_history = [
+            "The city is in ruins. Can you make it through the night?", 
+            "Use 'w', 'a', 's', 'd' to move. ESC to quit."
+        ]
+        self.scroll_offset = 0
 
+        self.action_handler = actions.ActionHandler(self)
         self.initialize_game()
 
     def initialize_game(self):
@@ -44,7 +49,7 @@ class GameInitializer:
             game_state = saveload.Gamestate.load_game("savegame.pkl")
             self.player, self.city, self.zombies = game_state.reconstruct_game(
                 Player, City, Zombie, zombulate.GenerateZombies, 
-                blocks.BuildingBlock, blocks.CityBlock,
+                blocks.BuildingBlock, blocks.CityBlock, self.chat_history,
             )
             self.game_ui = ui.DrawUI(screen, self.player, self.city, self.zombies)
 
@@ -65,7 +70,7 @@ class GameInitializer:
         )
 
         # Zombulate the city
-        self.zombies = zombulate.GenerateZombies(self.player, self.city, total_zombies=1000)
+        self.zombies = zombulate.GenerateZombies(self.player, self.city, self.chat_history, total_zombies=1000)
 
         # Initialize UI
         self.game_ui = ui.DrawUI(screen, self.player, self.city, self.zombies)
@@ -89,19 +94,15 @@ game = GameInitializer()
 # Main game loop
 def main():
     running = True
-    chat_history = ["The city is in ruins. Can you make it through the night?", 
-                    "Use 'w', 'a', 's', 'd' to move. ESC to quit."
-                    ]
-    scroll_offset = 0
-
+    
     while running:
         screen.fill(DARK_GREEN)
 
         events = pygame.event.get()
-        game.action_handler.handle_events(events, chat_history, scroll_offset, menus.create_context_menu)
+        game.action_handler.handle_events(events, menus.create_context_menu)
 
         # Draw game elements to screen
-        game.game_ui.draw(chat_history, scroll_offset)
+        game.game_ui.draw(game.chat_history, game.scroll_offset)
 
         if game.popup_menu:
             game.popup_menu.handle_events(events)

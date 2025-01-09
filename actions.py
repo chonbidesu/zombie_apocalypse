@@ -34,20 +34,20 @@ class ActionHandler:
     def __init__(self, game):
         self.game = game
 
-    def handle_events(self, events, chat_history, scroll_offset, create_context_menu):
+    def handle_events(self, events, create_context_menu):
         """Handle all game events."""
         for event in events:
             if event.type == pygame.QUIT:
-                self.execute_action(ActionType.QUIT, chat_history, scroll_offset)
+                self.execute_action(ActionType.QUIT)
 
             elif event.type == pygame.KEYDOWN:
-                self.handle_keydown(event, chat_history, scroll_offset)
+                self.handle_keydown(event)
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                self.handle_mousebuttondown(event, scroll_offset)
+                self.handle_mousebuttondown(event)
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                self.handle_mousebuttonup(event, chat_history, scroll_offset, create_context_menu)
+                self.handle_mousebuttonup(event, create_context_menu)
 
             elif event.type == pygame.MOUSEMOTION:
                 self.game.cursor.rect.center = event.pos
@@ -56,22 +56,12 @@ class ActionHandler:
                 if event.name is None:
                     self.game.popup_menu = None
                 else:
-                    if self.game.menu_target is not None:
-                        self.handle_popup_menu(
-                            event.text, chat_history, scroll_offset
-                        )
-                    elif self.game.menu_dxy is not None:
-                        self.handle_popup_menu(
-                            event.text, chat_history, scroll_offset
-                        )
-                    else:
-                        self.handle_popup_menu(
-                            event.text, chat_history, scroll_offset
-                        )
+                    self.handle_popup_menu(event.text)
+
                     #self.game.game_ui.update_viewport()
                     self.game.popup_menu = None                
 
-    def handle_keydown(self, event, chat_history, scroll_offset):
+    def handle_keydown(self, event):
         """Handle key press events."""
         key_to_action = {
             pygame.K_w: ActionType.MOVE_UP,
@@ -86,16 +76,18 @@ class ActionHandler:
         }
         action = key_to_action.get(event.key)
         if action:
-            self.execute_action(action, chat_history, scroll_offset)
+            self.execute_action(action)
 
-    def handle_mousebuttondown(self, event, scroll_offset):
+    def handle_mousebuttondown(self, event):
         """Handle mouse button down events."""
+        for button in self.game.game_ui.button_group:
+            button.handle_event(event)
         if event.button == 4:  # Scroll up
-            self.execute_action(ActionType.SCROLL_UP, None, scroll_offset=scroll_offset)
+            self.execute_action(ActionType.SCROLL_UP)
         elif event.button == 5:  # Scroll down
-            self.execute_action(ActionType.SCROLL_DOWN, None, scroll_offset=scroll_offset)
+            self.execute_action(ActionType.SCROLL_DOWN)
 
-    def handle_mousebuttonup(self, event, chat_history, scroll_offset, create_context_menu):
+    def handle_mousebuttonup(self, event, create_context_menu):
         """Handle mouse button up events."""
         if event.button == 3:  # Right-click for popup menu
             mouse_pos = pygame.mouse.get_pos()
@@ -122,9 +114,9 @@ class ActionHandler:
                 }
                 action = button_to_action.get(action_name)
                 if action:
-                    self.execute_action(action, chat_history, scroll_offset)
+                    self.execute_action(action)
 
-    def handle_popup_menu(self, action, chat_history, scroll_offset):
+    def handle_popup_menu(self, action):
         """Handle popup menu actions."""
         menu_to_action = {
             'Equip': ActionType.EQUIP,
@@ -138,12 +130,18 @@ class ActionHandler:
         }
         action_type = menu_to_action.get(action)
         if action_type:
-            self.execute_action(action_type, chat_history, scroll_offset)
+            self.execute_action(action_type)
 
-    def execute_action(self, action, chat_history, scroll_offset):
+    def execute_action(self, action):
         """Execute the action based on ActionType."""
         if action == ActionType.QUIT:
             self.game.quit_game()
+        elif action == ActionType.SCROLL_UP:
+            self.game.scroll_offset -= 1
+            return
+        elif action == ActionType.SCROLL_DOWN:
+            self.game.scroll_offset += 1
+            return
 
         player = self.game.player
         player.ticker += 1
@@ -184,37 +182,32 @@ class ActionHandler:
 
         # Building actions
         elif action == ActionType.BARRICADE:
-            chat_history.append(player.barricade())
+            self.game.chat_history.append(player.barricade())
         elif action == ActionType.SEARCH:
-            chat_history.append(player.search())
+            self.game.chat_history.append(player.search())
         elif action == ActionType.ENTER:
-            chat_history.append(player.enter())
+            self.game.chat_history.append(player.enter())
         elif action == ActionType.LEAVE:
-            chat_history.append(player.leave())
+            self.game.chat_history.append(player.leave())
 
         # Inventory actions
         elif action == ActionType.EQUIP:
             item = self.game.menu_target
             player.weapon.empty()
             player.weapon.add(item)
-            chat_history.append(f"Equipped {item.name}.")
+            self.game.chat_history.append(f"Equipped {item.name}.")
             self.game.menu_target = None
         elif action == ActionType.USE:
             item = self.game.menu_target
-            chat_history.append(f"Used {item.name}.")
+            self.game.chat_history.append(f"Used {item.name}.")
             self.game.menu_target = None
 
         elif action == ActionType.DROP:
             item = self.game.menu_target
             item.kill()
-            chat_history.append(f"Dropped {item.name}.")
+            self.game.chat_history.append(f"Dropped {item.name}.")
             self.game.menu_target = None
 
-        # System actions
-        elif action == ActionType.SCROLL_UP:
-            scroll_offset -= 1
-        elif action == ActionType.SCROLL_DOWN:
-            scroll_offset += 1
 
     # Get the target of the mouse click
     def get_click_target(self, mouse_pos):

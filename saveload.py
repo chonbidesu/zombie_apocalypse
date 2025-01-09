@@ -87,7 +87,7 @@ class Gamestate:
         return game_state
 
     def reconstruct_game(self, player_class, city_class, zombie_class, zombulate_class, 
-                         building_class, outdoor_class,   
+                         building_class, outdoor_class, chat_history,
     ):
         """Reconstruct the game objects."""
         # Reconstruct city
@@ -158,7 +158,7 @@ class Gamestate:
         player.ticker = self.player_data.get("ticker", 0)
 
         # Create zombie list
-        zombies = zombulate_class(player, city, total_zombies=0)
+        zombies = zombulate_class(player, city, chat_history, total_zombies=0)
 
         # Reconstruct zombies
         for zombie_data in self.zombie_data:
@@ -167,7 +167,7 @@ class Gamestate:
             inside = zombie_data["inside"]
 
             zombie = zombie_class(
-                player=player, city=city, x=x, y=y,
+                player=player, city=city, chat_history=chat_history, x=x, y=y,
             )
             zombie.inside = inside
             zombie.hp = zombie_data.get("hp", ZOMBIE_START_HP)

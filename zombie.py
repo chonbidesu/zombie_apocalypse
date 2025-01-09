@@ -5,11 +5,12 @@ from settings import *
 
 class Zombie:
     """Represents a zombie in the city."""
-    def __init__(self, player, city, x, y):
+    def __init__(self, player, city, chat_history, x, y):
         super().__init__()
         self.player = player
         self.location = (x, y)
         self.city = city
+        self.chat_history = chat_history
         self.hp = ZOMBIE_START_HP
         self.action_points = 0
         self.is_dead = False
@@ -26,14 +27,17 @@ class Zombie:
 
             if self.location == self.player.location and self.inside == self.player.inside:  # Attack player if in same block
                 self.action_points -= 1
-                return self.attack(self.player)
+                self.chat_history.append(self.attack(self.player))
 
-            if self.find_target_dxy():
+            elif self.find_target_dxy():
                 target_dx, target_dy = self.find_target_dxy()            
                 if (target_dx, target_dy) == (0, 0):
-                    if current_block.barricade.level < 0 and not self.inside:
-                        return self.attack_barricade(current_block)
+                    if current_block.barricade.level > 0 and not self.inside:
+                        result = self.attack_barricade(current_block)
+                        if result:
+                            self.chat_history.append(result)
                     elif current_block.barricade.level == 0 and not self.inside:
+                        print(f"Zombie at {self.location} attempting to enter. Barricade level: {current_block.barricade.level}")
                         return self.enter()
                     elif self.inside and not self.player.inside:
                         return self.leave()
@@ -54,7 +58,7 @@ class Zombie:
         lit_buildings_dxy = []
 
         # Check if the player or a lit building is nearby
-        if self.player.location == self.location:
+        if self.player.location == self.location and self.inside == self.player.inside:
             return (0, 0) # Stay put
         elif current_block.is_building:
             if current_block.lights_on:
@@ -96,27 +100,27 @@ class Zombie:
     def attack_barricade(self, building):
         """Attacks the barricades of the given building."""
         if hasattr(building.barricade, "level") and building.barricade.level > 0:
-            if hasattr(building.barricade, "health") and building.barricade.health > 0:
-                if random.random() < 0.3:  # 30% chance to successfully attack barricades
-                    building.barricade.health -= 10
-                    if building.barricade.health <= 0:  # Reduce barricade level if health reaches 0
-                        building.barricade.health = 30  # Reset health for the next level
-                        building.barricade.adjust_barricade_level(-1)
-                        self.action_points -= 1
-                        return "Zombie reduces barricade level!"
-                    return "Zombie damages barricade."
-            return "Zombie attack on barricade fails."
-        return "No barricades to attack."
+            if random.random() < 0.3:  # 30% chance to successfully attack barricades
+                building.barricade.health -= 10
+                if building.barricade.health <= 0:  # Reduce barricade level if health reaches 0
+                    building.barricade.health = 30  # Reset health for the next level
+                    building.barricade.adjust_barricade_level(-1)
+                self.action_points -= 1
+                if self.location == self.player.location:
+                    if building.barricade.level == 0:
+                        return "You hear the last of the barricades fall away."
+                    return "You hear something attack the barricades."
 
     def move(self):
         """Randomly moves the zombie to an adjacent block."""
         x, y = self.location[0], self.location[1]
-        dx, dy = random.choice([(0, 1), (0, -1), (1, 0), (-1, 0)])
+        dx, dy = random.choice([(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)])
         new_x, new_y = x + dx, y + dy
 
         if 0 <= new_x < CITY_SIZE and 0 <= new_y < CITY_SIZE:  # Ensure within city bounds
             self.action_points -= 2
             self.location = (new_x, new_y)
+            self.inside = False
             return True
         return False
 
@@ -124,9 +128,10 @@ class Zombie:
         """Attempts to attack a player if in the same block."""
         self.action_points -= 1
         if random.random() < 0.3:
-            return player.take_damage(10)  # Zombies deal 10 damage
+            player.take_damage(10)  # Zombies deal 10 damage
+            return "A zombie slams into you!"
         else:
-            return False
+            return "A zombie swipes at you, but misses."
 
     def enter(self):
         """Enter a building."""
@@ -150,11 +155,14 @@ class Zombie:
 
     def die(self):
         """Handles the zombie's death."""
+        self.chat_history.append("A zombie slumps to the floor, apparently dead.")
         self.is_dead = True
         self.hp = 0
 
     def stand_up(self):
         """Zombie stands up at full health after collecting enough action points."""
+        if self.location == self.player.location and self.inside == self.player.inside:
+            self.chat_history.append("A zombie stirs, and gets to its feet, swaying.")
         self.is_dead = False
         self.hp = 50
         self.action_points -= 20

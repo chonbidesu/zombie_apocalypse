@@ -86,7 +86,7 @@ class BuildingBlock(CityBlock):
             self.description = BARRICADE_DESCRIPTIONS[self.level]
             self.health = 30
 
-        def adjust_barricade(self, delta):
+        def adjust_barricade_level(self, delta):
             """
             Adjust the barricade level by adding or subtracting `delta`.
             """

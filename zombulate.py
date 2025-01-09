@@ -8,7 +8,7 @@ class GenerateZombies:
     Class to generate and manage zombies in the city.
     """
 
-    def __init__(self, player, city, total_zombies=100):
+    def __init__(self, player, city, chat_history, total_zombies=100):
         """
         Initialize the GenerateZombies class.
 
@@ -19,6 +19,7 @@ class GenerateZombies:
         """
         self.city = city
         self.player = player
+        self.chat_history = chat_history
         self.total_zombies = total_zombies
         self.list = []
 
@@ -42,7 +43,7 @@ class GenerateZombies:
             y (int): Y-coordinate of the zombie's location.
         """
         if 0 <= x < CITY_SIZE and 0 <= y < CITY_SIZE:
-            zombie = Zombie(self.player, self.city, x, y)
+            zombie = Zombie(self.player, self.city, self.chat_history, x, y)
             self.list.append(zombie)
 
     def remove_zombie(self, zombie):
