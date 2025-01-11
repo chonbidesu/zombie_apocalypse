@@ -13,8 +13,11 @@ class DrawUI:
         self.player = player
         self.city = city
         self.zombies = zombies
-        self.viewport_frame = pygame.image.load('assets/viewport_frame.png')
-        self.description_panel_image = pygame.image.load("assets/description_panel.png")
+        self.viewport_frame = pygame.image.load('assets/viewport_frame.png').convert_alpha()
+        self.description_panel_image = pygame.image.load("assets/description_panel.png").convert_alpha()
+        self.chat_panel_image = pygame.image.load("assets/chat_panel.png").convert_alpha()
+        self.inventory_panel_image = pygame.image.load("assets/inventory_panel.png").convert_alpha()
+        self.equipped_image = pygame.image.load("assets/equipped_panel.png").convert_alpha()
         self.viewport_frame_width, self.viewport_frame_height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2
         self.grid_start_x, self.grid_start_y = (self.viewport_frame_width // 9) + 12, (self.viewport_frame_height // 9) + 12
         self.viewport_group = self.create_viewport_group()
@@ -48,6 +51,7 @@ class DrawUI:
         return viewport_group
 
     def update_viewport(self):
+
         for sprite in self.viewport_group:
             sprite.update_data()
 
@@ -124,7 +128,7 @@ class DrawUI:
         panel_x = 10
         panel_y = (SCREEN_HEIGHT // 2) + 30
         panel_width = SCREEN_HEIGHT // 2
-        panel_height = (SCREEN_HEIGHT // 4) - 80
+        panel_height = SCREEN_HEIGHT * 3 // 20 
 
         # Draw the panel background and border
         pygame.draw.rect(self.screen, WHITE, (panel_x, panel_y, panel_width, panel_height))
@@ -243,8 +247,8 @@ class DrawUI:
     def draw_description_panel(self):
         """Draw the description panel on the right side of the screen."""
 
-        description_start_x = SCREEN_WIDTH // 3 + 10
-        description_width = SCREEN_WIDTH * 2 // 3 - 10
+        description_start_x = SCREEN_HEIGHT // 2 + 10
+        description_width = SCREEN_WIDTH - (SCREEN_HEIGHT // 2) - 20
         description_height = SCREEN_HEIGHT * 25 // 32
 
         scaled_panel_image = pygame.transform.scale(self.description_panel_image, (description_width, description_height))
@@ -308,20 +312,18 @@ class DrawUI:
     # Draw the chat panel
     def draw_chat(self, chat_history, scroll_offset):
         """Draw the chat window with scrolling support and text wrapping."""
-        chat_width, chat_height = SCREEN_WIDTH // 3 - 10, CHAT_HEIGHT
-        chat_start_x, chat_start_y = 10, SCREEN_HEIGHT - chat_height - 10
+        chat_width, chat_height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT * 3 // 10
+        chat_start_x, chat_start_y = 10, SCREEN_HEIGHT * 13 // 20 + 30
 
-
-        # Draw the chat window.
-        pygame.draw.rect(self.screen, BLACK, (chat_start_x, chat_start_y, chat_width, chat_height))
-        pygame.draw.rect(self.screen, WHITE, (chat_start_x, chat_start_y, chat_width, chat_height), 2)
+        scaled_panel_image = pygame.transform.scale(self.chat_panel_image, (chat_width, chat_height))
+        self.screen.blit(scaled_panel_image, (chat_start_x, chat_start_y))
 
         # Draw messages starting from the bottom of the chat area
         # Calculate the max number of visible lines.
         max_visible_lines = (chat_height - 20) // 20
         wrapped_history = []
         for message in chat_history:
-            wrapped_history.extend(self.wrap_text(f">> {message}", font_chat, chat_width - 20))
+            wrapped_history.extend(self.wrap_text(f">> {message}", font_chat, chat_width - 40))
 
         total_lines = len(wrapped_history)
 
@@ -330,13 +332,13 @@ class DrawUI:
 
         # Determine which messages to display based on scroll_offset
         visible_history = wrapped_history[scroll_offset:scroll_offset + max_visible_lines]
-        y_offset = chat_start_y + chat_height - 30
+        y_offset = chat_start_y + chat_height - 40
 
         line_height = font_chat.get_linesize()
 
         for message in reversed(visible_history):
                 text = font_chat.render(message, True, WHITE)
-                self.screen.blit(text, (chat_start_x + 10, y_offset))
+                self.screen.blit(text, (chat_start_x + 30, y_offset))
                 y_offset -= line_height
 
     # Draw the player status panel
@@ -363,68 +365,78 @@ class DrawUI:
     def draw_inventory_panel(self):
         """Render the inventory panel in the bottom-right corner of the screen."""
         # Panel dimensionss
-        panel_width = SCREEN_WIDTH * 5 // 12 - 20
-        panel_height = 140
+        panel_width = (SCREEN_WIDTH * 7 // 16) + (SCREEN_HEIGHT * -7 // 32) - 20
+        panel_height = SCREEN_HEIGHT * 31 // 160
         panel_x = SCREEN_WIDTH - panel_width - 10
-        panel_y = SCREEN_HEIGHT - panel_height - 10
+        panel_y = SCREEN_HEIGHT * 25 // 32 + 10
 
-        # Sub-panel dimensions
-        equipped_panel_width = panel_width // 4
-        equipped_panel_height = panel_height
-        equipped_panel_x = panel_x
-        equipped_panel_y = panel_y
+        scaled_panel_image = pygame.transform.scale(self.inventory_panel_image, (panel_width, panel_height))
+        self.screen.blit(scaled_panel_image, (panel_x, panel_y))
 
-        inventory_panel_width = panel_width - equipped_panel_width
-        inventory_panel_height = panel_height
-        inventory_panel_x = panel_x + equipped_panel_width
-        inventory_panel_y = panel_y
+        equipped_width = panel_height
+        equipped_height = panel_height
+        equipped_x = panel_x - equipped_width
+        equipped_y = panel_y
 
-        # Draw main panel
-        pygame.draw.rect(self.screen, BLACK, (panel_x, panel_y, panel_width, panel_height))
-        pygame.draw.rect(self.screen, WHITE, (panel_x, panel_y, panel_width, panel_height), 2)
+        scaled_equipped_image = pygame.transform.scale(self.equipped_image, (equipped_width, equipped_height))
+        self.screen.blit(scaled_equipped_image, (equipped_x, equipped_y))      
 
-        # Draw equipped sub-panel
-        pygame.draw.rect(self.screen, WHITE, (equipped_panel_x, equipped_panel_y, equipped_panel_width, equipped_panel_height))
-        pygame.draw.rect(self.screen, BLACK, (equipped_panel_x, equipped_panel_y, equipped_panel_width, equipped_panel_height), 2)
+        # Define the maximum number of items
+        MAX_ITEMS = 10
+        MAX_ITEMS_PER_ROW = 5
 
-        # Draw "Equipped" label
-        equipped_label = font_large.render("Equipped", True, BLACK)
-        label_rect = equipped_label.get_rect(center=(equipped_panel_x + equipped_panel_width // 2, equipped_panel_y + 20))
-        self.screen.blit(equipped_label, label_rect)
+        # Inventory panel positioning and scaling
+        item_width = int(panel_width * 0.14)
+        item_height = int(panel_height * 0.32)
+        highlight = pygame.Surface((item_width, item_height), pygame.SRCALPHA)
 
-        # Render equipped item (if any)
-        if self.player.weapon:
-            # Draw enlarged equipped item
-            enlarged_image = pygame.transform.scale(self.player.weapon.sprite.image, (64, 64))
-            equipped_item_x = equipped_panel_x + (equipped_panel_width - 64) // 2
-            equipped_item_y = equipped_panel_y + 40
-            self.screen.blit(enlarged_image, (equipped_item_x, equipped_item_y))
+        # Position offsets for rows
+        start_x = panel_x + int(panel_width * 0.06)
+        first_row_y = panel_y + int(panel_height * 0.13)
+        second_row_y = first_row_y + item_height + int(panel_height * 0.11)
 
-        # Draw inventory sub-panel
-        pygame.draw.rect(self.screen, WHITE, (inventory_panel_x, inventory_panel_y, inventory_panel_width, inventory_panel_height))
-        pygame.draw.rect(self.screen, BLACK, (inventory_panel_x, inventory_panel_y, inventory_panel_width, inventory_panel_height), 2)
+        # Scale each inventory item image before drawing
+        for index, item in enumerate(list(self.player.inventory)[:MAX_ITEMS]):
+            row = index // MAX_ITEMS_PER_ROW
+            col = index % MAX_ITEMS_PER_ROW
 
-        # Position inventory items
-        item_x = inventory_panel_x + 10  # Start with padding
-        item_y = inventory_panel_y + (inventory_panel_height // 2 - 16)  # Center items vertically
-        for item in self.player.inventory:
-            
-            # Update item rect with its position
-            item.rect.x = item_x
-            item.rect.y = item_y
+            item_x = start_x + col * (item_width + int(panel_width * 0.05))
+            item_y = first_row_y if row == 0 else second_row_y
 
-            # Highlight the equipped item
-            if item == self.player.weapon:
-                pygame.draw.rect(self.screen, DARK_GREEN, (item_x - 2, item_y - 2, 36, 36), 2)
+            # Update item rect position
+            item.rect.topleft = (item_x, item_y)
 
-            # Move to the next position
-            item_x += 36  # Item width + spacing
-            if item_x + 36 > inventory_panel_x + inventory_panel_width:  # Wrap to next line if out of space
-                item_x = inventory_panel_x + 10
-                item_y += 36
+            # Scale the item image to the desired size for consistent drawing
+            if item.image.get_size() != (item_width, item_height):
+                item.scale_image(item_width, item_height)
 
+            # Highlight the item's slot if the item is equipped
+            if item in self.player.weapon:
+                highlight.fill((TRANS_YELLOW))
+                self.screen.blit(highlight, item.rect.topleft)
+
+                # Draw enlarged equipped item
+                equipped_item_width = equipped_width * 3 // 5
+                equipped_item_height = equipped_height * 3 // 5
+                enlarged_image = pygame.transform.scale(self.player.weapon.sprite.image, (equipped_item_width, equipped_item_height))
+                equipped_item_x = equipped_x + equipped_width // 2 - (equipped_item_width // 2)
+                equipped_item_y = equipped_y + equipped_height // 2 - (equipped_item_height // 2)
+                self.screen.blit(enlarged_image, (equipped_item_x, equipped_item_y))
+
+                # Draw equipped item label
+                equipped_label = pygame.Surface((equipped_item_width - 20, 20))
+                equipped_label.fill((WHITE))
+                self.screen.blit(equipped_label, (equipped_item_x + 10, equipped_item_y + equipped_item_height + 10))
+
+                equipped_text = font_small.render(self.player.weapon.sprite.name, True, BLACK)
+                text_width = equipped_text.get_width()
+                self.screen.blit(equipped_text, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2), equipped_item_y + equipped_item_height + 15))
+
+            else:
+                highlight.fill((0, 0, 0, 0))
+
+        # Draw the inventory group to screen
         self.player.inventory.draw(self.screen)
-
 
 
     class BlockSprite(pygame.sprite.Sprite):
@@ -465,10 +477,6 @@ class DrawUI:
         def update_data(self):
             """
             Update the sprite's data based on the player's current location and CityBlock objects.
-
-            Args:
-                player (Player): The player object, containing the current location.
-                city (City): The city object, which provides access to CityBlock objects.
             """
             # Determine the target block coordinates based on player location and dx, dy offsets
             target_x = self.player.location[0] + self.dx
@@ -478,16 +486,19 @@ class DrawUI:
             if 0 <= target_x < CITY_SIZE and 0 <= target_y < CITY_SIZE:
                 self.block = self.city.block(target_x, target_y)  # Retrieve the CityBlock at (x, y)
 
+                # Load the block image
                 image_filename = self.block.block_type.image_file
                 self.image = pygame.image.load(image_filename).convert_alpha()
                 self.image = pygame.transform.scale(self.image, (BLOCK_SIZE, BLOCK_SIZE))
 
+                # Apply zoom effect for street blocks
                 if self.block.block_type == CityBlockType.STREET:
                     self.apply_zoomed_image()
 
-                # Update the visual representation
+                # Update the block label
                 self.draw_block_label()
 
+                # Clear the current list of viewport zombies
                 self.viewport_zombies.clear()
 
                 # Add ViewportZombies if zombies are present in this block
@@ -499,8 +510,12 @@ class DrawUI:
                     self.viewport_zombies.append(viewport_zombie)
 
                 # Draw the zombies onto the block image
-                self.draw_zombies()                            
+                self.draw_zombies()
 
+            else:
+                self.image.set_alpha(0)
+
+                          
         def draw_zombies(self):
             """Draw zombie sprites onto the block."""
             for viewport_zombie in self.viewport_zombies:
@@ -555,23 +570,29 @@ class DrawUI:
 
 
         class ViewportZombie:
-            """A zombie sprite representation in the viewport."""
+            """A zombie representation for drawing in the viewport."""
             def __init__(self, zombie, index, total_zombies):
                 self.zombie = zombie
                 self.size = BLOCK_SIZE // 6  # Zombie size as a fraction of the block size
 
-                # Calculate position for this zombie
-                row_width = total_zombies * self.size
-                row_start_x = (BLOCK_SIZE - row_width) // 2
-                self.position = (
-                    row_start_x + index * self.size + self.size // 2,
-                    BLOCK_SIZE // 2,
-                )
+                # Determine row and column for this zombie
+                row = index // 3  # Row 0 or 1
+                col = index % 3   # Column 0, 1, or 2
+
+                # Calculate horizontal positioning for each column
+                row_width = min(total_zombies - row * 3, 3) * (self.size + 2)  # Width of the row
+                row_start_x = (BLOCK_SIZE - row_width) // 2  # Center the row horizontally
+                x = row_start_x + col * (self.size + 2) + self.size // 2
+
+                # Calculate vertical positioning for each row
+                row_height = self.size + 2
+                y = (BLOCK_SIZE // 2) + (row - 0.5) * row_height  # Row 0 above, row 1 below
+
+                self.position = (x, y)
 
                 # Create the zombie image
                 self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
                 self.image.fill((0, 255, 0))  # Green square for zombies
-
 
     class ZombieSprite(pygame.sprite.Sprite):
         """A detailed zombie sprite for the description panel."""
@@ -584,7 +605,7 @@ class DrawUI:
             self.frame_height = frame_height  # Height of each frame
             self.scale = scale  # Scale factor for the frames
             self.colour = colour  # Transparent color for the frames
-            self.current_frame = 0  # Current frame index
+            self.current_frame = random.randint(0, 7)  # Current frame index
             self.animation_speed = 0.15  # Animation speed (seconds per frame)
             self.last_update_time = pygame.time.get_ticks()  # Time since the last frame update
 

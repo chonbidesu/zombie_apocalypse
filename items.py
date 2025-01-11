@@ -6,22 +6,26 @@ class Item(pygame.sprite.Sprite):
     def __init__(self, name, image_file=None):
         super().__init__()
         self.name = name
-        self._image_file = image_file
-        self._image = None
+        self.image_file = image_file
+        self._original_image = self.load_image(image_file)  # Preload image during initialization
+        self.image = self._original_image.copy()
+        self.rect = self.image.get_rect()  # Use the image's rect for positioning
+        self._cached_size = self.image.get_size()
 
-        self.rect = pygame.Rect(0, 0, 32, 32)
+    def load_image(self, image_file):
+        """Load and scale the image to fit the inventory panel size."""
+        if image_file:
+            image = pygame.image.load(image_file).convert_alpha()
+        else:
+            image = pygame.Surface((32, 32))
+            image.fill((128, 128, 128))
+        return image
 
-    @property
-    def image(self):
-        """Lazy-load the image when it is accessed."""
-        if self._image is None:
-            if self._image_file:
-                self._image = pygame.image.load(self._image_file)
-                self._image = pygame.transform.scale(self._image, (32, 32))
-            else:
-                self._image = pygame.Surface((32, 32))
-                self._image.fill ((128, 128, 128))
-        return self._image
+    def scale_image(self, width, height):
+        if (width, height) != self._cached_size:
+            self.image = pygame.transform.scale(self._original_image, (width, height))
+            self.rect = self.image.get_rect(topleft=self.rect.topleft)
+            self._cached_size = (width, height)
 
     def get_attributes(self):
         return {}

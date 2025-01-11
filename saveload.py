@@ -140,12 +140,8 @@ class Gamestate:
             # Restore additional attributes
             if item.name in MELEE_WEAPONS:  # For weapons, set weapon-specific attributes
                 item.durability = item_data.get("durability", item.durability)
-                player.weapon_group.add(item)
-                player.melee_group.add(item)
             if item.name in FIREARMS:
                 item.loaded_ammo = item_data.get("loaded_ammo", item.loaded_ammo)
-                player.weapon_group.add(item)
-                player.firearm_group.add(item)
 
             # Add item to the player's inventory
             player.inventory.add(item)

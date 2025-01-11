@@ -36,7 +36,8 @@ class GameInitializer:
         self.menu_dxy = None
         self.chat_history = [
             "The city is in ruins. Can you make it through the night?", 
-            "Use 'w', 'a', 's', 'd' to move. ESC to quit."
+            "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
+            "Diagonally 'q', 'e', 'z', 'c'."
         ]
         self.scroll_offset = 0
 
@@ -90,13 +91,15 @@ class GameInitializer:
         sys.exit()
 
 
-# Initialize game
-game = GameInitializer()
+
 
 # Main game loop
 def main():
     running = True
     
+    # Initialize game
+    game = GameInitializer()
+
     while running:
         screen.fill(DARK_GREEN)
 
@@ -112,6 +115,12 @@ def main():
 
         game.cursor.update()
         game.cursor.draw()
+
+        if game.player.is_dead:
+            result = game.player.show_death_screen(screen)
+            if result == "restart":
+                game = GameInitializer()  # Reinitialize the game
+
 
         pygame.display.flip()
         clock.tick(FPS)

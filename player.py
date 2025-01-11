@@ -3,6 +3,7 @@ import random
 import csv
 from collections import defaultdict
 import pygame
+import sys
 
 from settings import *
 from items import Item, Weapon
@@ -24,9 +25,6 @@ class Player:
         self.search_chances = self.load_search_chances("assets/search.csv")
         self.ticker = 0  # Tracks the number of actions taken
         self.city = city
-        self.weapon_group = pygame.sprite.Group()
-        self.melee_group = pygame.sprite.Group()
-        self.firearm_group = pygame.sprite.Group()
 
     def assign_starting_trait(self, occupation):
         """Assigns a starting trait based on the player's occupation."""
@@ -111,7 +109,6 @@ class Player:
                 damage=attributes['damage'],
                 durability=attributes['durability']
             )
-            self.weapon_group.add(weapon)
             return weapon
         elif item_name in FIREARMS:
             # Create a firearm
@@ -122,8 +119,6 @@ class Player:
                 loaded_ammo=attributes['loaded_ammo'],
                 max_ammo=attributes['max_ammo']
             )
-            self.weapon_group.add(weapon)
-            self.firearm_group.add(weapon)
             return weapon
         elif item_name in ITEM_TYPES:
             # Create a regular item
@@ -214,6 +209,7 @@ class Player:
         return "You can't leave this place."
 
     def search(self):
+        items_held = len(self.inventory.sprites())
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
         if current_block.is_building:
@@ -230,7 +226,9 @@ class Player:
                     if random.random() < search_chance * multiplier:
                         item = self.create_item(item_name)
                         if item is not None:
-                            if item_name == 'Portable Generator':
+                            if items_held >= MAX_ITEMS:
+                                return f"You found {item_name}, but you are carrying too much and it falls under a pile of debris!"
+                            elif item_name == 'Portable Generator':
                                 for sprite in self.inventory:
                                     if hasattr(sprite, 'name') and sprite.name == "Portable Generator":
                                         return 'You found Portable Generator, but you can only carry one at a time.'
@@ -248,10 +246,10 @@ class Player:
     def install_generator(self):
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
-        if current_block in self.generator_installed:
+        if current_block.generator_installed:
             return "Generator is already installed."
         else:
-            self.generator_installed.add(current_block)
+            current_block.generator_installed = True
             return "You install a generator. It needs fuel to operate."
         
     def fuel_generator(self):
@@ -259,9 +257,47 @@ class Player:
         current_block = self.city.block(current_x, current_y)
         if current_block.lights_on:
             return "Generator already has fuel."
-        elif current_block not in self.generator_installed:
+        elif not current_block.generator_installed:
             return "You need to install a generator first."
         else:
             current_block.fuel_expiration = self.ticker + FUEL_DURATION
             current_block.lights_on = True
             return "You fuel the generator. The lights are now on."
+        
+
+    # Handle player death
+    def show_death_screen(self, screen):
+        """Display a death screen with restart options."""
+        # Create a semi-transparent overlay
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay.set_alpha(150)  # Transparency level (0 = transparent, 255 = opaque)
+        overlay.fill(BLACK)
+
+        # Render "YOU DIED" and "RESTART? Y / N"
+        text_you_died = font_xxl.render("YOU DIED", True, (255, 0, 0))
+        text_restart = font_xl.render("RESTART? Y / N", True, WHITE)
+
+        # Get text positions
+        you_died_rect = text_you_died.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))
+        restart_rect = text_restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+
+        # Blit overlay and text onto the screen
+        screen.blit(overlay, (0, 0))
+        screen.blit(text_you_died, you_died_rect)
+        screen.blit(text_restart, restart_rect)
+
+        pygame.display.flip()  # Update display
+
+        # Handle restart or quit actions
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_y:  # Restart game logic
+                        return "restart"
+                    elif event.key == pygame.K_n:  # Quit game
+                        pygame.quit()
+                        sys.exit()

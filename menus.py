@@ -22,17 +22,25 @@ shadow_color = Color(105,105,105)
 
 margin = 2
 
+def get_menu_data(sprite):
+    item_name = sprite.name
+    if item_name in MELEE_WEAPONS or item_name in FIREARMS:
+        menu_data = [item_name, 'Equip', 'Drop']
+    elif item_name in ['Map', 'First Aid Kit', 'Fuel Can',]:
+        menu_data = [item_name, 'Use', 'Drop']
+    elif item_name == 'Portable Generator':
+        menu_data = [item_name, 'Install', 'Drop']
+    elif item_name in ['Shotgun Shell', 'Pistol Clip']:
+        menu_data = [item_name, 'Reload', 'Drop']
+    return menu_data
+
 # Create a context-sensitive popup menu based on the target
 def create_context_menu(target, player, sprite=None):
     menu_target = None
     menu_dxy = None
     if target == 'item':
         if sprite is not None:
-            if sprite in player.weapon_group:
-                menu_data = ['Item', 'Equip', 'Drop']
-            else:
-                menu_data = ['Item', 'Use', 'Drop']
-        if sprite is not None:
+            menu_data = get_menu_data(sprite)
             menu_target = sprite
     elif target == 'center block' and sprite.block.is_building:
         if not player.inside:
@@ -197,6 +205,11 @@ class PopupMenu(object):
                         # close menu
                         self._quit(block)
                         return [self._quit_event()]
+                    
+                    if not menu.rect.collidepoint(e.pos):
+                        self._quit(block)
+                        return [self._quit_event()]
+
                 elif e.button == 3:
                     # close menu
                     if len(self.menus) == 1:

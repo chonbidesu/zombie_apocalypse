@@ -1,6 +1,8 @@
 import pygame
 from enum import Enum, auto
 
+from settings import *
+
 class ActionType(Enum):
     # Movement actions
     MOVE_UP = auto()
@@ -26,6 +28,7 @@ class ActionType(Enum):
 
     # System actions
     QUIT = auto()
+    RESTART = auto()
     SCROLL_UP = auto()
     SCROLL_DOWN = auto()
 
@@ -102,6 +105,13 @@ class ActionHandler:
                 if self.game.popup_menu:
                     self.game.popup_menu.show()
 
+        elif event.button == 1:
+            if self.game.popup_menu:
+                menu_rect = self.game.popup_menu.menus[-1].rect
+                if not menu_rect.collidepoint(event.pos):
+                    self.game.popup_menu.hide()
+                    self.game.popup_menu = None
+
         # Handle button clicks
         for button in self.game.game_ui.button_group:
             action_name = button.handle_event(event)
@@ -121,6 +131,8 @@ class ActionHandler:
         menu_to_action = {
             'Equip': ActionType.EQUIP,
             'Use': ActionType.USE,
+            'Install': ActionType.USE,
+            'Reload': ActionType.USE,
             'Drop': ActionType.DROP,
             'Move': ActionType.MOVE_TO,
             'Barricade': ActionType.BARRICADE,
@@ -157,6 +169,10 @@ class ActionHandler:
         for zombie in self.game.zombies.list:
             zombie.action_points += 1
             zombie.take_action()
+        
+        # Are we dead?
+        if player.is_dead:
+            return self.game.chat_history.append("YOU DIED.")
 
         # Movement
         if action == ActionType.MOVE_UP:
@@ -193,13 +209,35 @@ class ActionHandler:
         # Inventory actions
         elif action == ActionType.EQUIP:
             item = self.game.menu_target
-            player.weapon.empty()
-            player.weapon.add(item)
-            self.game.chat_history.append(f"Equipped {item.name}.")
-            self.game.menu_target = None
+            if item.name in MELEE_WEAPONS or item.name in FIREARMS:
+                player.weapon.empty()
+                player.weapon.add(item)
+                self.game.chat_history.append(f"Equipped {item.name}.")
+                self.game.menu_target = None
+            else:
+                self.game.chat_history.append(f"You can't equip {item.name}!")
         elif action == ActionType.USE:
             item = self.game.menu_target
-            self.game.chat_history.append(f"Used {item.name}.")
+
+            if item.name == 'First Aid Kit':
+                player.heal(20)
+                player.inventory.remove(item)
+                self.game.chat_history.append("Used First Aid Kit, feeling a bit better.")
+        
+            elif item.name == 'Portable Generator':
+                if player.inside:
+                    self.game.chat_history.append(player.install_generator())
+                    player.inventory.remove(item)
+                else:
+                    self.game.chat_history.append("Generators must be installed inside buildings.")
+       
+            elif item.name == 'Fuel Can':
+                if player.inside:
+                    self.game.chat_history.append(player.fuel_generator())
+                    player.inventory.remove(item)
+                else:
+                    self.game.chat_history.append("There is no generator here.")
+     
             self.game.menu_target = None
 
         elif action == ActionType.DROP:

@@ -24,6 +24,7 @@ CHAT_LINES = 10
 # Gameplay
 BARRICADE_CHANCE = 0.5
 FUEL_DURATION = 50
+MAX_ITEMS = 10
 ZOMBIE_START_HP = 50
 ZOMBIE_CAPACITY = 6 # Limit of zombies per block
 
@@ -31,6 +32,8 @@ ZOMBIE_CAPACITY = 6 # Limit of zombies per block
 pygame.init()
 font_small = pygame.font.SysFont(None, 16)
 font_large = pygame.font.SysFont(None, 26)
+font_xl = pygame.font.SysFont(None, 56)
+font_xxl = pygame.font.SysFont(None, 102)
 font_chat = pygame.font.SysFont(None, 21)
 
 # Colors
@@ -41,19 +44,20 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 DARK_GREEN = (34, 51, 34)
 ORANGE = (236, 88, 0)
+TRANS_YELLOW = (251, 232, 2, 64)
 
 ITEMS = {
-    'First Aid Kit': {'image_file': 'assets/first_aid_kit.bmp'},
-    'Portable Generator': {'image_file': 'assets/portable_generator.bmp'},
-    'Fuel Can': {'image_file': 'assets/fuel_can.bmp'},
-    'Map': {'image_file': 'assets/map.bmp'},
-    'Shotgun Shell': {'image_file': 'assets/shotgun_shell.bmp'},
-    'Pistol Clip': {'image_file': 'assets/pistol_clip.bmp'},
-    'Crowbar': {'image_file': 'assets/crowbar.bmp', 'damage': 8, 'durability': 100},
-    'Fire Axe': {'image_file': 'assets/fire_axe.bmp', 'damage': 15, 'durability': 80},
-    'Shovel': {'image_file': 'assets/shovel.bmp', 'damage': 10, 'durability': 90},
-    'Shotgun': {'image_file': 'assets/shotgun.bmp', 'damage': 50, 'loaded_ammo': 2, 'max_ammo': 2},
-    'Pistol': {'image_file': 'assets/pistol.bmp', 'damage': 20, 'loaded_ammo': 7, 'max_ammo': 7},
+    'First Aid Kit': {'image_file': 'assets/first_aid_kit.png'},
+    'Portable Generator': {'image_file': 'assets/portable_generator.png'},
+    'Fuel Can': {'image_file': 'assets/fuel_can.png'},
+    'Map': {'image_file': 'assets/map.png'},
+    'Shotgun Shell': {'image_file': 'assets/shotgun_shell.png'},
+    'Pistol Clip': {'image_file': 'assets/pistol_clip.png'},
+    'Crowbar': {'image_file': 'assets/crowbar.png', 'damage': 8, 'durability': 100},
+    'Fire Axe': {'image_file': 'assets/fire_axe.png', 'damage': 15, 'durability': 80},
+    'Shovel': {'image_file': 'assets/shovel.png', 'damage': 10, 'durability': 90},
+    'Shotgun': {'image_file': 'assets/shotgun.png', 'damage': 50, 'loaded_ammo': 2, 'max_ammo': 2},
+    'Pistol': {'image_file': 'assets/pistol.png', 'damage': 20, 'loaded_ammo': 7, 'max_ammo': 7},
 }
 
 ITEM_TYPES = [
