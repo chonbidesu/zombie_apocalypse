@@ -22,10 +22,13 @@ shadow_color = Color(105,105,105)
 
 margin = 2
 
-def get_menu_data(sprite):
+def get_menu_data(player, sprite):
     item_name = sprite.name
     if item_name in MELEE_WEAPONS or item_name in FIREARMS:
-        menu_data = [item_name, 'Equip', 'Drop']
+        if sprite in player.weapon:
+            menu_data = [item_name, 'Unequip', 'Drop']
+        else:
+            menu_data = [item_name, 'Equip', 'Drop']
     elif item_name in ['Map', 'First Aid Kit', 'Fuel Can',]:
         menu_data = [item_name, 'Use', 'Drop']
     elif item_name == 'Portable Generator':
@@ -36,29 +39,36 @@ def get_menu_data(sprite):
 
 # Create a context-sensitive popup menu based on the target
 def create_context_menu(target, player, sprite=None):
-    menu_target = None
+    mouse_target = sprite
     menu_dxy = None
+
     if target == 'item':
         if sprite is not None:
-            menu_data = get_menu_data(sprite)
-            menu_target = sprite
+            menu_data = get_menu_data(player, mouse_target)
+
     elif target == 'center block' and sprite.block.is_building:
         if not player.inside:
             menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
         elif target == 'center block' and player.inside:
             menu_data = ['Actions', 'Barricade', 'Search', 'Leave']
+
     elif target == 'center block' and not sprite.block.is_building:
         menu_data = ['Actions', 'Search']
+
     elif target == 'block':
         menu_data = ['Go', 'Move']
-        if sprite is not None:
+        if mouse_target is not None:
             menu_dxy = (sprite.dx, sprite.dy)
+    
+    elif target == 'zombie':
+        menu_data = ['Zombie', 'Attack']
+
     else:
         return None
 
     context_menu = {'menu': NonBlockingPopupMenu(menu_data)}
-    if menu_target:
-        context_menu.update({'target': menu_target})
+    if mouse_target:
+        context_menu.update({'target': mouse_target})
     if menu_dxy:
         context_menu.update({'dxy': menu_dxy})
     return context_menu

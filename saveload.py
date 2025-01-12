@@ -30,6 +30,7 @@ class Gamestate:
                         "block_inside_desc": block.block_inside_desc,
                         "lights_on": block.lights_on,
                         "generator_installed": block.generator_installed,
+                        "is_ransacked": block.is_ransacked,
                         "fuel_expiration": block.fuel_expiration,
                         "barricade_level": block.barricade.level,
                         "barricade_health": block.barricade.health,
@@ -64,8 +65,8 @@ class Gamestate:
                 "x": zombie.location[0],
                 "y": zombie.location[1],
                 "inside": zombie.inside,
-                "is dead": zombie.is_dead,
-                "action points": zombie.action_points,
+                "is_dead": zombie.is_dead,
+                "action_points": zombie.action_points,
                 "hp": zombie.hp,
             })
         return zombie_data
@@ -106,6 +107,7 @@ class Gamestate:
                 block.barricade.set_barricade_level(block_data["barricade_level"])
                 block.barricade.health = block_data["barricade_health"]
                 block.is_building = True
+                block.is_ransacked = block_data["is_ransacked"]
             else:
                 block = outdoor_class()
 
@@ -166,7 +168,7 @@ class Gamestate:
                 player=player, city=city, chat_history=chat_history, x=x, y=y,
             )
             zombie.inside = inside
-            zombie.hp = zombie_data.get("hp", ZOMBIE_START_HP)
+            zombie.hp = zombie_data.get("hp", ZOMBIE_MAX_HP)
             zombie.action_points = zombie_data.get("action_points", 0)
             zombie.is_dead = zombie_data.get("is_dead", False)
             zombies.list.append(zombie)

@@ -78,8 +78,8 @@ class City:
         return grid
 
     def _generate_buildings(self, block_pool):
-        # Generate 5000 building blocks
-        for _ in range(CITY_SIZE * 50):
+        # Generate 2500 building blocks
+        for _ in range(CITY_SIZE * 25):
             building_block = BuildingBlock()
             building_block.block_type = random.choice(BUILDING_TYPES)
             building_block.block_name = self._get_unique_block_name(building_block.block_type.name)
@@ -100,8 +100,8 @@ class City:
         return block_pool
 
     def _generate_streets(self, block_pool):
-        # Generate 2500 street blocks
-        for _ in range(CITY_SIZE * 25):
+        # Generate 5000 street blocks
+        for _ in range(CITY_SIZE * 50):
             street_block = CityBlock()
             street_block.block_type = CityBlockType.STREET
             street_block.block_name = self._get_unique_block_name(street_block.block_type.name)

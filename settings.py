@@ -23,9 +23,10 @@ CHAT_LINES = 10
 
 # Gameplay
 BARRICADE_CHANCE = 0.5
-FUEL_DURATION = 50
+FUEL_DURATION = 200
 MAX_ITEMS = 10
-ZOMBIE_START_HP = 50
+ATTACK_DIFFICULTY = 15
+ZOMBIE_MAX_HP = 50
 ZOMBIE_CAPACITY = 6 # Limit of zombies per block
 
 # Fonts
@@ -45,19 +46,21 @@ BLUE = (0, 0, 255)
 DARK_GREEN = (34, 51, 34)
 ORANGE = (236, 88, 0)
 TRANS_YELLOW = (251, 232, 2, 64)
+PALE_YELLOW = (255, 255, 150)
 
 ITEMS = {
     'First Aid Kit': {'image_file': 'assets/first_aid_kit.png'},
     'Portable Generator': {'image_file': 'assets/portable_generator.png'},
     'Fuel Can': {'image_file': 'assets/fuel_can.png'},
     'Map': {'image_file': 'assets/map.png'},
+    'Toolbox': {'image file': 'assets/toolbox.png'},
     'Shotgun Shell': {'image_file': 'assets/shotgun_shell.png'},
     'Pistol Clip': {'image_file': 'assets/pistol_clip.png'},
-    'Crowbar': {'image_file': 'assets/crowbar.png', 'damage': 8, 'durability': 100},
-    'Fire Axe': {'image_file': 'assets/fire_axe.png', 'damage': 15, 'durability': 80},
-    'Shovel': {'image_file': 'assets/shovel.png', 'damage': 10, 'durability': 90},
-    'Shotgun': {'image_file': 'assets/shotgun.png', 'damage': 50, 'loaded_ammo': 2, 'max_ammo': 2},
-    'Pistol': {'image_file': 'assets/pistol.png', 'damage': 20, 'loaded_ammo': 7, 'max_ammo': 7},
+    'Crowbar': {'image_file': 'assets/crowbar.png', 'attack': 5, 'damage': 3, 'durability': 30},
+    'Fire Axe': {'image_file': 'assets/fire_axe.png', 'attack': 5, 'damage': 4, 'durability': 20},
+    'Shovel': {'image_file': 'assets/shovel.png', 'attack': 5, 'damage': 2, 'durability': 20},
+    'Shotgun': {'image_file': 'assets/shotgun.png', 'attack': 4, 'damage': 20, 'loaded_ammo': 2, 'max_ammo': 2},
+    'Pistol': {'image_file': 'assets/pistol.png', 'attack': 2, 'damage': 8, 'loaded_ammo': 7, 'max_ammo': 7},
 }
 
 ITEM_TYPES = [

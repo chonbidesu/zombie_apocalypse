@@ -23,7 +23,7 @@ class Zombie:
         self.location = (x, y)
         self.city = city
         self.chat_history = chat_history
-        self.hp = ZOMBIE_START_HP
+        self.hp = ZOMBIE_MAX_HP
         self.action_points = 0
         self.is_dead = False
         self.inside = False
@@ -34,9 +34,6 @@ class Zombie:
           
     def take_action(self):
         """Determine and execute zombie behavior."""
-        if self.action_points < 1:
-            return False  # No action points to act
-
         current_block = self.city.block(self.location[0], self.location[1])
 
         # Determine behavior
@@ -47,14 +44,11 @@ class Zombie:
             return  # Skip action after relocation
 
         if action == ZombieAction.ATTACK_PLAYER:
-            self.action_points -= 1
             self.chat_history.append(self.attack(self.player))
             return
 
         if action == ZombieAction.HANDLE_BARRICADE:
-            result = self.handle_barricades(current_block)
-            if result:
-                self.chat_history.append(result)
+            self.handle_barricades(current_block)
             return
 
         if action == ZombieAction.MOVE_TOWARDS:
@@ -63,10 +57,17 @@ class Zombie:
                 self.move_towards(target_dx, target_dy)
                 return
 
+        if action == ZombieAction.ENTER_BUILDING:
+            self.enter()
+            return
+        
+        if action == ZombieAction.RANSACK:
+            self.ransack(current_block)
+            return
+
         if action == ZombieAction.WANDER:
-            if self.action_points >= 2:
-                self.move()
-                return
+            self.move()
+            return
 
         if action == ZombieAction.STAND_UP:
             self.stand_up()
@@ -76,29 +77,43 @@ class Zombie:
 
     def determine_behaviour(self, current_block):
         """Determine the appropriate behavior for the zombie."""
+        # Stand up if dead and have enough action points
+        if self.is_dead:
+            if self.action_points >= 50:
+                return ZombieAction.STAND_UP
+            else:
+                return False
+
         # Relocate if the block is overcrowded
         if current_block.current_zombies > ZOMBIE_CAPACITY:
             return ZombieAction.RELOCATE
 
         # Attack player if in the same block
-        if self.location == self.player.location and self.inside == self.player.inside:
+        if self.location == self.player.location and self.inside == self.player.inside and self.action_points >= 1:
             return ZombieAction.ATTACK_PLAYER
 
         # Handle barricades or building entry if at target location
-        if self.find_target_dxy():
+        if self.find_target_dxy() and self.action_points >= 1:
             target_dx, target_dy = self.find_target_dxy()
             if (target_dx, target_dy) == (0, 0):
                 return ZombieAction.HANDLE_BARRICADE
             else:
                 return ZombieAction.MOVE_TOWARDS
 
+        # Chance to investigate nearby building
+        if current_block.is_building and current_block.barricade.level == 0 and not self.inside and self.action_points >= 1:
+            roll = random.randint(1, 20)
+            if roll < 5:
+                return ZombieAction.ENTER_BUILDING
+            
+        if self.inside and not current_block.is_ransacked and self.action_points >= 1:
+            roll = random.randint(1, 20)
+            if roll < 5:
+                return ZombieAction.RANSACK
+
         # Random movement if no targets or barricades present
         if self.action_points >= 2:
             return ZombieAction.WANDER
-
-        # Stand up if dead and have enough action points
-        if self.is_dead and self.action_points >= 20:
-            return ZombieAction.STAND_UP
 
         return None  # No behaviour determined
 
@@ -187,17 +202,16 @@ class Zombie:
             return self.attack_barricade(current_block)
 
         if current_block.barricade.level == 0 and not self.inside:
-            print(f"Zombie at {self.location} attempting to enter. Barricade level: {current_block.barricade.level}")
             return self.enter()
 
-        if self.inside and not self.player.inside:
-            return self.leave()        
+        #if self.inside and not self.player.inside:
+        #    return self.leave()        
 
     def attack_barricade(self, building):
         """Attacks the barricades of the given building."""
         if hasattr(building.barricade, "level") and building.barricade.level > 0:
             if random.random() < 0.3:  # 30% chance to successfully attack barricades
-                building.barricade.health -= 10
+                building.barricade.health -= 5
                 if building.barricade.health <= 0:  # Reduce barricade level if health reaches 0
                     building.barricade.health = 30  # Reset health for the next level
                     building.barricade.adjust_barricade_level(-1)
@@ -212,9 +226,13 @@ class Zombie:
         x, y = self.location[0], self.location[1]
         dx, dy = random.choice([(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)])
         new_x, new_y = x + dx, y + dy
+        current_block = self.city.block(x, y)
 
         if 0 <= new_x < CITY_SIZE and 0 <= new_y < CITY_SIZE:  # Ensure within city bounds
+            new_block = self.city.block(new_x, new_y)
             self.action_points -= 2
+            current_block.current_zombies -= 1
+            new_block.current_zombies += 1
             self.location = (new_x, new_y)
             self.inside = False
             return True
@@ -233,21 +251,25 @@ class Zombie:
         """Enter a building."""
         self.action_points -= 1
         self.inside = True
-        return "Zombie enters the building."
     
     def leave(self):
         """Leave a building."""
         self.action_points -= 1
         self.inside = False
         return "Zombie leaves the building."    
+    
+    def ransack(self, current_block):
+        """Ransack a building."""
+        self.action_points -= 1
+        current_block.is_ransacked = True
+        return "Zombie ransacks the building."
 
     def take_damage(self, amount):
         """Reduces the zombie's health."""
         self.hp -= amount
         if self.hp <= 0:
             self.die()
-            return "Zombie is dead."
-        return "Zombie takes damage."
+        return f"Zombie takes {amount} damage."
 
     def die(self):
         """Handles the zombie's death."""
@@ -261,8 +283,7 @@ class Zombie:
             self.chat_history.append("A zombie stirs, and gets to its feet, swaying.")
         self.is_dead = False
         self.hp = 50
-        self.action_points -= 20
-        return "Zombie stands up and continues acting."
+        self.action_points -= 50
 
     def status(self):
         """Returns the current status of the zombie."""

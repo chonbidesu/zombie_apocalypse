@@ -44,6 +44,8 @@ class GenerateZombies:
         """
         if 0 <= x < CITY_SIZE and 0 <= y < CITY_SIZE:
             zombie = Zombie(self.player, self.city, self.chat_history, x, y)
+            block = self.city.block(x, y)
+            block.current_zombies += 1
             self.list.append(zombie)
 
     def remove_zombie(self, zombie):
@@ -54,6 +56,9 @@ class GenerateZombies:
             zombie (Zombie): The zombie object to remove.
         """
         if zombie in self.list:
+            x, y = zombie.location[0], zombie.location[1]
+            block = self.city.block(x, y)
+            block.current_zombies -= 1
             self.list.remove(zombie)
 
     def get_zombies_at(self, x, y):

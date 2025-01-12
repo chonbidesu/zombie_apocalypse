@@ -27,13 +27,14 @@ class DrawUI:
         self.leave_button = self.Button('leave', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
         self.sprite_sheet_image = pygame.image.load("assets/zombie_spritesheet.png").convert_alpha()
         self.zombie_sprite_sheet = spritesheet.SpriteSheet(self.sprite_sheet_image)
+        self.user_scrolled = False
 
-    def draw(self, chat_history, scroll_offset):
+    def draw(self, chat_history):
         self.draw_viewport_frame()
         self.draw_neighbourhood_name()
         self.update_action_buttons()
         self.draw_actions_panel()
-        self.draw_chat(chat_history, scroll_offset)
+        self.draw_chat(chat_history)
         self.draw_description_panel()
         self.draw_status()
         self.draw_inventory_panel()
@@ -153,6 +154,10 @@ class DrawUI:
                 current_observations += 'With the lights out, you can hardly see anything. '
             current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
 
+            # Check if the building has been ransacked
+            if current_block.is_ransacked:
+                current_observations += "The interior has been ransacked and needs repairs. "
+
             # Check if the building has a running generator
             if current_block.generator_installed:
                 current_observations += "A portable generator has been set up here. "
@@ -231,10 +236,10 @@ class DrawUI:
             )
             if existing_sprite:
                 updated_sprites.append(existing_sprite)
-            else:
+            elif not zombie.is_dead:
                 # Create a new sprite for the zombie
                 new_sprite = self.ZombieSprite(
-                    zombie, self.zombie_sprite_sheet, 8, 264, 390, 0.5, (0, 0, 0)
+                    self.screen, zombie, self.zombie_sprite_sheet, 8, 264, 390, 0.5, (0, 0, 0)
                 )
                 self.zombie_sprite_group.add(new_sprite)
                 updated_sprites.append(new_sprite)
@@ -242,6 +247,8 @@ class DrawUI:
         # Remove sprites for zombies that are no longer here
         for sprite in list(self.zombie_sprite_group):
             if sprite not in updated_sprites:
+                self.zombie_sprite_group.remove(sprite)
+            elif sprite.zombie.is_dead:
                 self.zombie_sprite_group.remove(sprite)
 
     def draw_description_panel(self):
@@ -310,7 +317,8 @@ class DrawUI:
             text_start_y += font_large.size(line)[1]  # Move down for the next line
 
     # Draw the chat panel
-    def draw_chat(self, chat_history, scroll_offset):
+    def draw_chat(self, chat_history):
+
         """Draw the chat window with scrolling support and text wrapping."""
         chat_width, chat_height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT * 3 // 10
         chat_start_x, chat_start_y = 10, SCREEN_HEIGHT * 13 // 20 + 30
@@ -320,22 +328,16 @@ class DrawUI:
 
         # Draw messages starting from the bottom of the chat area
         # Calculate the max number of visible lines.
-        max_visible_lines = (chat_height - 20) // 20
+        line_height = font_chat.get_linesize()
+        max_visible_lines = (chat_height - 50) // line_height
         wrapped_history = []
         for message in chat_history:
-            wrapped_history.extend(self.wrap_text(f">> {message}", font_chat, chat_width - 40))
+            wrapped_history.extend(self.wrap_text(f">> {message}", font_chat, chat_width - 50))
 
-        total_lines = len(wrapped_history)
-
-        # Limit scroll_offset to valid bounds.
-        scroll_offset = max(0, min(scroll_offset, max(0, total_lines - max_visible_lines)))
-
-        # Determine which messages to display based on scroll_offset
-        visible_history = wrapped_history[scroll_offset:scroll_offset + max_visible_lines]
+        # Determine which messages to display
+        visible_history = wrapped_history[-max_visible_lines:]
         y_offset = chat_start_y + chat_height - 40
-
-        line_height = font_chat.get_linesize()
-
+    
         for message in reversed(visible_history):
                 text = font_chat.render(message, True, WHITE)
                 self.screen.blit(text, (chat_start_x + 30, y_offset))
@@ -424,13 +426,20 @@ class DrawUI:
                 self.screen.blit(enlarged_image, (equipped_item_x, equipped_item_y))
 
                 # Draw equipped item label
-                equipped_label = pygame.Surface((equipped_item_width - 20, 20))
-                equipped_label.fill((WHITE))
-                self.screen.blit(equipped_label, (equipped_item_x + 10, equipped_item_y + equipped_item_height + 10))
-
-                equipped_text = font_small.render(self.player.weapon.sprite.name, True, BLACK)
+                equipped_text = font_large.render(self.player.weapon.sprite.name, True, ORANGE)
+                equipped_text_shadow = font_large.render(self.player.weapon.sprite.name, True, BLACK)                
                 text_width = equipped_text.get_width()
-                self.screen.blit(equipped_text, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2), equipped_item_y + equipped_item_height + 15))
+                self.screen.blit(equipped_text_shadow, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2) + 1, equipped_item_y + equipped_item_height + 11))                
+                self.screen.blit(equipped_text, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2), equipped_item_y + equipped_item_height + 10))
+
+                # Draw currently loaded ammo
+                if item.name in FIREARMS:
+                    label_x = equipped_item_x + equipped_item_width - 20
+                    label_y = equipped_item_y + equipped_item_height - 20
+                    pygame.draw.rect(self.screen, WHITE, (label_x, label_y, 20, 20))
+                    loaded_ammo = font_large.render(str(item.loaded_ammo), True, BLACK)
+                    number_width = loaded_ammo.get_width()
+                    self.screen.blit(loaded_ammo, (label_x + 5, label_y + 2))
 
             else:
                 highlight.fill((0, 0, 0, 0))
@@ -465,7 +474,6 @@ class DrawUI:
             self.city = city
             self.zombies = zombies
             self.block = None # The block this sprite represents
-            self.is_building = False
             self.wrap_text = wrap_text
             self.viewport_x = grid_start_x + (dx + 1) * BLOCK_SIZE  # Translate relative dx to viewport position
             self.viewport_y = grid_start_y + (dy + 1) * BLOCK_SIZE  # Translate relative dy to viewport position
@@ -503,7 +511,7 @@ class DrawUI:
 
                 # Add ViewportZombies if zombies are present in this block
                 matching_zombies = [
-                    zombie for zombie in self.zombies.list if zombie.location[0] == target_x and zombie.location[1] == target_y
+                    zombie for zombie in self.zombies.list if zombie.location[0] == target_x and zombie.location[1] == target_y and not zombie.is_dead
                 ]
                 for index, zombie in enumerate(matching_zombies):
                     viewport_zombie = self.ViewportZombie(zombie, index, len(matching_zombies))
@@ -536,7 +544,13 @@ class DrawUI:
             label_rect = pygame.Rect(
                 0, BLOCK_SIZE - text_height - 10, BLOCK_SIZE, text_height + 10
             )
-            pygame.draw.rect(image_copy, WHITE, label_rect)
+            if self.block.is_building:
+                if self.block.lights_on:
+                    pygame.draw.rect(image_copy, PALE_YELLOW, label_rect)
+                else:
+                    pygame.draw.rect(image_copy, WHITE, label_rect)
+            else:
+                pygame.draw.rect(image_copy, WHITE, label_rect)
 
             # Draw text onto the block surface
             y_offset = label_rect.top + 10
@@ -596,8 +610,9 @@ class DrawUI:
 
     class ZombieSprite(pygame.sprite.Sprite):
         """A detailed zombie sprite for the description panel."""
-        def __init__(self, zombie, sprite_sheet, frame_count, frame_width, frame_height, scale, colour):
+        def __init__(self, screen, zombie, sprite_sheet, frame_count, frame_width, frame_height, scale, colour):
             super().__init__()
+            self.screen = screen
             self.zombie = zombie  # Reference to the parent zombie
             self.sprite_sheet = sprite_sheet
             self.frame_count = frame_count  # Total number of frames
@@ -608,6 +623,7 @@ class DrawUI:
             self.current_frame = random.randint(0, 7)  # Current frame index
             self.animation_speed = 0.15  # Animation speed (seconds per frame)
             self.last_update_time = pygame.time.get_ticks()  # Time since the last frame update
+            self.hp_bar_height = 10
 
             # Set the initial image and rect
             self.image = self.sprite_sheet.get_image(
@@ -618,6 +634,18 @@ class DrawUI:
                 colour=self.colour,
             )
             self.rect = self.image.get_rect()
+
+        def draw_hp_bar(self):
+            max_hp = ZOMBIE_MAX_HP
+            current_hp = self.zombie.hp
+            bar_width = self.rect.width - 50
+            hp_ratio = max(current_hp / max_hp, 0)
+
+            bar_x = self.rect.x + 25
+            bar_y = self.rect.y + self.rect.height - 15
+
+            pygame.draw.rect(self.screen, (255, 0, 0), (bar_x, bar_y, bar_width, self.hp_bar_height))
+            pygame.draw.rect(self.screen, (0, 255, 0), (bar_x, bar_y, bar_width * hp_ratio, self.hp_bar_height))
 
         def update(self):
             """Update the sprite's animation frame."""
@@ -632,6 +660,7 @@ class DrawUI:
                     scale=self.scale,
                     colour=self.colour,
                 )
+            self.draw_hp_bar()
 
     class Button(pygame.sprite.Sprite):
         """A button that changes images on mouse events."""

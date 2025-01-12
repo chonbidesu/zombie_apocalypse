@@ -22,9 +22,11 @@ class ActionType(Enum):
 
     # Popup menu actions
     EQUIP = auto()
+    UNEQUIP = auto()
     USE = auto()
     DROP = auto()
     MOVE_TO = auto()
+    ATTACK = auto()
 
     # System actions
     QUIT = auto()
@@ -83,23 +85,27 @@ class ActionHandler:
 
     def handle_mousebuttondown(self, event):
         """Handle mouse button down events."""
+        if event.button == 1:
+            mouse_pos = pygame.mouse.get_pos()
+            target = self.get_click_target(mouse_pos)
+            if target == 'zombie':
+                action = ActionType.ATTACK
+                if action:
+                    self.execute_action(action)
+
         for button in self.game.game_ui.button_group:
             button.handle_event(event)
-        if event.button == 4:  # Scroll up
-            self.execute_action(ActionType.SCROLL_UP)
-        elif event.button == 5:  # Scroll down
-            self.execute_action(ActionType.SCROLL_DOWN)
 
     def handle_mousebuttonup(self, event, create_context_menu):
         """Handle mouse button up events."""
         if event.button == 3:  # Right-click for popup menu
             mouse_pos = pygame.mouse.get_pos()
-            target, sprite = self.get_click_target(mouse_pos)
-            context_menu = create_context_menu(target, self.game.player, sprite)
+            target = self.get_click_target(mouse_pos)
+            context_menu = create_context_menu(target, self.game.player, self.game.mouse_target)
             if context_menu:
                 self.game.popup_menu = context_menu['menu']
                 if 'target' in context_menu:
-                    self.game.menu_target = context_menu['target']
+                    self.game.mouse_target = context_menu['target']
                 if 'dxy' in context_menu:
                     self.game.menu_dxy = context_menu['dxy']
                 if self.game.popup_menu:
@@ -130,6 +136,7 @@ class ActionHandler:
         """Handle popup menu actions."""
         menu_to_action = {
             'Equip': ActionType.EQUIP,
+            'Unequip': ActionType.UNEQUIP,
             'Use': ActionType.USE,
             'Install': ActionType.USE,
             'Reload': ActionType.USE,
@@ -139,6 +146,7 @@ class ActionHandler:
             'Search': ActionType.SEARCH,
             'Enter': ActionType.ENTER,
             'Leave': ActionType.LEAVE,
+            'Attack': ActionType.ATTACK,
         }
         action_type = menu_to_action.get(action)
         if action_type:
@@ -148,12 +156,6 @@ class ActionHandler:
         """Execute the action based on ActionType."""
         if action == ActionType.QUIT:
             self.game.quit_game()
-        elif action == ActionType.SCROLL_UP:
-            self.game.scroll_offset -= 1
-            return
-        elif action == ActionType.SCROLL_DOWN:
-            self.game.scroll_offset += 1
-            return
 
         player = self.game.player
         player.ticker += 1
@@ -170,10 +172,6 @@ class ActionHandler:
             zombie.action_points += 1
             zombie.take_action()
         
-        # Are we dead?
-        if player.is_dead:
-            return self.game.chat_history.append("YOU DIED.")
-
         # Movement
         if action == ActionType.MOVE_UP:
             player.move(0, -1)
@@ -195,6 +193,10 @@ class ActionHandler:
             dxy = self.game.menu_dxy
             player.move(dxy[0], dxy[1])
             self.game.menu_dxy = None
+        
+        # Combat
+        elif action == ActionType.ATTACK:
+            self.game.chat_history.append(player.attack(self.game.mouse_target))
 
         # Building actions
         elif action == ActionType.BARRICADE:
@@ -208,43 +210,78 @@ class ActionHandler:
 
         # Inventory actions
         elif action == ActionType.EQUIP:
-            item = self.game.menu_target
+            item = self.game.mouse_target
             if item.name in MELEE_WEAPONS or item.name in FIREARMS:
                 player.weapon.empty()
                 player.weapon.add(item)
                 self.game.chat_history.append(f"Equipped {item.name}.")
-                self.game.menu_target = None
             else:
                 self.game.chat_history.append(f"You can't equip {item.name}!")
+
+        elif action == ActionType.UNEQUIP:
+            item = self.game.mouse_target
+            player.weapon.empty()
+            self.game.chat_history.append(f"Unequipped {item.name}.")
+
         elif action == ActionType.USE:
-            item = self.game.menu_target
+            item = self.game.mouse_target
 
             if item.name == 'First Aid Kit':
-                player.heal(20)
-                player.inventory.remove(item)
-                self.game.chat_history.append("Used First Aid Kit, feeling a bit better.")
+                if player.hp < player.max_hp:
+                    player.heal(20)
+                    player.inventory.remove(item)
+                    self.game.chat_history.append("Used First Aid Kit, feeling a bit better.")
+                else:
+                    self.game.chat_history.append("You already feel healthy.")
         
             elif item.name == 'Portable Generator':
                 if player.inside:
-                    self.game.chat_history.append(player.install_generator())
-                    player.inventory.remove(item)
+                    result, item_used = player.install_generator()
+                    self.game.chat_history.append(result)
+                    if item_used:
+                        player.inventory.remove(item)
                 else:
                     self.game.chat_history.append("Generators must be installed inside buildings.")
        
             elif item.name == 'Fuel Can':
                 if player.inside:
-                    self.game.chat_history.append(player.fuel_generator())
-                    player.inventory.remove(item)
+                    result, item_used = player.fuel_generator()
+                    self.game.chat_history.append(result)
+                    if item_used:
+                        player.inventory.remove(item)
                 else:
                     self.game.chat_history.append("There is no generator here.")
-     
-            self.game.menu_target = None
 
+            elif item.name == 'Toolbox':
+                if player.inside:
+                    self.game
+            
+            elif item.name == 'Pistol Clip':
+                weapon = player.weapon.sprite
+                if weapon.name == 'Pistol':
+                    if weapon.loaded_ammo < weapon.max_ammo:
+                        self.game.chat_history.append(player.reload())
+                        player.inventory.remove(item)
+                    else:
+                        self.game.chat_history.append("Your weapon is already fully loaded.")
+                else:
+                    self.game.chat_history.append("You can't reload this.")
+
+            elif item.name == 'Shotgun Shell':
+                weapon = player.weapon.sprite
+                if weapon.name == 'Shotgun':
+                    if weapon.loaded_ammo < weapon.max_ammo:
+                        self.game.chat_history.append(player.reload())
+                        player.inventory.remove(item)
+                    else:
+                        self.game.chat_history.append("Your weapon is already fully loaded.")
+                else:
+                    self.game.chat_history.append("You can't reload this.")                
+     
         elif action == ActionType.DROP:
-            item = self.game.menu_target
+            item = self.game.mouse_target
             item.kill()
             self.game.chat_history.append(f"Dropped {item.name}.")
-            self.game.menu_target = None
 
         self.game.game_ui.update_zombie_sprites()
 
@@ -252,10 +289,17 @@ class ActionHandler:
     def get_click_target(self, mouse_pos):
         for sprite in self.game.game_ui.viewport_group:
             if sprite.dx == 0 and sprite.dy == 0 and sprite.rect.collidepoint(mouse_pos):
-                return 'center block', sprite
+                self.game.mouse_target = sprite
+                return 'center block'
             elif sprite.rect.collidepoint(mouse_pos):
-                return 'block', sprite
+                self.game.mouse_target = sprite                
+                return 'block'
         for sprite in self.game.player.inventory:
             if sprite.rect.collidepoint(mouse_pos):
-                return 'item', sprite
-        return 'screen', None
+                self.game.mouse_target = sprite  
+                return 'item'
+        for sprite in self.game.game_ui.zombie_sprite_group:
+            if sprite.rect.collidepoint(mouse_pos):
+                self.game.mouse_target = sprite                
+                return 'zombie'
+        return 'screen'

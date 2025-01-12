@@ -32,14 +32,13 @@ class GameInitializer:
         self.city = None
         self.cursor = menus.Cursor()
         self.popup_menu = None
-        self.menu_target = None
+        self.mouse_target = None
         self.menu_dxy = None
         self.chat_history = [
             "The city is in ruins. Can you make it through the night?", 
             "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
             "Diagonally 'q', 'e', 'z', 'c'."
         ]
-        self.scroll_offset = 0
 
         self.action_handler = actions.ActionHandler(self)
         self.initialize_game()
@@ -96,7 +95,7 @@ class GameInitializer:
 # Main game loop
 def main():
     running = True
-    
+
     # Initialize game
     game = GameInitializer()
 
@@ -107,7 +106,7 @@ def main():
         game.action_handler.handle_events(events, menus.create_context_menu)
 
         # Draw game elements to screen
-        game.game_ui.draw(game.chat_history, game.scroll_offset)
+        game.game_ui.draw(game.chat_history)
 
         if game.popup_menu:
             game.popup_menu.handle_events(events)

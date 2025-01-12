@@ -16,7 +16,7 @@ class Player:
         self.skills = []  # Skills active when human
         self.inventory = pygame.sprite.Group()  # Items carried by the player
         self.weapon = pygame.sprite.GroupSingle()  # The currently equipped weapon
-        self.max_hp = 100  # Maximum hit points
+        self.max_hp = 1000  # Maximum hit points
         self.hp = self.max_hp  # Current hit points
         self.location = (x, y)  # Initial location in the 100x100 grid
         self.inside = inside
@@ -130,16 +130,49 @@ class Player:
 
 
     # Start of player actions
+    def attack(self, target):
+        if self.weapon:
+            weapon = self.weapon.sprite
+            weapon_name = weapon.name
+            if weapon_name in FIREARMS:
+                if weapon.loaded_ammo == 0:
+                    return "Your weapon is out of ammo."
+            weapon_stats = ITEMS[weapon_name]
+            attack_mod = weapon_stats['attack']
 
-    def use_item(self, item_name):
-        """Uses an item from the inventory if available."""
-        for item in self.inventory:
-            if item.name == item_name:
-                result = item.use()
-                if item.consumable:
-                    self.remove_item(item)
-                return result
-        return f"You don't have a {item_name}."
+            roll = random.randint(1, 20)
+            attack_roll = (roll + attack_mod) >= ATTACK_DIFFICULTY
+
+            if attack_roll:
+                damage = weapon_stats['damage']
+                if weapon_name in FIREARMS:
+                    weapon.loaded_ammo -= 1
+                elif weapon_name in MELEE_WEAPONS:
+                    weapon.durability -= 1
+                    if weapon.durability <= 0:
+                        weapon.kill()
+                        return target.zombie.take_damage(damage) + " Your weapon breaks!"
+                return target.zombie.take_damage(damage)
+            else:
+                return "Your attack misses."
+        else:
+            roll = random.randint(1, 20)
+            attack_roll = roll >= ATTACK_DIFFICULTY
+
+            if attack_roll:
+                return "You punch the zombie. " + target.zombie.take_damage(1)
+            else:
+                return "You try punching the zombie, but miss."
+
+
+    def reload(self):
+        weapon = self.weapon.sprite
+        if weapon.name == 'Pistol':
+            weapon.loaded_ammo = weapon.max_ammo
+            return "You slap a new pistol clip into your gun."
+        else:
+            weapon.loaded_ammo += 1
+            return "You load a shell into your shotgun."
 
     def move(self, dx, dy):
         """Moves the player to a new location on the grid."""
@@ -215,15 +248,18 @@ class Player:
         if current_block.is_building:
             if self.inside:
                 if current_block.lights_on:
-                    multiplier = 1.5
+                    multiplier = 3.0
+                elif current_block.is_ransacked:
+                    multiplier = 0.1
                 else:
-                    multiplier = 1.0
+                    multiplier = 0.5
                 items = list(self.search_chances.keys())
                 random.shuffle(items)
 
                 for item_name in items:
                     search_chance = self.search_chances[item_name].get(current_block.block_type.name, 0.0) # Default to 0.0 if item not found
-                    if random.random() < search_chance * multiplier:
+                    roll = random.random()
+                    if roll < search_chance * multiplier:
                         item = self.create_item(item_name)
                         if item is not None:
                             if items_held >= MAX_ITEMS:
@@ -247,22 +283,22 @@ class Player:
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
         if current_block.generator_installed:
-            return "Generator is already installed."
+            return "Generator is already installed.", False
         else:
             current_block.generator_installed = True
-            return "You install a generator. It needs fuel to operate."
+            return "You install a generator. It needs fuel to operate.", True
         
     def fuel_generator(self):
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
         if current_block.lights_on:
-            return "Generator already has fuel."
+            return "Generator already has fuel.", False
         elif not current_block.generator_installed:
-            return "You need to install a generator first."
+            return "You need to install a generator first.", False
         else:
             current_block.fuel_expiration = self.ticker + FUEL_DURATION
             current_block.lights_on = True
-            return "You fuel the generator. The lights are now on."
+            return "You fuel the generator. The lights are now on.", True
         
 
     # Handle player death
