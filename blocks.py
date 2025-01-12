@@ -7,19 +7,17 @@ from settings import *
 class CityBlock:
     """Base class for a city block."""
     def __init__(self):
-        self.block_name = 'City Block'
-        self.block_type = None
-        self.block_desc = 'city block'
+        self.name = 'City Block'
+        self.type = None
         self.x, self.y = 0, 0
         self.block_outside_desc = 'A non-descript city block.'
         self.observations = []
         self.neighbourhood = ''
-        self.is_building = False
         self.current_zombies = 0 # Number of zombies currently in the block
 
     def generate_descriptions(self, descriptions_data):
-        if self.block_type.name in descriptions_data:
-            data = descriptions_data[self.block_type.name]
+        if self.type.name in descriptions_data:
+            data = descriptions_data[self.type.name]
             
             # Randomly assemble outside descriptions
             outside = data.get("outside", defaultdict(list))
@@ -40,14 +38,13 @@ class BuildingBlock(CityBlock):
         self.barricade = self.BarricadeLevel()
         self.fuel_expiration = 0
         self.block_inside_desc = 'The inside of a building.'
-        self.is_building = True
         self.is_ransacked = False
         self.lights_on = False
         self.generator_installed = False
 
     def generate_descriptions(self, descriptions_data):
-        if self.block_type.name in descriptions_data:
-            data = descriptions_data[self.block_type.name]
+        if self.type.name in descriptions_data:
+            data = descriptions_data[self.type.name]
             
             # Randomly assemble inside and outside descriptions
             inside = data.get("inside", defaultdict(list))
@@ -85,7 +82,7 @@ class BuildingBlock(CityBlock):
             If the level is out of bounds (less than 0 or greater than 7), it will be capped at 0 or 7.
             """
             self.level = max(0, min(level, 7))  # Keep the level within the bounds
-            self.description = BARRICADE_DESCRIPTIONS[self.level]
+            self.description = self.get_barricade_description()
             self.health = 30
 
         def adjust_barricade_level(self, delta):
@@ -102,4 +99,5 @@ class BuildingBlock(CityBlock):
             """
             Returns the current description of the barricade.
             """
-            return self.description
+            barricade_state = list(BarricadeState)[self.level]
+            return BARRICADE_DESCRIPTIONS[barricade_state]

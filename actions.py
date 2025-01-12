@@ -211,77 +211,81 @@ class ActionHandler:
         # Inventory actions
         elif action == ActionType.EQUIP:
             item = self.game.mouse_target
-            if item.name in MELEE_WEAPONS or item.name in FIREARMS:
+            properties = ITEMS[item.type]
+            if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
                 player.weapon.empty()
                 player.weapon.add(item)
-                self.game.chat_history.append(f"Equipped {item.name}.")
+                self.game.chat_history.append(f"Equipped {properties.description}.")
             else:
-                self.game.chat_history.append(f"You can't equip {item.name}!")
+                self.game.chat_history.append(f"You can't equip {properties.description}!")
 
         elif action == ActionType.UNEQUIP:
             item = self.game.mouse_target
+            properties = ITEMS[item.type]
             player.weapon.empty()
-            self.game.chat_history.append(f"Unequipped {item.name}.")
+            self.game.chat_history.append(f"Unequipped {properties.description}.")
 
         elif action == ActionType.USE:
             item = self.game.mouse_target
+            properties = ITEMS[item.type]
 
-            if item.name == 'First Aid Kit':
+            if item.type == ItemType.FIRST_AID_KIT:
                 if player.hp < player.max_hp:
                     player.heal(20)
-                    player.inventory.remove(item)
-                    self.game.chat_history.append("Used First Aid Kit, feeling a bit better.")
+                    item.kill()
+                    self.game.chat_history.append("Used a first aid kit, feeling a bit better.")
                 else:
                     self.game.chat_history.append("You already feel healthy.")
         
-            elif item.name == 'Portable Generator':
+            elif item.type == ItemType.PORTABLE_GENERATOR:
                 if player.inside:
                     result, item_used = player.install_generator()
                     self.game.chat_history.append(result)
                     if item_used:
-                        player.inventory.remove(item)
+                        item.kill()
                 else:
                     self.game.chat_history.append("Generators must be installed inside buildings.")
        
-            elif item.name == 'Fuel Can':
+            elif item.type == ItemType.FUEL_CAN:
                 if player.inside:
                     result, item_used = player.fuel_generator()
                     self.game.chat_history.append(result)
                     if item_used:
-                        player.inventory.remove(item)
+                        item.kill()
                 else:
                     self.game.chat_history.append("There is no generator here.")
 
-            elif item.name == 'Toolbox':
+            elif item.type == ItemType.TOOLBOX:
                 if player.inside:
-                    self.game
+                    pass
             
-            elif item.name == 'Pistol Clip':
+            elif item.type == ItemType.PISTOL_CLIP:
                 weapon = player.weapon.sprite
-                if weapon.name == 'Pistol':
+                if weapon.type == ItemType.PISTOL:
                     if weapon.loaded_ammo < weapon.max_ammo:
                         self.game.chat_history.append(player.reload())
-                        player.inventory.remove(item)
+                        item.kill()
                     else:
                         self.game.chat_history.append("Your weapon is already fully loaded.")
                 else:
-                    self.game.chat_history.append("You can't reload this.")
+                    self.game.chat_history.append(f"You can't reload {properties.description}.")
 
-            elif item.name == 'Shotgun Shell':
+            elif item.type == ItemType.SHOTGUN_SHELL:
                 weapon = player.weapon.sprite
-                if weapon.name == 'Shotgun':
+                if weapon.type == ItemType.SHOTGUN:
                     if weapon.loaded_ammo < weapon.max_ammo:
                         self.game.chat_history.append(player.reload())
-                        player.inventory.remove(item)
+                        item.kill()
                     else:
                         self.game.chat_history.append("Your weapon is already fully loaded.")
                 else:
-                    self.game.chat_history.append("You can't reload this.")                
+                    self.game.chat_history.append(f"You can't reload {properties.description}.")                
      
         elif action == ActionType.DROP:
             item = self.game.mouse_target
+            properties = ITEMS[item.type]
             item.kill()
-            self.game.chat_history.append(f"Dropped {item.name}.")
+            self.game.chat_history.append(f"Dropped {properties.description}.")
 
         self.game.game_ui.update_zombie_sprites()
 

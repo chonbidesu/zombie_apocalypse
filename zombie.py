@@ -77,6 +77,7 @@ class Zombie:
 
     def determine_behaviour(self, current_block):
         """Determine the appropriate behavior for the zombie."""
+        properties = BLOCKS[current_block.type]
         # Stand up if dead and have enough action points
         if self.is_dead:
             if self.action_points >= 50:
@@ -101,15 +102,16 @@ class Zombie:
                 return ZombieAction.MOVE_TOWARDS
 
         # Chance to investigate nearby building
-        if current_block.is_building and current_block.barricade.level == 0 and not self.inside and self.action_points >= 1:
+        if properties.is_building and current_block.barricade.level == 0 and not self.inside and self.action_points >= 1:
             roll = random.randint(1, 20)
             if roll < 5:
                 return ZombieAction.ENTER_BUILDING
             
-        if self.inside and not current_block.is_ransacked and self.action_points >= 1:
-            roll = random.randint(1, 20)
-            if roll < 5:
-                return ZombieAction.RANSACK
+        if self.inside:
+            if not current_block.is_ransacked and self.action_points >= 1:
+                roll = random.randint(1, 20)
+                if roll < 5:
+                    return ZombieAction.RANSACK
 
         # Random movement if no targets or barricades present
         if self.action_points >= 2:
@@ -128,18 +130,20 @@ class Zombie:
                 current_block.current_zombies -= 1
                 adjacent_block.current_zombies += 1
                 self.location = (adjacent_x, adjacent_y)
+                self.inside = False
                 return
 
 
     def find_target_dxy(self):
         """Finds a nearby player or lit building."""
         current_block = self.city.block(self.location[0], self.location[1])
+        current_block_properties = BLOCKS[current_block.type]
         lit_buildings_dxy = []
 
         # Check if the player or a lit building is nearby
         if self.player.location == self.location and self.inside == self.player.inside:
             return (0, 0) # Stay put
-        elif current_block.is_building:
+        elif current_block_properties.is_building:
             if current_block.lights_on:
                 return (0, 0) # Stay put
 
@@ -157,7 +161,8 @@ class Zombie:
 
                 if 0 < adjacent_x < CITY_SIZE and 0 < adjacent_y < CITY_SIZE:
                     adjacent_block = self.city.block(adjacent_x, adjacent_y)
-                    if adjacent_block.is_building:
+                    adjacent_block_properties = BLOCKS[adjacent_block.type]
+                    if adjacent_block_properties.is_building:
                         if adjacent_block.lights_on:
                             lit_buildings_dxy.append((dx, dy)) 
 
@@ -180,6 +185,7 @@ class Zombie:
             target_block.current_zombies += 1
             self.location = (new_x, new_y)
             self.action_points -= 2
+            self.inside = False
             return True
 
         # If target block is full, attempt to move to another adjacent block
@@ -190,6 +196,7 @@ class Zombie:
                 current_block.current_zombies -= 1
                 alt_block.current_zombies += 1
                 self.location = (alt_x, alt_y)
+                self.inside = False
                 self.action_points -= 2
                 return True
 
@@ -242,7 +249,7 @@ class Zombie:
         """Attempts to attack a player if in the same block."""
         self.action_points -= 1
         if random.random() < 0.3:
-            player.take_damage(10)  # Zombies deal 10 damage
+            player.take_damage(ZOMBIE_DAMAGE)  # Zombies deal 10 damage
             return "A zombie slams into you!"
         else:
             return "A zombie swipes at you, but misses."

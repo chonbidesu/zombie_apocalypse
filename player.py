@@ -4,6 +4,7 @@ import csv
 from collections import defaultdict
 import pygame
 import sys
+from enum import Enum, auto
 
 from settings import *
 from items import Item, Weapon
@@ -16,8 +17,9 @@ class Player:
         self.skills = []  # Skills active when human
         self.inventory = pygame.sprite.Group()  # Items carried by the player
         self.weapon = pygame.sprite.GroupSingle()  # The currently equipped weapon
-        self.max_hp = 1000  # Maximum hit points
+        self.max_hp = 50  # Maximum hit points
         self.hp = self.max_hp  # Current hit points
+        self.skills = set()
         self.location = (x, y)  # Initial location in the 100x100 grid
         self.inside = inside
         self.starting_trait = self.assign_starting_trait(occupation)
@@ -25,6 +27,32 @@ class Player:
         self.search_chances = self.load_search_chances("assets/search.csv")
         self.ticker = 0  # Tracks the number of actions taken
         self.city = city
+
+    class Skills(Enum):
+        BODY_BUILDING = auto()
+        FREE_RUNNING = auto()
+        CONSTRUCTION = auto()
+        FIRST_AID = auto()
+
+
+    SKILL_EFFECTS = {
+        Skills.BODY_BUILDING: {
+            "description": "Increases player max HP by 10.",
+            "effect": lambda self: setattr(self, 'max_hp', self.max_hp + 10)
+        },
+        Skills.FREE_RUNNING: {
+            "description": "Allows moving between adjacent buildings without going outside.",
+            "effect": lambda self: setattr(self, 'free_runner', True)
+        },
+        Skills.CONSTRUCTION: {
+            "description": "Player can repair ransacked buildings.",
+            "effect": lambda self: setattr(self, 'can_repair', True)
+        },
+        Skills.FIRST_AID: {
+            "description": "First Aid Kit heals an additional 10 HP.",
+            "effect": lambda self: setattr(self, 'first_aid_bonus', 10)
+        }
+    }
 
     def assign_starting_trait(self, occupation):
         """Assigns a starting trait based on the player's occupation."""
@@ -39,9 +67,23 @@ class Player:
         }
         return traits.get(occupation, "Survivor Instinct")
     
-    def gain_skill(self, skill):
-        """Adds a skill to the player's skill list depending on their state."""
-        self.skills.append(skill)
+    def gain_skill(self, choice):
+        """Gain a skill if it's not already learned and enough XP is available."""
+        SKILL_COST = 150  # cost to acquire a skill
+
+        if choice in self.skills:
+            print(f"{choice.name} already learned.")
+            return False
+
+        if self.xp >= SKILL_COST:
+            self.xp -= SKILL_COST
+            self.skills.add(choice)
+            self.SKILL_EFFECTS[choice]["effect"](self)
+            print(f"Learned skill: {self.SKILL_EFFECTS[choice]['description']}")
+            return True
+
+        print("Not enough XP to learn this skill.")
+        return False
 
     def list_inventory(self):
         """Returns a string representation of the inventory."""
@@ -64,15 +106,6 @@ class Player:
         """Handles the player's death."""
         self.is_dead = True
         return "The player has died."
-
-#    def revive(self):
-#        """Revives the player, switching them back to human form."""
-#        if self.is_dead:
-#            self.is_human = True
-#            self.is_dead = False
-#            self.hp = self.max_hp
-#            return "The player has been revived and is now human again."
-#        return "The player is not dead and cannot be revived."
 
     def status(self):
         """Returns the player's current status."""
@@ -97,35 +130,22 @@ class Player:
                         search_chances[item][building_type] = float(chance)
         return search_chances
 
-    def create_item(self, item_name):
+    def create_item(self, type):
         """Create an item or weapon based on its name."""
         # Check if the item is a weapon
-        attributes = ITEMS[item_name]
-        if item_name in MELEE_WEAPONS:
+        item_type = getattr(ItemType, type)
+        properties = ITEMS[item_type]
+        if properties.item_function == ItemFunction.MELEE:
             # Create a melee weapon
-            weapon = Weapon(
-                name=item_name,
-                image_file=attributes['image_file'],
-                damage=attributes['damage'],
-                durability=attributes['durability']
-            )
+            weapon = Weapon(type=item_type)
             return weapon
-        elif item_name in FIREARMS:
+        elif properties.item_function == ItemFunction.FIREARM:
             # Create a firearm
-            weapon = Weapon(
-                name=item_name,
-                image_file=attributes['image_file'],
-                damage=attributes['damage'],
-                loaded_ammo=attributes['loaded_ammo'],
-                max_ammo=attributes['max_ammo']
-            )
+            weapon = Weapon(type=item_type)
             return weapon
-        elif item_name in ITEM_TYPES:
+        elif properties.item_function == ItemFunction.ITEM or properties.item_function == ItemFunction.AMMO:
             # Create a regular item
-            item = Item(
-                name=item_name,
-                image_file=attributes['image_file']
-            )
+            item = Item(type=item_type)
             return item
 
 
@@ -133,26 +153,24 @@ class Player:
     def attack(self, target):
         if self.weapon:
             weapon = self.weapon.sprite
-            weapon_name = weapon.name
-            if weapon_name in FIREARMS:
+            weapon_type = weapon.weapon_type
+            properties = ITEMS[weapon_type]
+            if properties.item_function == ItemFunction.FIREARM:
                 if weapon.loaded_ammo == 0:
                     return "Your weapon is out of ammo."
-            weapon_stats = ITEMS[weapon_name]
-            attack_mod = weapon_stats['attack']
 
             roll = random.randint(1, 20)
-            attack_roll = (roll + attack_mod) >= ATTACK_DIFFICULTY
+            attack_roll = (roll + properties.attack) >= ATTACK_DIFFICULTY
 
             if attack_roll:
-                damage = weapon_stats['damage']
-                if weapon_name in FIREARMS:
+                if properties.item_function == ItemFunction.FIREARM:
                     weapon.loaded_ammo -= 1
-                elif weapon_name in MELEE_WEAPONS:
+                elif properties.item_function == ItemFunction.MELEE:
                     weapon.durability -= 1
                     if weapon.durability <= 0:
                         weapon.kill()
-                        return target.zombie.take_damage(damage) + " Your weapon breaks!"
-                return target.zombie.take_damage(damage)
+                        return target.zombie.take_damage(properties.damage) + " Your weapon breaks!"
+                return target.zombie.take_damage(properties.damage)
             else:
                 return "Your attack misses."
         else:
@@ -167,10 +185,10 @@ class Player:
 
     def reload(self):
         weapon = self.weapon.sprite
-        if weapon.name == 'Pistol':
+        if weapon.type == ItemType.PISTOL:
             weapon.loaded_ammo = weapon.max_ammo
             return "You slap a new pistol clip into your gun."
-        else:
+        elif weapon.type == ItemType.SHOTGUN:
             weapon.loaded_ammo += 1
             return "You load a shell into your shotgun."
 
@@ -191,7 +209,8 @@ class Player:
     def barricade(self, modifier=1):
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
-        if current_block.is_building and self.inside:
+        properties = BLOCKS[current_block.type]
+        if properties.is_building and self.inside:
             success_chance = BARRICADE_CHANCE * modifier
             success_chance = max(0, min(success_chance, 1))  # Ensure the chance is between 0 and 1
             success = random.random() < success_chance
@@ -210,15 +229,17 @@ class Player:
     def where(self):
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
+        properties = BLOCKS[current_block.type]
         if self.inside:
-            return f"You are standing inside {current_block.block_desc} called {current_block.block_name}."
+            return f"You are standing inside {properties.description} called {current_block.name}."
         else:
-            return f"You are standing in front of {current_block.block_desc} called {current_block.block_name}."
+            return f"You are standing in front of {properties.description} called {current_block.name}."
 
     def enter(self):
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
-        if current_block.is_building:
+        properties = BLOCKS[current_block.type]
+        if properties.is_building:
             if not self.inside:
                 if current_block.barricade.level == 0:
                     self.inside = True
@@ -234,7 +255,8 @@ class Player:
     def leave(self):
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
-        if current_block.is_building:
+        properties = BLOCKS[current_block.type]
+        if properties.is_building:
             if self.inside:
                 self.inside = False
                 return "You left the building."
@@ -245,33 +267,35 @@ class Player:
         items_held = len(self.inventory.sprites())
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
-        if current_block.is_building:
+        block_properties = BLOCKS[current_block.type]
+        if block_properties.is_building:
             if self.inside:
                 if current_block.lights_on:
-                    multiplier = 3.0
+                    multiplier = LIGHTSON_MULTIPLIER
                 elif current_block.is_ransacked:
-                    multiplier = 0.1
+                    multiplier = RANSACKED_MULTIPLIER
                 else:
-                    multiplier = 0.5
+                    multiplier = SEARCH_MULTIPLIER
                 items = list(self.search_chances.keys())
                 random.shuffle(items)
 
-                for item_name in items:
-                    search_chance = self.search_chances[item_name].get(current_block.block_type.name, 0.0) # Default to 0.0 if item not found
+                for item_type in items:
+                    search_chance = self.search_chances[item_type].get(current_block.type.name, 0.0) # Default to 0.0 if item not found
                     roll = random.random()
                     if roll < search_chance * multiplier:
-                        item = self.create_item(item_name)
+                        item = self.create_item(item_type)
+                        item_properties = ITEMS[item.type]
                         if item is not None:
                             if items_held >= MAX_ITEMS:
-                                return f"You found {item_name}, but you are carrying too much and it falls under a pile of debris!"
-                            elif item_name == 'Portable Generator':
+                                return f"You found {item_properties.description}, but you are carrying too much and it falls under a pile of debris!"
+                            elif item_type == 'PORTABLE_GENERATOR':
                                 for sprite in self.inventory:
-                                    if hasattr(sprite, 'name') and sprite.name == "Portable Generator":
+                                    if hasattr(sprite, 'type') and sprite.type == ItemType.PORTABLE_GENERATOR:
                                         return 'You found Portable Generator, but you can only carry one at a time.'
                             self.inventory.add(item)
-                            return f"You found {item_name}!"
+                            return f"You found {item_properties.description}!"
                         else:
-                            return f"Tried to add {item_name} to inventory!"
+                            return f"Tried to add {item_properties.description} to inventory!"
                 return f"You found nothing."
             
             else:

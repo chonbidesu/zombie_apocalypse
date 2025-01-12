@@ -1,8 +1,6 @@
 # saveload.py
 
 import pickle
-import pygame
-from collections import defaultdict
 
 from settings import *
 
@@ -19,9 +17,8 @@ class Gamestate:
                 block_data = {
                     "x": block.x,
                     "y": block.y,
-                    "block_type": block.block_type.name,
-                    "block_name": block.block_name,
-                    "block_desc": block.block_desc,
+                    "block_type": block.type.name,
+                    "block_name": block.name,
                     "block_outside_desc": block.block_outside_desc,
                     "neighbourhood": block.neighbourhood,
                 }
@@ -50,7 +47,7 @@ class Gamestate:
             "skills": player.skills,
             "inventory": [
                 {
-                    "name": item.name,
+                    "type": item.type,
                     "is_equipped": item in player.weapon,
                     **item.get_attributes()
                 }
@@ -97,8 +94,9 @@ class Gamestate:
 
         # Reconstruct and replace city grid
         for block_data in self.city_data:
-            block_type = getattr(CityBlockType, block_data["block_type"])
-            if block_type.is_building:
+            block_type = getattr(BlockType, block_data["block_type"])
+            properties = BLOCKS[block_type]
+            if properties.is_building:
                 block = building_class()
                 block.block_inside_desc = block_data["block_inside_desc"]
                 block.lights_on = block_data["lights_on"]
@@ -106,14 +104,12 @@ class Gamestate:
                 block.fuel_expiration = block_data["fuel_expiration"]
                 block.barricade.set_barricade_level(block_data["barricade_level"])
                 block.barricade.health = block_data["barricade_health"]
-                block.is_building = True
                 block.is_ransacked = block_data["is_ransacked"]
             else:
                 block = outdoor_class()
 
-            block.block_type = block_type
-            block.block_name = block_data["block_name"]
-            block.block_desc = block_data["block_desc"]
+            block.type = block_type
+            block.name = block_data["block_name"]
             block.block_outside_desc = block_data["block_outside_desc"]
             block.x = block_data["x"]
             block.y = block_data["y"]
@@ -136,13 +132,14 @@ class Gamestate:
         # Reconstruct inventory
         for item_data in self.player_data["inventory"]:
             # Create item using the predefined method
-            item = player.create_item(item_data["name"])
-            item.image_file = ITEMS[item.name]['image_file']
+            item = player.create_item(item_data["type"])
+            properties = ITEMS[item.type]
+            item.image_file = properties.image_file
 
             # Restore additional attributes
-            if item.name in MELEE_WEAPONS:  # For weapons, set weapon-specific attributes
+            if properties.item_function == ItemFunction.MELEE:  # For weapons, set weapon-specific attributes
                 item.durability = item_data.get("durability", item.durability)
-            if item.name in FIREARMS:
+            if properties.item_function == ItemFunction.FIREARM:
                 item.loaded_ammo = item_data.get("loaded_ammo", item.loaded_ammo)
 
             # Add item to the player's inventory

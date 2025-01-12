@@ -1,13 +1,16 @@
 # items.py
 import pygame
 
+from settings import *
+
 class Item(pygame.sprite.Sprite):
     """Base class for all items."""
-    def __init__(self, name, image_file=None):
+    def __init__(self, type):
         super().__init__()
-        self.name = name
-        self.image_file = image_file
-        self._original_image = self.load_image(image_file)  # Preload image during initialization
+        self.type = type
+        self.properties = ITEMS[self.type]
+        self.image_file = self.properties.image_file
+        self._original_image = self.load_image(self.image_file)  # Preload image during initialization
         self.image = self._original_image.copy()
         self.rect = self.image.get_rect()  # Use the image's rect for positioning
         self._cached_size = self.image.get_size()
@@ -32,12 +35,12 @@ class Item(pygame.sprite.Sprite):
 
 class Weapon(Item):
     """Base class for all weapons."""
-    def __init__(self, name, damage, durability=None, loaded_ammo=None, max_ammo=None, image_file=None):
-        super().__init__(name, image_file)
-        self.damage = damage
-        self.durability = durability
-        self.loaded_ammo = loaded_ammo
-        self.max_ammo = max_ammo
+    def __init__(self, type):
+        super().__init__(type)
+        self.damage = self.properties.damage
+        self.durability = self.properties.durability
+        self.loaded_ammo = self.properties.max_ammo
+        self.max_ammo = self.properties.max_ammo
 
     def get_attributes(self):
         attributes = {}

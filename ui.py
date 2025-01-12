@@ -92,13 +92,8 @@ class DrawUI:
 
     def draw_viewport_frame(self):
         """Draw the 3x3 viewport representing the player's surroundings."""
-        
         scaled_viewport_frame = pygame.transform.scale(self.viewport_frame, (self.viewport_frame_width, self.viewport_frame_height))
         self.screen.blit(scaled_viewport_frame, (10, 10))
-
-        # grid_start_x, grid_start_y = (viewport_frame_width // 9) + 12, (viewport_frame_height // 9) + 12
-
-        #self.viewport_group.draw(self.screen)
 
     def draw_neighbourhood_name(self):
         # Draw neighbourhood name
@@ -149,7 +144,7 @@ class DrawUI:
 
         # Inside building observations
         if self.player.inside:
-            current_observations += f'You are standing inside {current_block.block_name}. '
+            current_observations += f'You are standing inside {current_block.name}. '
             if not current_block.lights_on:
                 current_observations += 'With the lights out, you can hardly see anything. '
             current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
@@ -167,13 +162,14 @@ class DrawUI:
                     current_observations += "It is out of fuel. "
         # Outside building observations
         else:
-            if current_block.is_building:
-                current_observations += f'You are standing outside {current_block.block_desc}. A sign reads "{current_block.block_name}". '
+            properties = BLOCKS[current_block.type]
+            if properties.is_building:
+                current_observations += f'You are standing outside {properties.description}. A sign reads "{current_block.name}". '
                 current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
                 if current_block.lights_on:
                     current_observations += "Lights are on inside. "
             else:
-                current_observations += f'You are standing in {current_block.block_desc}.'
+                current_observations += f'You are standing in {properties.description}.'
 
         # Add observations for zombies and dead bodies
         zombies_here = [
@@ -246,10 +242,8 @@ class DrawUI:
 
         # Remove sprites for zombies that are no longer here
         for sprite in list(self.zombie_sprite_group):
-            if sprite not in updated_sprites:
-                self.zombie_sprite_group.remove(sprite)
-            elif sprite.zombie.is_dead:
-                self.zombie_sprite_group.remove(sprite)
+            if sprite not in updated_sprites or sprite.zombie.is_dead:
+                sprite.kill()
 
     def draw_description_panel(self):
         """Draw the description panel on the right side of the screen."""
@@ -265,7 +259,7 @@ class DrawUI:
         current_x, current_y = self.player.location
         current_block = self.city.block(current_x, current_y)        
         image_suffix = "inside" if self.player.inside else "outside"
-        image_path = f"assets/{current_block.block_type.name.lower()}_{image_suffix}.png"
+        image_path = f"assets/{current_block.type.name.lower()}_{image_suffix}.png"
 
         try:
             setting_image = pygame.image.load(image_path)
@@ -433,7 +427,8 @@ class DrawUI:
                 self.screen.blit(equipped_text, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2), equipped_item_y + equipped_item_height + 10))
 
                 # Draw currently loaded ammo
-                if item.name in FIREARMS:
+                properties = ITEMS[item.type]
+                if properties.item_function == ItemFunction.FIREARM:
                     label_x = equipped_item_x + equipped_item_width - 20
                     label_y = equipped_item_y + equipped_item_height - 20
                     pygame.draw.rect(self.screen, WHITE, (label_x, label_y, 20, 20))
@@ -453,7 +448,7 @@ class DrawUI:
         Represents a visual sprite for a CityBlock in the viewport.
 
         The sprite remains fixed at a dx, dy position in the viewport and dynamically updates
-        its data (block_type, block_name) based on the player's current location and
+        its data (type, name) based on the player's current location and
         surrounding CityBlock objects.
         """
 
@@ -474,6 +469,7 @@ class DrawUI:
             self.city = city
             self.zombies = zombies
             self.block = None # The block this sprite represents
+            self.properties = None # Properties of the block
             self.wrap_text = wrap_text
             self.viewport_x = grid_start_x + (dx + 1) * BLOCK_SIZE  # Translate relative dx to viewport position
             self.viewport_y = grid_start_y + (dy + 1) * BLOCK_SIZE  # Translate relative dy to viewport position
@@ -493,14 +489,15 @@ class DrawUI:
             # Check if the target coordinates are within city bounds
             if 0 <= target_x < CITY_SIZE and 0 <= target_y < CITY_SIZE:
                 self.block = self.city.block(target_x, target_y)  # Retrieve the CityBlock at (x, y)
+                self.properties = BLOCKS[self.block.type]
 
                 # Load the block image
-                image_filename = self.block.block_type.image_file
+                image_filename = self.properties.image_file
                 self.image = pygame.image.load(image_filename).convert_alpha()
                 self.image = pygame.transform.scale(self.image, (BLOCK_SIZE, BLOCK_SIZE))
 
                 # Apply zoom effect for street blocks
-                if self.block.block_type == CityBlockType.STREET:
+                if self.block.type == BlockType.STREET:
                     self.apply_zoomed_image()
 
                 # Update the block label
@@ -536,7 +533,7 @@ class DrawUI:
 
         def draw_block_label(self):
             """Render the block label onto the block's surface."""
-            block_text = self.wrap_text(self.block.block_name, font_small, BLOCK_SIZE - 10)
+            block_text = self.wrap_text(self.block.name, font_small, BLOCK_SIZE - 10)
             text_height = sum(font_small.size(line)[1] for line in block_text)
 
             image_copy = self.image.copy()
@@ -544,7 +541,7 @@ class DrawUI:
             label_rect = pygame.Rect(
                 0, BLOCK_SIZE - text_height - 10, BLOCK_SIZE, text_height + 10
             )
-            if self.block.is_building:
+            if self.properties.is_building:
                 if self.block.lights_on:
                     pygame.draw.rect(image_copy, PALE_YELLOW, label_rect)
                 else:

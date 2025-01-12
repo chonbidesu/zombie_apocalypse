@@ -23,18 +23,18 @@ shadow_color = Color(105,105,105)
 margin = 2
 
 def get_menu_data(player, sprite):
-    item_name = sprite.name
-    if item_name in MELEE_WEAPONS or item_name in FIREARMS:
+    properties = ITEMS[sprite.type]
+    if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
         if sprite in player.weapon:
-            menu_data = [item_name, 'Unequip', 'Drop']
+            menu_data = [properties.item_type, 'Unequip', 'Drop']
         else:
-            menu_data = [item_name, 'Equip', 'Drop']
-    elif item_name in ['Map', 'First Aid Kit', 'Fuel Can',]:
-        menu_data = [item_name, 'Use', 'Drop']
-    elif item_name == 'Portable Generator':
-        menu_data = [item_name, 'Install', 'Drop']
-    elif item_name in ['Shotgun Shell', 'Pistol Clip']:
-        menu_data = [item_name, 'Reload', 'Drop']
+            menu_data = [properties.item_type, 'Equip', 'Drop']
+    elif sprite.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX,]:
+        menu_data = [properties.item_type, 'Use', 'Drop']
+    elif sprite.type == ItemType.PORTABLE_GENERATOR:
+        menu_data = [properties.item_type, 'Install', 'Drop']
+    elif properties.item_function == ItemFunction.AMMO:
+        menu_data = [properties.item_type, 'Reload', 'Drop']
     return menu_data
 
 # Create a context-sensitive popup menu based on the target
