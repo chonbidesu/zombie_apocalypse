@@ -31,49 +31,47 @@ class ContextMenu:
         self.dxy = None
         self.player = player
 
-        self.menu_data = self.get_menu_data()
+        self.get_menu_data()
+        self.menu = self.create_menu()
+
+    def create_menu(self):
         if self.menu_data:
-            self.menu = NonBlockingPopupMenu(self.menu_data)
+            return NonBlockingPopupMenu(self.menu_data)
 
     def get_menu_data(self):
         if self.menu_type == 'item':
             properties = ITEMS[self.mouse_sprite.type]
             if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
                 if self.mouse_sprite in self.player.weapon:
-                    menu_data = [properties.item_type, 'Unequip', 'Drop']
+                    self.menu_data = [properties.item_type, 'Unequip', 'Drop']
                 else:
-                    menu_data = [properties.item_type, 'Equip', 'Drop']
+                    self.menu_data = [properties.item_type, 'Equip', 'Drop']
             elif self.mouse_sprite.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX,]:
-                menu_data = [properties.item_type, 'Use', 'Drop']
+                self.menu_data = [properties.item_type, 'Use', 'Drop']
             elif self.mouse_sprite.type == ItemType.PORTABLE_GENERATOR:
-                menu_data = [properties.item_type, 'Install', 'Drop']
+                self.menu_data = [properties.item_type, 'Install', 'Drop']
             elif properties.item_function == ItemFunction.AMMO:
-                menu_data = [properties.item_type, 'Reload', 'Drop']
-            return menu_data
+                self.menu_data = [properties.item_type, 'Reload', 'Drop']
         
         elif self.menu_type == 'center block':
             properties = BLOCKS[self.mouse_sprite.block.type]
             if properties.is_building:
                 if not self.player.inside:
-                    menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
+                    self.menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
                 elif self.player.inside:
-                    menu_data = ['Actions', 'Barricade', 'Search', 'Leave']
+                    self.menu_data = ['Actions', 'Barricade', 'Search', 'Leave']
 
             else:
-                menu_data = ['Actions', 'Search']
+                self.menu_data = ['Actions', 'Search']
 
         elif self.menu_type == 'block':
-            menu_data = ['Go', 'Move']
+            self.menu_data = ['Go', 'Move']
             if self.mouse_sprite is not None:
                 self.dxy = (self.mouse_sprite.dx, self.mouse_sprite.dy)
 
         else:
-            return None
-
-
-
-
-
+            self.menu_data = None
+       
 
 ## Sprite cursor also runs while menu is posted.
 class Cursor(object):

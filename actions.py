@@ -104,15 +104,15 @@ class ActionHandler:
             target = self.get_click_target(mouse_pos)
             context_menu = ContextMenu(target, self.game.player, self.mouse_sprite)
             if context_menu:
-                self.game.popup_menu = context_menu
-                if hasattr(self.game.popup_menu, 'menu'):
-                    self.game.popup_menu.menu.show()
+                self.game.popup_menu = context_menu.menu
+                if self.game.popup_menu:
+                    self.game.popup_menu.show()
 
         elif event.button == 1:
-            if hasattr(self.game.popup_menu, 'menu'):
-                menu_rect = self.game.popup_menu.menu.menus[-1].rect
+            if self.game.popup_menu:
+                menu_rect = self.game.popup_menu.menus[-1].rect
                 if not menu_rect.collidepoint(event.pos):
-                    self.game.popup_menu.menu.hide()
+                    self.game.popup_menu.hide()
                     self.game.popup_menu = None
 
         # Handle button clicks

@@ -14,15 +14,16 @@ class Gamestate:
         city_data = []
         for row in city.grid:
             for block in row:
+                properties = BLOCKS[block.type]
                 block_data = {
                     "x": block.x,
                     "y": block.y,
-                    "block_type": block.type.name,
+                    "block_type": block.type,
                     "block_name": block.name,
                     "block_outside_desc": block.block_outside_desc,
                     "neighbourhood": block.neighbourhood,
                 }
-                if block.block_type.is_building:
+                if properties.is_building:
                     block_data.update({
                         "block_inside_desc": block.block_inside_desc,
                         "lights_on": block.lights_on,
@@ -94,7 +95,7 @@ class Gamestate:
 
         # Reconstruct and replace city grid
         for block_data in self.city_data:
-            block_type = getattr(BlockType, block_data["block_type"])
+            block_type = block_data["block_type"]
             properties = BLOCKS[block_type]
             if properties.is_building:
                 block = building_class()

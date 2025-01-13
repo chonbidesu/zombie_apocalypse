@@ -5,15 +5,15 @@ from enum import Enum, auto
 from settings import *
 
 class ZombieAction(Enum):
-    FIND_TARGET = auto()          # Find a nearby player or lit building
-    MOVE_TOWARDS = auto()         # Move toward the target
-    ATTACK_PLAYER = auto()
-    HANDLE_BARRICADE = auto()    # Attack barricades if target is a lit building
-    WANDER = auto()               # Move randomly
-    ENTER_BUILDING = auto()       # Enter unbarricaded buildings occasionally
-    RANSACK = auto()              # Ransack a building
-    RELOCATE = auto()             # Move to an adjacent block due to overcrowding
-    STAND_UP = auto()             # Stand up after death
+    FIND_TARGET = auto()            # Find a nearby player or lit building
+    MOVE_TOWARDS = auto()           # Move toward the target
+    ATTACK_PLAYER = auto()          # Attack the player
+    HANDLE_BARRICADE = auto()       # Attack barricades if target is a lit building
+    WANDER = auto()                 # Move randomly
+    ENTER_BUILDING = auto()         # Enter unbarricaded buildings occasionally
+    RANSACK = auto()                # Ransack a building
+    RELOCATE = auto()               # Move to an adjacent block due to overcrowding
+    STAND_UP = auto()               # Stand up after death
 
 class Zombie:
     """Represents a zombie in the city."""
@@ -76,11 +76,11 @@ class Zombie:
         return False  # No action taken
 
     def determine_behaviour(self, current_block):
-        """Determine the appropriate behavior for the zombie."""
+        """Determine the priority for the zombie."""
         properties = BLOCKS[current_block.type]
         # Stand up if dead and have enough action points
         if self.is_dead:
-            if self.action_points >= 50:
+            if self.action_points >= STAND_UP_AP:
                 return ZombieAction.STAND_UP
             else:
                 return False

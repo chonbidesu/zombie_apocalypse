@@ -408,6 +408,7 @@ class DrawUI:
 
             # Highlight the item's slot if the item is equipped
             if item in self.player.weapon:
+                equipped_properties = ITEMS[item.type]
                 highlight.fill((TRANS_YELLOW))
                 self.screen.blit(highlight, item.rect.topleft)
 
@@ -420,20 +421,18 @@ class DrawUI:
                 self.screen.blit(enlarged_image, (equipped_item_x, equipped_item_y))
 
                 # Draw equipped item label
-                equipped_text = font_large.render(self.player.weapon.sprite.name, True, ORANGE)
-                equipped_text_shadow = font_large.render(self.player.weapon.sprite.name, True, BLACK)                
+                equipped_text = font_large.render(equipped_properties.description, True, ORANGE)
+                equipped_text_shadow = font_large.render(equipped_properties.description, True, BLACK)                
                 text_width = equipped_text.get_width()
                 self.screen.blit(equipped_text_shadow, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2) + 1, equipped_item_y + equipped_item_height + 11))                
                 self.screen.blit(equipped_text, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2), equipped_item_y + equipped_item_height + 10))
 
                 # Draw currently loaded ammo
-                properties = ITEMS[item.type]
-                if properties.item_function == ItemFunction.FIREARM:
+                if equipped_properties.item_function == ItemFunction.FIREARM:
                     label_x = equipped_item_x + equipped_item_width - 20
                     label_y = equipped_item_y + equipped_item_height - 20
                     pygame.draw.rect(self.screen, WHITE, (label_x, label_y, 20, 20))
                     loaded_ammo = font_large.render(str(item.loaded_ammo), True, BLACK)
-                    number_width = loaded_ammo.get_width()
                     self.screen.blit(loaded_ammo, (label_x + 5, label_y + 2))
 
             else:
@@ -444,24 +443,8 @@ class DrawUI:
 
 
     class BlockSprite(pygame.sprite.Sprite):
-        """
-        Represents a visual sprite for a CityBlock in the viewport.
-
-        The sprite remains fixed at a dx, dy position in the viewport and dynamically updates
-        its data (type, name) based on the player's current location and
-        surrounding CityBlock objects.
-        """
-
+        """Represents a visual sprite for a CityBlock in the viewport."""
         def __init__(self, dx, dy, player, city, zombies, grid_start_x, grid_start_y, wrap_text):
-            """
-            Initialize the BlockSprite.
-
-            Args:
-                dx (int): The relative x position (-1, 0, 1) in the 3x3 grid.
-                dy (int): The relative y position (-1, 0, 1) in the 3x3 grid.
-                grid_start_x (int): The top-left x-coordinate of the viewport.
-                grid_start_y (int): The top-left y-coordinate of the viewport.
-            """
             super().__init__()
             self.dx = dx
             self.dy = dy

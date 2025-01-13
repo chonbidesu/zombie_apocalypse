@@ -9,12 +9,33 @@ from enum import Enum, auto
 from settings import *
 from items import Item, Weapon
 
+class Skill(Enum):
+    BODY_BUILDING = auto()
+    FREE_RUNNING = auto()
+    CONSTRUCTION = auto()
+    FIRST_AID = auto()
+    FIREARMS_TRAINING = auto()
+
+SkillProperties = namedtuple(
+    'SkillProperties', [
+        'description', 'effect'
+    ]
+)
+
+SKILLS = {
+    Skill.BODY_BUILDING: SkillProperties('Increases player max HP by 10.', ''),
+    Skill.FREE_RUNNING: SkillProperties('Allows moving between adjacent buildings without going outside.', ''),
+    Skill.CONSTRUCTION: SkillProperties('Player can repair ransacked buildings.', ''),
+    Skill.FIRST_AID: SkillProperties('First Aid Kit heals an additional 10 HP.', ''),
+    Skill.FIREARMS_TRAINING: SkillProperties('Trained with firearms.', '')
+}
+
+
 class Player:
     """Represents the player's character."""
     def __init__(self, city, name, occupation, x, y, inside=False):
         self.name = name
         self.occupation = occupation
-        self.skills = []  # Skills active when human
         self.inventory = pygame.sprite.Group()  # Items carried by the player
         self.weapon = pygame.sprite.GroupSingle()  # The currently equipped weapon
         self.max_hp = 50  # Maximum hit points
@@ -22,50 +43,24 @@ class Player:
         self.skills = set()
         self.location = (x, y)  # Initial location in the 100x100 grid
         self.inside = inside
-        self.starting_trait = self.assign_starting_trait(occupation)
         self.is_dead = False  # Status of the player
         self.search_chances = self.load_search_chances("assets/search.csv")
         self.ticker = 0  # Tracks the number of actions taken
         self.city = city
 
-    class Skills(Enum):
-        BODY_BUILDING = auto()
-        FREE_RUNNING = auto()
-        CONSTRUCTION = auto()
-        FIRST_AID = auto()
+        self.assign_starting_trait(self.occupation)
 
-
-    SKILL_EFFECTS = {
-        Skills.BODY_BUILDING: {
-            "description": "Increases player max HP by 10.",
-            "effect": lambda self: setattr(self, 'max_hp', self.max_hp + 10)
-        },
-        Skills.FREE_RUNNING: {
-            "description": "Allows moving between adjacent buildings without going outside.",
-            "effect": lambda self: setattr(self, 'free_runner', True)
-        },
-        Skills.CONSTRUCTION: {
-            "description": "Player can repair ransacked buildings.",
-            "effect": lambda self: setattr(self, 'can_repair', True)
-        },
-        Skills.FIRST_AID: {
-            "description": "First Aid Kit heals an additional 10 HP.",
-            "effect": lambda self: setattr(self, 'first_aid_bonus', 10)
-        }
-    }
-
+    
     def assign_starting_trait(self, occupation):
         """Assigns a starting trait based on the player's occupation."""
         traits = {
-            "Doctor": "First Aid Training",
-            "Soldier": "Firearms Training",
-            "Engineer": "Construction Skills",
-            "Athlete": "Body Building",
-            "Teacher": "Educational Resources",
-            "Scientist": "Experimental Knowledge",
-            "Police Officer": "Combat Training",
+            "Doctor": Skill.FIRST_AID,
+            "Soldier": Skill.FIREARMS_TRAINING,
+            "Engineer": Skill.CONSTRUCTION,
+            "Athlete": Skill.BODY_BUILDING,
+            "Plumber": Skill.FREE_RUNNING,
         }
-        return traits.get(occupation, "Survivor Instinct")
+        self.skills.add(traits[occupation])
     
     def gain_skill(self, choice):
         """Gain a skill if it's not already learned and enough XP is available."""
@@ -84,12 +79,6 @@ class Player:
 
         print("Not enough XP to learn this skill.")
         return False
-
-    def list_inventory(self):
-        """Returns a string representation of the inventory."""
-        if not self.inventory:
-            return "Inventory is empty."
-        return ", ".join(item.name for item in self.inventory)
 
     def take_damage(self, amount):
         """Reduces the player's health by the given amount."""
@@ -226,15 +215,6 @@ class Player:
         else:
             return "You can't barricade here."
 
-    def where(self):
-        current_x, current_y = self.location
-        current_block = self.city.block(current_x, current_y)
-        properties = BLOCKS[current_block.type]
-        if self.inside:
-            return f"You are standing inside {properties.description} called {current_block.name}."
-        else:
-            return f"You are standing in front of {properties.description} called {current_block.name}."
-
     def enter(self):
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
@@ -361,3 +341,5 @@ class Player:
                     elif event.key == pygame.K_n:  # Quit game
                         pygame.quit()
                         sys.exit()
+
+

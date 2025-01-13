@@ -106,9 +106,9 @@ def main():
         # Draw game elements to screen
         game.game_ui.draw(game.chat_history)
 
-        if hasattr(game.popup_menu, 'menu'):
-            game.popup_menu.menu.handle_events(events)
-            game.popup_menu.menu.draw()
+        if game.popup_menu:
+            game.popup_menu.handle_events(events)
+            game.popup_menu.draw()
 
         game.cursor.update()
         game.cursor.draw()
