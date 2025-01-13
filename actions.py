@@ -38,8 +38,9 @@ class ActionType(Enum):
 class ActionHandler:
     def __init__(self, game):
         self.game = game
+        self.mouse_sprite = None
 
-    def handle_events(self, events, create_context_menu):
+    def handle_events(self, events, ContextMenu):
         """Handle all game events."""
         for event in events:
             if event.type == pygame.QUIT:
@@ -52,7 +53,7 @@ class ActionHandler:
                 self.handle_mousebuttondown(event)
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                self.handle_mousebuttonup(event, create_context_menu)
+                self.handle_mousebuttonup(event, ContextMenu)
 
             elif event.type == pygame.MOUSEMOTION:
                 self.game.cursor.rect.center = event.pos
@@ -96,26 +97,22 @@ class ActionHandler:
         for button in self.game.game_ui.button_group:
             button.handle_event(event)
 
-    def handle_mousebuttonup(self, event, create_context_menu):
+    def handle_mousebuttonup(self, event, ContextMenu):
         """Handle mouse button up events."""
         if event.button == 3:  # Right-click for popup menu
             mouse_pos = pygame.mouse.get_pos()
             target = self.get_click_target(mouse_pos)
-            context_menu = create_context_menu(target, self.game.player, self.game.mouse_target)
+            context_menu = ContextMenu(target, self.game.player, self.mouse_sprite)
             if context_menu:
-                self.game.popup_menu = context_menu['menu']
-                if 'target' in context_menu:
-                    self.game.mouse_target = context_menu['target']
-                if 'dxy' in context_menu:
-                    self.game.menu_dxy = context_menu['dxy']
-                if self.game.popup_menu:
-                    self.game.popup_menu.show()
+                self.game.popup_menu = context_menu
+                if hasattr(self.game.popup_menu, 'menu'):
+                    self.game.popup_menu.menu.show()
 
         elif event.button == 1:
-            if self.game.popup_menu:
-                menu_rect = self.game.popup_menu.menus[-1].rect
+            if hasattr(self.game.popup_menu, 'menu'):
+                menu_rect = self.game.popup_menu.menu.menus[-1].rect
                 if not menu_rect.collidepoint(event.pos):
-                    self.game.popup_menu.hide()
+                    self.game.popup_menu.menu.hide()
                     self.game.popup_menu = None
 
         # Handle button clicks
@@ -151,6 +148,25 @@ class ActionHandler:
         action_type = menu_to_action.get(action)
         if action_type:
             self.execute_action(action_type)
+
+    # Get the target of the mouse click
+    def get_click_target(self, mouse_pos):
+        for sprite in self.game.game_ui.viewport_group:
+            if sprite.dx == 0 and sprite.dy == 0 and sprite.rect.collidepoint(mouse_pos):
+                self.mouse_sprite = sprite
+                return 'center block'
+            elif sprite.rect.collidepoint(mouse_pos):
+                self.mouse_sprite = sprite                
+                return 'block'
+        for sprite in self.game.player.inventory:
+            if sprite.rect.collidepoint(mouse_pos):
+                self.mouse_sprite = sprite  
+                return 'item'
+        for sprite in self.game.game_ui.zombie_sprite_group:
+            if sprite.rect.collidepoint(mouse_pos):
+                self.mouse_sprite = sprite                
+                return 'zombie'
+        return 'screen'
 
     def execute_action(self, action):
         """Execute the action based on ActionType."""
@@ -196,7 +212,7 @@ class ActionHandler:
         
         # Combat
         elif action == ActionType.ATTACK:
-            self.game.chat_history.append(player.attack(self.game.mouse_target))
+            self.game.chat_history.append(player.attack(self.mouse_sprite))
 
         # Building actions
         elif action == ActionType.BARRICADE:
@@ -210,7 +226,7 @@ class ActionHandler:
 
         # Inventory actions
         elif action == ActionType.EQUIP:
-            item = self.game.mouse_target
+            item = self.mouse_sprite
             properties = ITEMS[item.type]
             if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
                 player.weapon.empty()
@@ -220,13 +236,13 @@ class ActionHandler:
                 self.game.chat_history.append(f"You can't equip {properties.description}!")
 
         elif action == ActionType.UNEQUIP:
-            item = self.game.mouse_target
+            item = self.mouse_sprite
             properties = ITEMS[item.type]
             player.weapon.empty()
             self.game.chat_history.append(f"Unequipped {properties.description}.")
 
         elif action == ActionType.USE:
-            item = self.game.mouse_target
+            item = self.mouse_sprite
             properties = ITEMS[item.type]
 
             if item.type == ItemType.FIRST_AID_KIT:
@@ -282,28 +298,11 @@ class ActionHandler:
                     self.game.chat_history.append(f"You can't reload {properties.description}.")                
      
         elif action == ActionType.DROP:
-            item = self.game.mouse_target
+            item = self.mouse_sprite
             properties = ITEMS[item.type]
             item.kill()
             self.game.chat_history.append(f"Dropped {properties.description}.")
 
         self.game.game_ui.update_zombie_sprites()
 
-    # Get the target of the mouse click
-    def get_click_target(self, mouse_pos):
-        for sprite in self.game.game_ui.viewport_group:
-            if sprite.dx == 0 and sprite.dy == 0 and sprite.rect.collidepoint(mouse_pos):
-                self.game.mouse_target = sprite
-                return 'center block'
-            elif sprite.rect.collidepoint(mouse_pos):
-                self.game.mouse_target = sprite                
-                return 'block'
-        for sprite in self.game.player.inventory:
-            if sprite.rect.collidepoint(mouse_pos):
-                self.game.mouse_target = sprite  
-                return 'item'
-        for sprite in self.game.game_ui.zombie_sprite_group:
-            if sprite.rect.collidepoint(mouse_pos):
-                self.game.mouse_target = sprite                
-                return 'zombie'
-        return 'screen'
+

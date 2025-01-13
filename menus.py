@@ -22,56 +22,57 @@ shadow_color = Color(105,105,105)
 
 margin = 2
 
-def get_menu_data(player, sprite):
-    properties = ITEMS[sprite.type]
-    if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
-        if sprite in player.weapon:
-            menu_data = [properties.item_type, 'Unequip', 'Drop']
+
+class ContextMenu:
+    """Create a context-sensitive popup menu based on the target"""
+    def __init__(self, target, player, sprite=None):
+        self.mouse_sprite = sprite
+        self.menu_type = target
+        self.dxy = None
+        self.player = player
+
+        self.menu_data = self.get_menu_data()
+        if self.menu_data:
+            self.menu = NonBlockingPopupMenu(self.menu_data)
+
+    def get_menu_data(self):
+        if self.menu_type == 'item':
+            properties = ITEMS[self.mouse_sprite.type]
+            if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
+                if self.mouse_sprite in self.player.weapon:
+                    menu_data = [properties.item_type, 'Unequip', 'Drop']
+                else:
+                    menu_data = [properties.item_type, 'Equip', 'Drop']
+            elif self.mouse_sprite.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX,]:
+                menu_data = [properties.item_type, 'Use', 'Drop']
+            elif self.mouse_sprite.type == ItemType.PORTABLE_GENERATOR:
+                menu_data = [properties.item_type, 'Install', 'Drop']
+            elif properties.item_function == ItemFunction.AMMO:
+                menu_data = [properties.item_type, 'Reload', 'Drop']
+            return menu_data
+        
+        elif self.menu_type == 'center block':
+            properties = BLOCKS[self.mouse_sprite.block.type]
+            if properties.is_building:
+                if not self.player.inside:
+                    menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
+                elif self.player.inside:
+                    menu_data = ['Actions', 'Barricade', 'Search', 'Leave']
+
+            else:
+                menu_data = ['Actions', 'Search']
+
+        elif self.menu_type == 'block':
+            menu_data = ['Go', 'Move']
+            if self.mouse_sprite is not None:
+                self.dxy = (self.mouse_sprite.dx, self.mouse_sprite.dy)
+
         else:
-            menu_data = [properties.item_type, 'Equip', 'Drop']
-    elif sprite.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX,]:
-        menu_data = [properties.item_type, 'Use', 'Drop']
-    elif sprite.type == ItemType.PORTABLE_GENERATOR:
-        menu_data = [properties.item_type, 'Install', 'Drop']
-    elif properties.item_function == ItemFunction.AMMO:
-        menu_data = [properties.item_type, 'Reload', 'Drop']
-    return menu_data
+            return None
 
-# Create a context-sensitive popup menu based on the target
-def create_context_menu(target, player, sprite=None):
-    mouse_target = sprite
-    menu_dxy = None
 
-    if target == 'item':
-        if sprite is not None:
-            menu_data = get_menu_data(player, mouse_target)
 
-    elif target == 'center block' and sprite.block.is_building:
-        if not player.inside:
-            menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
-        elif target == 'center block' and player.inside:
-            menu_data = ['Actions', 'Barricade', 'Search', 'Leave']
 
-    elif target == 'center block' and not sprite.block.is_building:
-        menu_data = ['Actions', 'Search']
-
-    elif target == 'block':
-        menu_data = ['Go', 'Move']
-        if mouse_target is not None:
-            menu_dxy = (sprite.dx, sprite.dy)
-    
-    elif target == 'zombie':
-        menu_data = ['Zombie', 'Attack']
-
-    else:
-        return None
-
-    context_menu = {'menu': NonBlockingPopupMenu(menu_data)}
-    if mouse_target:
-        context_menu.update({'target': mouse_target})
-    if menu_dxy:
-        context_menu.update({'dxy': menu_dxy})
-    return context_menu
 
 
 ## Sprite cursor also runs while menu is posted.

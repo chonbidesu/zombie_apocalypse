@@ -32,8 +32,6 @@ class GameInitializer:
         self.city = None
         self.cursor = menus.Cursor()
         self.popup_menu = None
-        self.mouse_target = None
-        self.menu_dxy = None
         self.chat_history = [
             "The city is in ruins. Can you make it through the night?", 
             "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
@@ -103,14 +101,14 @@ def main():
         screen.fill(DARK_GREEN)
 
         events = pygame.event.get()
-        game.action_handler.handle_events(events, menus.create_context_menu)
+        game.action_handler.handle_events(events, menus.ContextMenu)
 
         # Draw game elements to screen
         game.game_ui.draw(game.chat_history)
 
-        if game.popup_menu:
-            game.popup_menu.handle_events(events)
-            game.popup_menu.draw()
+        if hasattr(game.popup_menu, 'menu'):
+            game.popup_menu.menu.handle_events(events)
+            game.popup_menu.menu.draw()
 
         game.cursor.update()
         game.cursor.draw()
