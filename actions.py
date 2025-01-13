@@ -30,10 +30,9 @@ class ActionType(Enum):
 
     # System actions
     QUIT = auto()
+    PAUSE = auto()
+    OPTIONS = auto()
     RESTART = auto()
-    SCROLL_UP = auto()
-    SCROLL_DOWN = auto()
-
 
 class ActionHandler:
     def __init__(self, game):
@@ -78,7 +77,7 @@ class ActionHandler:
             pygame.K_e: ActionType.MOVE_UPRIGHT,
             pygame.K_z: ActionType.MOVE_DOWNLEFT,
             pygame.K_c: ActionType.MOVE_DOWNRIGHT,
-            pygame.K_ESCAPE: ActionType.QUIT,
+            pygame.K_ESCAPE: ActionType.PAUSE,
         }
         action = key_to_action.get(event.key)
         if action:
@@ -91,10 +90,15 @@ class ActionHandler:
             target = self.get_click_target(mouse_pos)
             if target == 'zombie':
                 action = ActionType.ATTACK
-                if action:
-                    self.execute_action(action)
+                self.execute_action(action)
+            elif target == 'block':
+                action = ActionType.MOVE_TO
+                self.execute_action(action)                
 
         for button in self.game.game_ui.button_group:
+            button.handle_event(event)
+
+        for button in self.game.pause_menu.button_group:
             button.handle_event(event)
 
     def handle_mousebuttonup(self, event, ContextMenu):
@@ -102,9 +106,9 @@ class ActionHandler:
         if event.button == 3:  # Right-click for popup menu
             mouse_pos = pygame.mouse.get_pos()
             target = self.get_click_target(mouse_pos)
-            context_menu = ContextMenu(target, self.game.player, self.mouse_sprite)
-            if context_menu:
-                self.game.popup_menu = context_menu.menu
+            self.context_menu = ContextMenu(target, self.game.player, self.mouse_sprite)
+            if self.context_menu:
+                self.game.popup_menu = self.context_menu.menu
                 if self.game.popup_menu:
                     self.game.popup_menu.show()
 
@@ -129,6 +133,18 @@ class ActionHandler:
                 if action:
                     self.execute_action(action)
 
+        for button in self.game.pause_menu.button_group:
+            action_name = button.handle_event(event)
+            if action_name:
+                button_to_action = {
+                    'play': ActionType.PAUSE,
+                    'options': ActionType.OPTIONS,
+                    'exit': ActionType.QUIT,
+                }
+                action = button_to_action.get(action_name)
+                if action:
+                    self.execute_action(action)
+
     def handle_popup_menu(self, action):
         """Handle popup menu actions."""
         menu_to_action = {
@@ -138,12 +154,10 @@ class ActionHandler:
             'Install': ActionType.USE,
             'Reload': ActionType.USE,
             'Drop': ActionType.DROP,
-            'Move': ActionType.MOVE_TO,
             'Barricade': ActionType.BARRICADE,
             'Search': ActionType.SEARCH,
             'Enter': ActionType.ENTER,
             'Leave': ActionType.LEAVE,
-            'Attack': ActionType.ATTACK,
         }
         action_type = menu_to_action.get(action)
         if action_type:
@@ -172,6 +186,13 @@ class ActionHandler:
         """Execute the action based on ActionType."""
         if action == ActionType.QUIT:
             self.game.quit_game()
+
+        elif action == ActionType.PAUSE:
+            # Toggle game pause
+            self.game.pause_game()
+            return
+        elif action == ActionType.OPTIONS:
+            pass
 
         player = self.game.player
         player.ticker += 1
@@ -206,9 +227,8 @@ class ActionHandler:
         elif action == ActionType.MOVE_DOWNRIGHT:
             player.move(1, 1)       
         elif action == ActionType.MOVE_TO:
-            dxy = self.game.menu_dxy
-            player.move(dxy[0], dxy[1])
-            self.game.menu_dxy = None
+            dx, dy = self.mouse_sprite.dx, self.mouse_sprite.dy
+            player.move(dx, dy)
         
         # Combat
         elif action == ActionType.ATTACK:

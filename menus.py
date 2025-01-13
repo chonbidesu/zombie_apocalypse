@@ -4,6 +4,7 @@ import pygame
 from pygame import Color, Rect, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, USEREVENT
 
 from settings import *
+from button import Button
 
 # pygame must be initialized before we can create a Font.
 pygame.init()
@@ -22,55 +23,75 @@ shadow_color = Color(105,105,105)
 
 margin = 2
 
+class PauseMenu:
+    """Create a pause menu."""
+    def __init__(self):
+        self.play_button = Button('play', SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 - 100)
+        self.options_button = Button('options', SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2)
+        self.exit_button = Button('exit',  SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 100)
+        self.button_group = self.create_menu_button_group()
+
+    def create_menu_button_group(self):
+        button_group = pygame.sprite.Group()
+        button_group.add(self.play_button)
+        button_group.add(self.options_button)
+        button_group.add(self.exit_button)
+        return button_group
+    
+    def create_skill_list(self):
+        pass        
+    
+    def draw_pause_menu(self, screen):
+        title_text = font_xxl.render("Paused", True, WHITE)
+        title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
+        screen.blit(title_text, title_rect)
+        self.button_group.draw(screen)
+
+
 
 class ContextMenu:
     """Create a context-sensitive popup menu based on the target"""
-    def __init__(self, target, player, sprite=None):
+    def __init__(self, menu_type, player, sprite=None):
         self.mouse_sprite = sprite
-        self.menu_type = target
-        self.dxy = None
         self.player = player
 
-        self.get_menu_data()
-        self.menu = self.create_menu()
+        self.menu = self.create_menu(menu_type)
 
-    def create_menu(self):
-        if self.menu_data:
-            return NonBlockingPopupMenu(self.menu_data)
+    def create_menu(self, menu_type):
+        menu_data = self.get_menu_data(menu_type)
+        if menu_data:
+            return NonBlockingPopupMenu(menu_data)
 
-    def get_menu_data(self):
-        if self.menu_type == 'item':
+    def get_menu_data(self, menu_type):
+        if menu_type == 'item':
             properties = ITEMS[self.mouse_sprite.type]
             if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
                 if self.mouse_sprite in self.player.weapon:
-                    self.menu_data = [properties.item_type, 'Unequip', 'Drop']
+                    menu_data = [properties.item_type, 'Unequip', 'Drop']
                 else:
-                    self.menu_data = [properties.item_type, 'Equip', 'Drop']
+                    menu_data = [properties.item_type, 'Equip', 'Drop']
             elif self.mouse_sprite.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX,]:
-                self.menu_data = [properties.item_type, 'Use', 'Drop']
+                menu_data = [properties.item_type, 'Use', 'Drop']
             elif self.mouse_sprite.type == ItemType.PORTABLE_GENERATOR:
-                self.menu_data = [properties.item_type, 'Install', 'Drop']
+                menu_data = [properties.item_type, 'Install', 'Drop']
             elif properties.item_function == ItemFunction.AMMO:
-                self.menu_data = [properties.item_type, 'Reload', 'Drop']
+                menu_data = [properties.item_type, 'Reload', 'Drop']
         
-        elif self.menu_type == 'center block':
+        elif menu_type == 'center block':
             properties = BLOCKS[self.mouse_sprite.block.type]
             if properties.is_building:
                 if not self.player.inside:
-                    self.menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
+                    menu_data = ['Actions', 'Barricade', 'Search', 'Enter']
                 elif self.player.inside:
-                    self.menu_data = ['Actions', 'Barricade', 'Search', 'Leave']
+                    menu_data = ['Actions', 'Barricade', 'Search', 'Leave']
 
             else:
-                self.menu_data = ['Actions', 'Search']
-
-        elif self.menu_type == 'block':
-            self.menu_data = ['Go', 'Move']
-            if self.mouse_sprite is not None:
-                self.dxy = (self.mouse_sprite.dx, self.mouse_sprite.dy)
+                menu_data = ['Actions', 'Search']
 
         else:
-            self.menu_data = None
+            menu_data = None
+
+        return menu_data 
        
 
 ## Sprite cursor also runs while menu is posted.

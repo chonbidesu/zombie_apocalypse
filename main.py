@@ -31,6 +31,8 @@ class GameInitializer:
         self.player = None
         self.city = None
         self.cursor = menus.Cursor()
+        self.paused = False
+        self.pause_menu = menus.PauseMenu()
         self.popup_menu = None
         self.chat_history = [
             "The city is in ruins. Can you make it through the night?", 
@@ -81,6 +83,13 @@ class GameInitializer:
         """Save the game state to a file."""
         saveload.Gamestate.save_game("savegame.pkl", self.player, self.city, self.zombies)
 
+    def pause_game(self):
+        """Toggle game pause state."""
+        if not self.paused:
+            self.paused = True
+        elif self.paused:
+            self.paused = False
+
     def quit_game(self):
         """Handle cleanup and save the game on exit."""
         self.save_game()
@@ -103,12 +112,17 @@ def main():
         events = pygame.event.get()
         game.action_handler.handle_events(events, menus.ContextMenu)
 
-        # Draw game elements to screen
-        game.game_ui.draw(game.chat_history)
+        if game.paused:
+            game.pause_menu.draw_pause_menu(screen)
 
-        if game.popup_menu:
-            game.popup_menu.handle_events(events)
-            game.popup_menu.draw()
+        else:
+
+            # Draw game elements to screen
+            game.game_ui.draw(game.chat_history)
+
+            if game.popup_menu:
+                game.popup_menu.handle_events(events)
+                game.popup_menu.draw()
 
         game.cursor.update()
         game.cursor.draw()
