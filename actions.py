@@ -82,6 +82,8 @@ class ActionHandler:
         }
         if self.game.reading_map:
             key_to_action.update({pygame.K_ESCAPE: ActionType.CLOSE_MAP})
+        else:
+            key_to_action.update({pygame.K_ESCAPE: ActionType.PAUSE})
         action = key_to_action.get(event.key)
         if action:
             self.execute_action(action)

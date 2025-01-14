@@ -14,6 +14,7 @@ class DrawUI:
         self.player = player
         self.city = city
         self.zombies = zombies
+        self.map = self.Map(screen, player, self.wrap_text)
         self.viewport_frame = pygame.image.load('assets/viewport_frame.png').convert_alpha()
         self.description_panel_image = pygame.image.load("assets/description_panel.png").convert_alpha()
         self.chat_panel_image = pygame.image.load("assets/chat_panel.png").convert_alpha()
@@ -643,6 +644,82 @@ class DrawUI:
                 )
             self.draw_hp_bar()
 
+    class Map:
+        def __init__(self, screen, player, wrap_text):
+            self.screen = screen
+            self.player = player
+            self.wrap_text = wrap_text
+            self.GRID_ROWS = 10
+            self.GRID_COLS = 10
+            self.BLOCK_PADDING = 2
+            self.zoom_in = True
+
+            self.MAP_SIZE = SCREEN_HEIGHT - 50
+            self.block_size = (self.MAP_SIZE - (self.GRID_ROWS + 1) * self.BLOCK_PADDING) // self.GRID_ROWS
+            self.map_surface = pygame.Surface((SCREEN_WIDTH - 20, SCREEN_HEIGHT - 20))
+            self.map_surface.fill((255, 255, 255))
+            self.city_map = pygame.Surface((self.MAP_SIZE, self.MAP_SIZE))
+            self.city_map.fill((0, 0, 0))
+
+        def draw(self):
+            blink_state = pygame.time.get_ticks() // 500 % 2 == 0
+            player_block = self.player.city.block(self.player.location[0], self.player.location[1])
+
+            self.screen.blit(self.map_surface, (10, 10))
+
+            map_data = self._get_map_data(player_block)
+            self._draw_map(map_data)
+            #self._draw_player_location(blink_state)  # FIX THIS BEFORE UNCOMMENTING
+
+        def _draw_map(self, map_data): 
+            index = 0
+            for row in range(self.GRID_ROWS):
+                for col in range(self.GRID_COLS):
+                    # Calculate top-left corner of the block
+                    x = self.BLOCK_PADDING + col * (self.block_size + self.BLOCK_PADDING) + 4
+                    y = self.BLOCK_PADDING + row * (self.block_size + self.BLOCK_PADDING) + 4
+
+                    # Draw block
+                    pygame.draw.rect(self.city_map, (255, 255, 255), (x, y, self.block_size, self.block_size))
+                    
+                    label_name = map_data[index]
+                    label_text = self.wrap_text(label_name, font_xs, self.block_size - 2)
+                    text_height = sum(font_xs.size(line)[1] for line in label_text)
+
+                    # Draw label onto the block surface
+                    y_offset = self.block_size - text_height
+                    for line in label_text:
+                        text_surface = font_xs.render(line, True, BLACK)
+                        text_rect = text_surface.get_rect(center=(x + self.block_size // 2, y + y_offset))
+                        self.city_map.blit(text_surface, text_rect)
+                        y_offset += font_xs.size(line)[1]
+
+                    index += 1
+
+            self.screen.blit(self.city_map, (25, 25))
+
+        def _get_map_data(self, player_block):
+            if self.zoom_in:
+                map_data = []
+                neighbourhood_index = NEIGHBOURHOODS.index(player_block.neighbourhood)
+                neighbourhood_x = neighbourhood_index % 10 * 10
+                neighbourhood_y = int(neighbourhood_index // 10) * 10
+
+                for y in range(neighbourhood_y, neighbourhood_y + 10):
+                    for x in range(neighbourhood_x, neighbourhood_x + 10):
+                        block = self.player.city.block(x, y)
+                        map_data.append(block.name)
+                return map_data
+            
+            else:
+                return NEIGHBOURHOODS
+                        
+
+        def _draw_player_location(self): # NEEDS TO BE FIXED
+                pygame.draw.circle(city_map, (255, 0, 0), (x + self.block_size // 2, y + self.block_size // 2 - 10), 10)
+
+
+
 class Cursor(object):
     def __init__(self):
         self.image = pygame.image.load('assets/zombie_hand.png').convert_alpha()
@@ -655,51 +732,5 @@ class Cursor(object):
 
     def draw(self):
         pygame.display.get_surface().blit(self.image, self.rect)
-
-class Map:
-    def __init__(self):
-        pass
-
-    def draw(self, screen, player):
-        map_surface = pygame.Surface((SCREEN_WIDTH - 20, SCREEN_HEIGHT - 20))
-        map_surface.fill((255, 255, 255))
-        screen.blit(map_surface, (10, 10))
-
-        GRID_ROWS = 10
-        GRID_COLS = 10
-        BLOCK_PADDING = 2
-
-        map_size = SCREEN_HEIGHT - 50
-        block_size = (map_size - (GRID_ROWS + 1) * BLOCK_PADDING) // GRID_ROWS
-        city_map = pygame.Surface((map_size, map_size))
-        city_map.fill((0, 0, 0))
-
-        blink_state = pygame.time.get_ticks() // 500 % 2 == 0
-
-        player_block = player.city.block(player.location[0], player.location[1])
-        player_neighbourhood = player_block.neighbourhood
-
-        neighbourhood_id = 1
-
-        for row in range(GRID_ROWS):
-            for col in range(GRID_COLS):
-                # Calculate top-left corner of the block
-                x = BLOCK_PADDING + col * (block_size + BLOCK_PADDING) + 4
-                y = BLOCK_PADDING + row * (block_size + BLOCK_PADDING) + 4
-
-                # Draw block
-                pygame.draw.rect(city_map, (255, 255, 255), (x, y, block_size, block_size))
-
-                neighbourhood_name = NEIGHBOURHOODS[neighbourhood_id]
-                text_surface = font_xs.render(neighbourhood_name, True, BLACK)
-                text_rect = text_surface.get_rect(center=(x + block_size // 2, y + block_size // 2))
-                city_map.blit(text_surface, text_rect)
-
-                if player_block.neighbourhood == neighbourhood_id and blink_state:
-                    pygame.draw.circle(city_map, (255, 0, 0), (x + block_size // 2, y + block_size // 2 - 10), 5)
-
-                neighbourhood_id += 1
-
-        screen.blit(city_map, (25, 25))
 
 

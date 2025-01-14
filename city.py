@@ -184,7 +184,7 @@ class City:
 
         for y_start in range(0, CITY_SIZE, NEIGHBOURHOOD_SIZE): # Iterate over rows in steps of 10
             for x_start in range(0, CITY_SIZE, NEIGHBOURHOOD_SIZE): # Iterate over columns in steps of 10
-                neighbourhood_name = list(NEIGHBOURHOODS.values())[neighbourhood_index]
+                neighbourhood_name = NEIGHBOURHOODS[neighbourhood_index]
                 neighbourhood_index += 1
 
                 # Collect blocks and add to neighbourhood group

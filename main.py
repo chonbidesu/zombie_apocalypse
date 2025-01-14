@@ -35,7 +35,6 @@ class GameInitializer:
         self.pause_menu = menus.PauseMenu()
         self.popup_menu = None
         self.reading_map = False
-        self.map = ui.Map()
         self.chat_history = [
             "The city is in ruins. Can you make it through the night?", 
             "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
@@ -115,8 +114,8 @@ def main():
         if game.paused:
             game.pause_menu.draw_pause_menu(screen)
 
-        if game.reading_map:
-            game.map.draw(screen, game.player)
+        elif game.reading_map:
+            game.game_ui.map.draw()
 
         else:
 
