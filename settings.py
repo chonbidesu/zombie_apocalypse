@@ -37,6 +37,7 @@ RANSACKED_MULTIPLIER = 0.3
 
 # Fonts
 pygame.init()
+font_xs = pygame.font.SysFont(None, 12)
 font_small = pygame.font.SysFont(None, 16)
 font_large = pygame.font.SysFont(None, 26)
 font_xl = pygame.font.SysFont(None, 56)

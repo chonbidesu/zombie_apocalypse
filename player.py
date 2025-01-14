@@ -215,6 +215,17 @@ class Player:
         else:
             return "You can't barricade here."
 
+    def repair_building(self):
+        current_x, current_y = self.location
+        current_block = self.city.block(current_x, current_y)
+        properties = BLOCKS[current_block.type]
+        if properties.is_building and self.inside:
+            if current_block.is_ransacked:
+                current_block.is_ransacked = False
+                return "You repaired the interior of the building and cleaned up the mess."
+            else:
+                return "There's nothing to repair here."
+
     def enter(self):
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)

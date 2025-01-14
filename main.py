@@ -30,10 +30,12 @@ class GameInitializer:
     def __init__(self):
         self.player = None
         self.city = None
-        self.cursor = menus.Cursor()
+        self.cursor = ui.Cursor()
         self.paused = False
         self.pause_menu = menus.PauseMenu()
         self.popup_menu = None
+        self.reading_map = False
+        self.map = ui.Map()
         self.chat_history = [
             "The city is in ruins. Can you make it through the night?", 
             "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
@@ -97,8 +99,6 @@ class GameInitializer:
         sys.exit()
 
 
-
-
 # Main game loop
 def main():
     running = True
@@ -114,6 +114,9 @@ def main():
 
         if game.paused:
             game.pause_menu.draw_pause_menu(screen)
+
+        if game.reading_map:
+            game.map.draw(screen, game.player)
 
         else:
 

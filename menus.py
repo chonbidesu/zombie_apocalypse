@@ -94,20 +94,6 @@ class ContextMenu:
         return menu_data 
        
 
-## Sprite cursor also runs while menu is posted.
-class Cursor(object):
-    def __init__(self):
-        self.image = pygame.image.load('assets/zombie_hand.png').convert_alpha()
-        self.rect = self.image.get_rect(center=(0,0))
-        pygame.mouse.set_visible(False)
-    
-    def update(self):
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        self.rect.topleft = (mouse_x, mouse_y)
-
-    def draw(self):
-        pygame.display.get_surface().blit(self.image, self.rect)
-
 # Class for right-click menus
 class PopupMenu(object):
     """popup_menu.PopupMenu

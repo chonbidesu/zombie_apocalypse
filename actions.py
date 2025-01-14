@@ -32,6 +32,7 @@ class ActionType(Enum):
     QUIT = auto()
     PAUSE = auto()
     OPTIONS = auto()
+    CLOSE_MAP = auto()
     RESTART = auto()
 
 class ActionHandler:
@@ -79,6 +80,8 @@ class ActionHandler:
             pygame.K_c: ActionType.MOVE_DOWNRIGHT,
             pygame.K_ESCAPE: ActionType.PAUSE,
         }
+        if self.game.reading_map:
+            key_to_action.update({pygame.K_ESCAPE: ActionType.CLOSE_MAP})
         action = key_to_action.get(event.key)
         if action:
             self.execute_action(action)
@@ -194,6 +197,9 @@ class ActionHandler:
         elif action == ActionType.OPTIONS:
             pass
 
+        elif action == ActionType.CLOSE_MAP:
+            self.game.reading_map = False
+
         player = self.game.player
         player.ticker += 1
 
@@ -293,7 +299,12 @@ class ActionHandler:
 
             elif item.type == ItemType.TOOLBOX:
                 if player.inside:
-                    pass
+                    self.game.chat_history.append(player.repair_building())
+                else:
+                    self.game.chat_history.append("You have to be inside a building to use this.")
+
+            elif item.type == ItemType.MAP:
+                self.game.reading_map = True
             
             elif item.type == ItemType.PISTOL_CLIP:
                 weapon = player.weapon.sprite

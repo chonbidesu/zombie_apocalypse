@@ -133,7 +133,7 @@ class Gamestate:
         # Reconstruct inventory
         for item_data in self.player_data["inventory"]:
             # Create item using the predefined method
-            item = player.create_item(item_data["type"])
+            item = player.create_item(item_data["type"].name)
             properties = ITEMS[item.type]
             item.image_file = properties.image_file
 
