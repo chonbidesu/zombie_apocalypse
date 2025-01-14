@@ -669,7 +669,10 @@ class DrawUI:
 
             map_data = self._get_map_data(player_block)
             self._draw_map(map_data)
-            #self._draw_player_location(blink_state)  # FIX THIS BEFORE UNCOMMENTING
+            if blink_state:
+                self._draw_player_location(map_data)  
+            
+            self.screen.blit(self.city_map, (25, 25))
 
         def _draw_map(self, map_data): 
             index = 0
@@ -696,7 +699,7 @@ class DrawUI:
 
                     index += 1
 
-            self.screen.blit(self.city_map, (25, 25))
+            
 
         def _get_map_data(self, player_block):
             if self.zoom_in:
@@ -715,8 +718,29 @@ class DrawUI:
                 return NEIGHBOURHOODS
                         
 
-        def _draw_player_location(self): # NEEDS TO BE FIXED
-                pygame.draw.circle(city_map, (255, 0, 0), (x + self.block_size // 2, y + self.block_size // 2 - 10), 10)
+        def _draw_player_location(self, map_data):
+            (player_x, player_y) = self.player.location
+            current_block = self.player.city.block(player_x, player_y)
+            for index, datum in enumerate(map_data):
+                if self.zoom_in:
+                    if datum == current_block.name:
+                        player_index = index
+                else:
+                    if datum == current_block.neighbourhood:
+                        player_index = index
+            
+            # Count the city blocks until player location is reached
+            index = 0
+            for row in range(self.GRID_ROWS):
+                for col in range(self.GRID_COLS):
+                    if index == player_index:                    
+                        # Calculate top-left corner of the city block
+                        x = self.BLOCK_PADDING + col * (self.block_size + self.BLOCK_PADDING) + 4
+                        y = self.BLOCK_PADDING + row * (self.block_size + self.BLOCK_PADDING) + 4
+
+                        pygame.draw.circle(self.city_map, (255, 0, 0), (x + self.block_size // 2, y + self.block_size // 2 - 10), 10)
+                    
+                    index += 1
 
 
 

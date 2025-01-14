@@ -142,8 +142,7 @@ class Player:
     def attack(self, target):
         if self.weapon:
             weapon = self.weapon.sprite
-            weapon_type = weapon.weapon_type
-            properties = ITEMS[weapon_type]
+            properties = ITEMS[weapon.type]
             if properties.item_function == ItemFunction.FIREARM:
                 if weapon.loaded_ammo == 0:
                     return "Your weapon is out of ammo."
