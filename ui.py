@@ -468,7 +468,7 @@ class DrawUI:
         # Draw the inventory group to screen
         self.player.inventory.draw(self.screen)
 
-    def circle_wipe(self, target_function, chat_history, duration=1.5):
+    def circle_wipe(self, target_function, chat_history, duration=1.0):
         """Perform a circle wipe transition effect and call the target_function to change game state."""
         max_radius = int((SCREEN_WIDTH**2 + SCREEN_HEIGHT**2)**0.5) # Cover the screen
         clock = pygame.time.Clock()
@@ -498,12 +498,12 @@ class DrawUI:
             pygame.draw.circle(mask_surface, (0, 0, 0, 0), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), radius)
             self.screen.blit(mask_surface, (0, 0))
             pygame.display.flip()
-            clock.tick(30)
+            clock.tick(60)
 
         return result
 
     def action_progress(self, message, chat_history, duration=6.0):
-        """Display a 'Searching...' message with incrementing dots."""
+        """Display a 'Searching...' message with incrementing dots, or a similar message."""
         clock = pygame.time.Clock()
         steps = int(duration * 2)
         dot_limit = 6
@@ -511,8 +511,10 @@ class DrawUI:
         def draw_message(message):
             self.draw(chat_history)
             text_surface = font_xl.render(message, True, (255, 255, 255))
-            text_rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-            self.screen.blit(text_surface, text_rect)
+            # Check if text_rect has been cached
+            if not hasattr(self, 'text_rect'):
+                self.text_rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            self.screen.blit(text_surface, self.text_rect)
             pygame.display.flip()
 
         # Display the message and increment dots
@@ -520,7 +522,10 @@ class DrawUI:
             if i // 2 < dot_limit:
                 current_message = message + " ." * (i // 2)
             draw_message(current_message)
-            clock.tick(10)
+            clock.tick(20)
+
+        # Reset the text_rect after we are done with it
+        del self.text_rect
 
     class BlockSprite(pygame.sprite.Sprite):
         """Represents a visual sprite for a CityBlock in the viewport."""

@@ -26,6 +26,7 @@ pygame.display.set_caption("Zombie Apocalypse")
 clock = pygame.time.Clock()
 
 class GameInitializer:
+    """Initialize the game, centralizing resources."""
     def __init__(self):
         self.player = None
         self.city = None
@@ -107,27 +108,32 @@ def main():
     while running:
         screen.fill(DARK_GREEN)
 
+        # Handle events
         events = pygame.event.get()
         game.action_handler.handle_events(events, menus.ContextMenu)
 
+        # Handle pause menu
         if game.paused:
             game.pause_menu.draw_pause_menu(screen)
 
+        # Handle opening the map
         elif game.reading_map:
             game.game_ui.map.draw()
 
         else:
-
             # Draw game elements to screen
             game.game_ui.draw(game.chat_history)
 
+            # Handle right-click menu
             if game.popup_menu:
                 game.popup_menu.handle_events(events)
                 game.popup_menu.draw()
 
+        # Draw the cursor
         game.cursor.update()
         game.cursor.draw()
 
+        # Handle player death
         if game.player.is_dead:
             result = game.player.show_death_screen(screen)
             if result == "restart":

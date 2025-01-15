@@ -177,8 +177,8 @@ class ActionHandler:
         if action_type:
             self.execute_action(action_type)
 
-    # Get the target of the mouse click
     def get_click_target(self, mouse_pos):
+        """Get the target of a mouse click, saving the sprite and returning the target type."""
         for sprite in self.game.game_ui.viewport_group:
             if sprite.dx == 0 and sprite.dy == 0 and sprite.rect.collidepoint(mouse_pos):
                 self.mouse_sprite = sprite
@@ -357,6 +357,7 @@ class ActionHandler:
             item.kill()
             self.game.chat_history.append(f"Dropped {properties.description}.")
 
+        # Update zombie sprites after taking action
         self.game.game_ui.update_zombie_sprites()
 
 

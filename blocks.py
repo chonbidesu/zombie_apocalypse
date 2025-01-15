@@ -17,6 +17,7 @@ class CityBlock:
         self.is_known = False # Has the player seen the block
 
     def generate_descriptions(self, descriptions_data):
+        """Randomly construct three-sentence descriptions of city blocks."""
         if self.type.name in descriptions_data:
             data = descriptions_data[self.type.name]
             
@@ -44,6 +45,7 @@ class BuildingBlock(CityBlock):
         self.generator_installed = False
 
     def generate_descriptions(self, descriptions_data):
+        """Randomly construct three-sentence descriptions of building blocks."""
         if self.type.name in descriptions_data:
             data = descriptions_data[self.type.name]
             
