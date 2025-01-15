@@ -31,6 +31,7 @@ class DrawUI:
         self.zombie_sprite_sheet = spritesheet.SpriteSheet(self.sprite_sheet_image)
         self.user_scrolled = False
 
+    # Draw all ui elements to the screen
     def draw(self, chat_history):
         self.draw_viewport_frame()
         self.draw_neighbourhood_name()
@@ -57,6 +58,7 @@ class DrawUI:
 
         for sprite in self.viewport_group:
             sprite.update_data()
+            sprite.block.is_known = True
 
     # Set up action button group
     def create_button_group(self):
@@ -443,6 +445,59 @@ class DrawUI:
         # Draw the inventory group to screen
         self.player.inventory.draw(self.screen)
 
+    def circle_wipe(self, target_function, chat_history, duration=1.5):
+        """Perform a circle wipe transition effect and call the target_function to change game state."""
+        max_radius = int((SCREEN_WIDTH**2 + SCREEN_HEIGHT**2)**0.5) # Cover the screen
+        clock = pygame.time.Clock()
+        steps = int(duration * 30)
+        increment = max_radius // steps
+
+        # Create surface for the mask effect
+        mask_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+
+        # Circle wipe to black
+        for radius in range(max_radius, 0, -increment):
+            self.draw(chat_history)
+            mask_surface.fill((0, 0, 0, 255))
+            pygame.draw.circle(mask_surface, (0, 0, 0, 0), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), radius)
+            self.screen.blit(mask_surface, (0, 0))
+            pygame.display.flip()
+            clock.tick(30)
+
+        # Execute the target function
+        result = target_function()
+        self.update_zombie_sprites()
+
+        # Reverse circle wipe to reveal new state
+        for radius in range(0, max_radius, increment):
+            self.draw(chat_history)
+            mask_surface.fill((0, 0, 0, 255))
+            pygame.draw.circle(mask_surface, (0, 0, 0, 0), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), radius)
+            self.screen.blit(mask_surface, (0, 0))
+            pygame.display.flip()
+            clock.tick(30)
+
+        return result
+
+    def action_progress(self, message, chat_history, duration=6.0):
+        """Display a 'Searching...' message with incrementing dots."""
+        clock = pygame.time.Clock()
+        steps = int(duration * 2)
+        dot_limit = 6
+
+        def draw_message(message):
+            self.draw(chat_history)
+            text_surface = font_xl.render(message, True, (255, 255, 255))
+            text_rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            self.screen.blit(text_surface, text_rect)
+            pygame.display.flip()
+
+        # Display the message and increment dots
+        for i in range(steps):
+            if i // 2 < dot_limit:
+                current_message = message + " ." * (i // 2)
+            draw_message(current_message)
+            clock.tick(10)
 
     class BlockSprite(pygame.sprite.Sprite):
         """Represents a visual sprite for a CityBlock in the viewport."""
@@ -518,13 +573,13 @@ class DrawUI:
 
         def draw_block_label(self):
             """Render the block label onto the block's surface."""
-            block_text = self.wrap_text(self.block.name, font_small, BLOCK_SIZE - 10)
+            block_text = self.wrap_text(self.block.name, font_small, BLOCK_SIZE - 2)
             text_height = sum(font_small.size(line)[1] for line in block_text)
 
             image_copy = self.image.copy()
 
             label_rect = pygame.Rect(
-                0, BLOCK_SIZE - text_height - 10, BLOCK_SIZE, text_height + 10
+                0, BLOCK_SIZE - text_height - 2, BLOCK_SIZE, text_height + 2
             )
             if self.properties.is_building:
                 if self.block.lights_on:
@@ -535,7 +590,7 @@ class DrawUI:
                 pygame.draw.rect(image_copy, WHITE, label_rect)
 
             # Draw text onto the block surface
-            y_offset = label_rect.top + 10
+            y_offset = label_rect.top + 5
             for line in block_text:
                 text_surface = font_small.render(line, True, BLACK)
                 text_rect = text_surface.get_rect(center=(BLOCK_SIZE // 2, y_offset))
@@ -698,51 +753,70 @@ class DrawUI:
                         row_offset = int(neighbourhood_index // 10) * 10
                         current_block = self.player.city.block(col + col_offset, row + row_offset)
     
-                        # Draw block
-                        block_image = self.block_images[current_block.type]
-                        if current_block.type == BlockType.STREET:
-                            image_width, image_height = block_image.get_width(), block_image.get_height()
+                        # Check if the player has seen the block before
+                        if current_block.is_known:
+                            # Draw block
+                            block_image = self.block_images[current_block.type]
+                            if current_block.type == BlockType.STREET:
+                                image_width, image_height = block_image.get_width(), block_image.get_height()
 
-                            # Define the zoom-in factor (e.g., 2x zoom = 50% of the original size)
-                            zoom_factor = 2
-                            zoom_width, zoom_height = image_width // zoom_factor, image_height // zoom_factor
+                                # Define the zoom-in factor (e.g., 2x zoom = 50% of the original size)
+                                zoom_factor = 2
+                                zoom_width, zoom_height = image_width // zoom_factor, image_height // zoom_factor
 
-                            # Check if zoom coordinates are cached
-                            if (col, row) in self.cached_zoom:
-                                (zoom_x, zoom_y) = self.cached_zoom[(col, row)]
-                            else:
-                                zoom_x = random.randint(0, image_width - zoom_width)
-                                zoom_y = random.randint(0, image_height - zoom_height)
+                                # Check if zoom coordinates are cached
+                                if (col, row) in self.cached_zoom:
+                                    (zoom_x, zoom_y) = self.cached_zoom[(col, row)]
+                                else:
+                                    zoom_x = random.randint(0, image_width - zoom_width)
+                                    zoom_y = random.randint(0, image_height - zoom_height)
 
-                                self.cached_zoom[(col, row)] = (zoom_x, zoom_y)
+                                    self.cached_zoom[(col, row)] = (zoom_x, zoom_y)
 
-                            # Extract the zoomed-in portion
-                            zoomed_surface = block_image.subsurface((zoom_x, zoom_y, zoom_width, zoom_height))
+                                # Extract the zoomed-in portion
+                                zoomed_surface = block_image.subsurface((zoom_x, zoom_y, zoom_width, zoom_height))
 
-                            # Scale it to the target block size and assign it to the sprite
-                            block_image = pygame.transform.scale(zoomed_surface, (self.block_size, self.block_size))
+                                # Scale it to the target block size and assign it to the sprite
+                                block_image = pygame.transform.scale(zoomed_surface, (self.block_size, self.block_size))
+
+                            label_name = map_data[index]
+                            block_image = self._draw_block_label(block_image, label_name)
+
+                            self.city_map.blit(block_image, (x, y))
+
+                        else:
+                            # Draw fog of war block
+                            pygame.draw.rect(self.city_map, (125, 125, 125), (x, y, self.block_size, self.block_size))
 
 
-                        self.city_map.blit(block_image, (x, y))
 
                     else:
                         # Draw block
                         pygame.draw.rect(self.city_map, (255, 255, 255), (x, y, self.block_size, self.block_size))
 
-                    label_name = map_data[index]
-                    label_text = self.wrap_text(label_name, font_xs, self.block_size - 2)
-                    text_height = sum(font_xs.size(line)[1] for line in label_text)
-
-                    # Draw label onto the block surface
-                    y_offset = self.block_size - text_height
-                    for line in label_text:
-                        text_surface = font_xs.render(line, True, BLACK)
-                        text_rect = text_surface.get_rect(center=(x + self.block_size // 2, y + y_offset))
-                        self.city_map.blit(text_surface, text_rect)
-                        y_offset += font_xs.size(line)[1]
-
                     index += 1
 
+        def _draw_block_label(self, block_image, label_name):
+            """Render the block label onto the block's surface."""
+            label_text = self.wrap_text(label_name, font_xs, self.block_size - 2)
+            text_height = sum(font_xs.size(line)[1] for line in label_text)
+
+            image_copy = block_image.copy()
+            label_rect = pygame.Rect(
+                0, self.block_size - text_height - 2, self.block_size, text_height + 2
+            )
+
+            pygame.draw.rect(image_copy, WHITE, label_rect)
+
+            # Draw text onto the block surface
+            y_offset = label_rect.top + 5
+            for line in label_text:
+                text_surface = font_xs.render(line, True, BLACK)
+                text_rect = text_surface.get_rect(center=(self.block_size // 2, y_offset))
+                image_copy.blit(text_surface, text_rect)
+                y_offset += font_xs.size(line)[1]
+
+            return image_copy
 
         def _get_map_data(self, player_block):
             if self.zoom_in:

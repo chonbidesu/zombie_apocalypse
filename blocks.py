@@ -14,6 +14,7 @@ class CityBlock:
         self.observations = []
         self.neighbourhood = ''
         self.current_zombies = 0 # Number of zombies currently in the block
+        self.is_known = False # Has the player seen the block
 
     def generate_descriptions(self, descriptions_data):
         if self.type.name in descriptions_data:

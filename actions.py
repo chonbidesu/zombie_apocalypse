@@ -69,21 +69,30 @@ class ActionHandler:
 
     def handle_keydown(self, event):
         """Handle key press events."""
-        key_to_action = {
-            pygame.K_w: ActionType.MOVE_UP,
-            pygame.K_s: ActionType.MOVE_DOWN,
-            pygame.K_a: ActionType.MOVE_LEFT,
-            pygame.K_d: ActionType.MOVE_RIGHT,
-            pygame.K_q: ActionType.MOVE_UPLEFT,
-            pygame.K_e: ActionType.MOVE_UPRIGHT,
-            pygame.K_z: ActionType.MOVE_DOWNLEFT,
-            pygame.K_c: ActionType.MOVE_DOWNRIGHT,
-            pygame.K_ESCAPE: ActionType.PAUSE,
-        }
         if self.game.reading_map:
-            key_to_action.update({pygame.K_ESCAPE: ActionType.CLOSE_MAP})
+            key_to_action = {
+                pygame.K_ESCAPE: ActionType.CLOSE_MAP,
+                pygame.K_w: '',
+                pygame.K_s: '',
+                pygame.K_a: '',
+                pygame.K_d: '',
+                pygame.K_q: '',
+                pygame.K_e: '',
+                pygame.K_z: '',
+                pygame.K_c: '',
+            }
         else:
-            key_to_action.update({pygame.K_ESCAPE: ActionType.PAUSE})
+            key_to_action = {
+                pygame.K_w: ActionType.MOVE_UP,
+                pygame.K_s: ActionType.MOVE_DOWN,
+                pygame.K_a: ActionType.MOVE_LEFT,
+                pygame.K_d: ActionType.MOVE_RIGHT,
+                pygame.K_q: ActionType.MOVE_UPLEFT,
+                pygame.K_e: ActionType.MOVE_UPRIGHT,
+                pygame.K_z: ActionType.MOVE_DOWNLEFT,
+                pygame.K_c: ActionType.MOVE_DOWNRIGHT,
+                pygame.K_ESCAPE: ActionType.PAUSE,
+            }
         action = key_to_action.get(event.key)
         if action:
             self.execute_action(action)
@@ -96,7 +105,7 @@ class ActionHandler:
             if target == 'zombie':
                 action = ActionType.ATTACK
                 self.execute_action(action)
-            elif target == 'block':
+            elif target == 'block' and not self.game.popup_menu:
                 action = ActionType.MOVE_TO
                 self.execute_action(action)                
 
@@ -244,13 +253,22 @@ class ActionHandler:
 
         # Building actions
         elif action == ActionType.BARRICADE:
+            self.game.game_ui.action_progress('Barricading', self.game.chat_history)
             self.game.chat_history.append(player.barricade())
         elif action == ActionType.SEARCH:
+            self.game.game_ui.action_progress('Searching', self.game.chat_history)
             self.game.chat_history.append(player.search())
         elif action == ActionType.ENTER:
-            self.game.chat_history.append(player.enter())
+            current_block = player.city.block(player.location[0], player.location[1])
+            properties = BLOCKS[current_block.type]
+            if properties.is_building:
+                result = self.game.game_ui.circle_wipe(player.enter, self.game.chat_history)
+                self.game.chat_history.append(result)
+            else:
+                self.game.chat_history.append(player.enter())
         elif action == ActionType.LEAVE:
-            self.game.chat_history.append(player.leave())
+            result = self.game.game_ui.circle_wipe(player.leave, self.game.chat_history)
+            self.game.chat_history.append(result)
 
         # Inventory actions
         elif action == ActionType.EQUIP:
@@ -283,6 +301,7 @@ class ActionHandler:
         
             elif item.type == ItemType.PORTABLE_GENERATOR:
                 if player.inside:
+                    self.game.game_ui.action_progress('Installing generator', self.game.chat_history)
                     result, item_used = player.install_generator()
                     self.game.chat_history.append(result)
                     if item_used:
@@ -292,6 +311,7 @@ class ActionHandler:
        
             elif item.type == ItemType.FUEL_CAN:
                 if player.inside:
+                    self.game.game_ui.action_progress('Fuelling generator', self.game.chat_history)
                     result, item_used = player.fuel_generator()
                     self.game.chat_history.append(result)
                     if item_used:
@@ -301,6 +321,7 @@ class ActionHandler:
 
             elif item.type == ItemType.TOOLBOX:
                 if player.inside:
+                    self.game.game_ui.action_progress('Repairing building', self.game.chat_history)
                     self.game.chat_history.append(player.repair_building())
                 else:
                     self.game.chat_history.append("You have to be inside a building to use this.")

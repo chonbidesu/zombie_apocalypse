@@ -22,6 +22,7 @@ class Gamestate:
                     "block_name": block.name,
                     "block_outside_desc": block.block_outside_desc,
                     "neighbourhood": block.neighbourhood,
+                    "is_known": block.is_known,
                 }
                 if properties.is_building:
                     block_data.update({
@@ -115,6 +116,7 @@ class Gamestate:
             block.x = block_data["x"]
             block.y = block_data["y"]
             block.neighbourhood = block_data["neighbourhood"]
+            block.is_known = block_data["is_known"]
 
             # Place the block in the correct position in the grid
             city.grid[block.y][block.x] = block
