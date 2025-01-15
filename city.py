@@ -139,30 +139,38 @@ class City:
                         continue
 
                     # Try to expand the mall to adjacent blocks
-                    #right_spread = False
-                    #below_spread = False
+                    right_spread = False
+                    below_spread = False
 
                     # Right neighbor
-                    if x + 1 < CITY_SIZE and 0 < y - 1 and y + 1 < CITY_SIZE:  # Ensure within bounds
-                        adjacent_blocks = [grid[y - 1][x + 1], grid[y][x + 1], grid[y + 1][x + 1]]
-                        for right_block in adjacent_blocks:
-                            if right_block.type == BlockType.STREET and mall_sizes[mall_name] < 4:
-                                new_block = self._replace_block(right_block, block, 'MALL', right_block.x, right_block.y)
-                                if new_block:
-                                    mall_sizes[mall_name] += 1
-                                    #right_spread = True
-                                    grid[right_block.y][right_block.x] = new_block
+                    if x + 1 < CITY_SIZE:  # Ensure within bounds
+                        right_block = grid[y][x + 1]
+                        if right_block.type == BlockType.STREET and mall_sizes[mall_name] < 4:
+                            new_block = self._replace_block(right_block, block, 'MALL', right_block.x, right_block.y)
+                            if new_block:
+                                mall_sizes[mall_name] += 1
+                                right_spread = True
+                                grid[right_block.y][right_block.x] = new_block
 
                     # Bottom neighbor
-                    if y + 1 < CITY_SIZE and 0 < x - 1 and x + 1 < CITY_SIZE:  # Ensure within bounds
-                        adjacent_blocks = [grid[y + 1][x - 1], grid[y + 1][x], grid[y + 1][x + 1]]
-                        for bottom_block in adjacent_blocks:
-                            if bottom_block.type == BlockType.STREET and mall_sizes[mall_name] < 4:
-                                new_block = self._replace_block(bottom_block, block, 'MALL', bottom_block.x, bottom_block.y)
+                    if y + 1 < CITY_SIZE:  # Ensure within bounds
+                        bottom_block = grid[y + 1][x]
+                        if bottom_block.type == BlockType.STREET and mall_sizes[mall_name] < 4:
+                            new_block = self._replace_block(bottom_block, block, 'MALL', bottom_block.x, bottom_block.y)
+                            if new_block:
+                                mall_sizes[mall_name] += 1
+                                below_spread = True
+                                grid[bottom_block.y][bottom_block.x] = new_block
+
+                    # Diagonal neighbor
+                    if right_spread or below_spread:
+                        if y + 1 < CITY_SIZE and x + 1 < CITY_SIZE:  # Ensure within bounds
+                            diagonal_block = grid[y + 1][x]
+                            if diagonal_block.type == BlockType.STREET and mall_sizes[mall_name] < 4:
+                                new_block = self._replace_block(diagonal_block, block, 'MALL', bottom_block.x, bottom_block.y)
                                 if new_block:
                                     mall_sizes[mall_name] += 1
-                                    #below_spread = True
-                                    grid[bottom_block.y][bottom_block.x] = new_block
+                                    grid[diagonal_block.y][diagonal_block.x] = new_block
 
         return grid
 

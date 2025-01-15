@@ -653,6 +653,7 @@ class DrawUI:
             self.GRID_COLS = 10
             self.BLOCK_PADDING = 2
             self.zoom_in = True
+            self.cached_zoom = {}
 
             self.MAP_SIZE = SCREEN_HEIGHT - 50
             self.block_size = (self.MAP_SIZE - (self.GRID_ROWS + 1) * self.BLOCK_PADDING) // self.GRID_ROWS
@@ -660,6 +661,14 @@ class DrawUI:
             self.map_surface.fill((255, 255, 255))
             self.city_map = pygame.Surface((self.MAP_SIZE, self.MAP_SIZE))
             self.city_map.fill((0, 0, 0))
+
+            self.block_images = {
+                block_type: pygame.transform.scale(
+                    pygame.image.load(properties.image_file).convert_alpha(), 
+                    (self.block_size, self.block_size)
+                ) 
+                for block_type, properties in BLOCKS.items()
+            }
 
         def draw(self):
             blink_state = pygame.time.get_ticks() // 500 % 2 == 0
@@ -682,9 +691,44 @@ class DrawUI:
                     x = self.BLOCK_PADDING + col * (self.block_size + self.BLOCK_PADDING) + 4
                     y = self.BLOCK_PADDING + row * (self.block_size + self.BLOCK_PADDING) + 4
 
-                    # Draw block
-                    pygame.draw.rect(self.city_map, (255, 255, 255), (x, y, self.block_size, self.block_size))
-                    
+                    if self.zoom_in:
+                        player_block = self.player.city.block(self.player.location[0], self.player.location[1])
+                        neighbourhood_index = NEIGHBOURHOODS.index(player_block.neighbourhood)
+                        col_offset = neighbourhood_index % 10 * 10
+                        row_offset = int(neighbourhood_index // 10) * 10
+                        current_block = self.player.city.block(col + col_offset, row + row_offset)
+    
+                        # Draw block
+                        block_image = self.block_images[current_block.type]
+                        if current_block.type == BlockType.STREET:
+                            image_width, image_height = block_image.get_width(), block_image.get_height()
+
+                            # Define the zoom-in factor (e.g., 2x zoom = 50% of the original size)
+                            zoom_factor = 2
+                            zoom_width, zoom_height = image_width // zoom_factor, image_height // zoom_factor
+
+                            # Check if zoom coordinates are cached
+                            if (col, row) in self.cached_zoom:
+                                (zoom_x, zoom_y) = self.cached_zoom[(col, row)]
+                            else:
+                                zoom_x = random.randint(0, image_width - zoom_width)
+                                zoom_y = random.randint(0, image_height - zoom_height)
+
+                                self.cached_zoom[(col, row)] = (zoom_x, zoom_y)
+
+                            # Extract the zoomed-in portion
+                            zoomed_surface = block_image.subsurface((zoom_x, zoom_y, zoom_width, zoom_height))
+
+                            # Scale it to the target block size and assign it to the sprite
+                            block_image = pygame.transform.scale(zoomed_surface, (self.block_size, self.block_size))
+
+
+                        self.city_map.blit(block_image, (x, y))
+
+                    else:
+                        # Draw block
+                        pygame.draw.rect(self.city_map, (255, 255, 255), (x, y, self.block_size, self.block_size))
+
                     label_name = map_data[index]
                     label_text = self.wrap_text(label_name, font_xs, self.block_size - 2)
                     text_height = sum(font_xs.size(line)[1] for line in label_text)
@@ -699,7 +743,6 @@ class DrawUI:
 
                     index += 1
 
-            
 
         def _get_map_data(self, player_block):
             if self.zoom_in:
