@@ -71,6 +71,7 @@ class City:
         block_pool = self._generate_buildings(block_pool)
         block_pool = self._generate_outdoor_spaces(block_pool)
         block_pool = self._generate_streets(block_pool)
+        block_pool = self._generate_malls(block_pool)
         random.shuffle(block_pool)
         grid = self._assign_xy(block_pool)
         grid = self._spread_malls(grid)
@@ -78,9 +79,9 @@ class City:
         return grid
 
     def _generate_buildings(self, block_pool):
-        # Generate 2500 building blocks
-        for _ in range(CITY_SIZE * 25):
-            building_blocks = [block_type for block_type, properties in BLOCKS.items() if properties.is_building]
+        # Generate 4000 building blocks
+        for _ in range(CITY_SIZE * 40):
+            building_blocks = [block_type for block_type, properties in BLOCKS.items() if properties.is_building and not block_type == BlockType.MALL]
             building_block = BuildingBlock()
             building_block.type = random.choice(building_blocks)
             building_block.name = self._get_unique_block_name(building_block.type.name)
@@ -100,13 +101,23 @@ class City:
         return block_pool
 
     def _generate_streets(self, block_pool):
-        # Generate 5000 street blocks
-        for _ in range(CITY_SIZE * 50):
+        # Generate 3400 street blocks
+        for _ in range(CITY_SIZE * 34):
             street_block = CityBlock()
             street_block.type = BlockType.STREET
             street_block.name = self._get_unique_block_name(street_block.type.name)
             street_block.generate_descriptions(self.descriptions)         
             block_pool.append(street_block)
+        return block_pool
+    
+    def _generate_malls(self, block_pool):
+        # Generate 100 mall blocks
+        for _ in range(CITY_SIZE * 1):
+            mall_block = BuildingBlock()
+            mall_block.type = BlockType.MALL
+            mall_block.name = self._get_unique_block_name(mall_block.type.name)
+            mall_block.generate_descriptions(self.descriptions)         
+            block_pool.append(mall_block)
         return block_pool
 
     def _assign_xy(self, block_pool):
