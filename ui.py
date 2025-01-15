@@ -15,6 +15,10 @@ class DrawUI:
         self.city = city
         self.zombies = zombies
         self.map = self.Map(screen, player, self.wrap_text)
+        self.player_frame = pygame.image.load("assets/player_frame.png").convert_alpha()
+        self.hp_bar = pygame.image.load("assets/hp_bar.png").convert_alpha()
+        self.player_portrait = pygame.image.load("assets/male1.png").convert_alpha()
+        self.player_info = pygame.image.load("assets/player_info.png").convert_alpha()
         self.viewport_frame = pygame.image.load('assets/viewport_frame.png').convert_alpha()
         self.description_panel_image = pygame.image.load("assets/description_panel.png").convert_alpha()
         self.chat_panel_image = pygame.image.load("assets/chat_panel.png").convert_alpha()
@@ -103,8 +107,8 @@ class DrawUI:
         # Draw neighbourhood name
         current_x, current_y = self.player.location
         current_block = self.city.block(current_x, current_y)
-        pygame.draw.rect(self.screen, ORANGE, (10, self.viewport_frame_height + 10, self.viewport_frame_width, 20))
-        text = font_small.render(current_block.neighbourhood, True, WHITE)
+        pygame.draw.rect(self.screen, ORANGE, (10, self.viewport_frame_height + 10, self.viewport_frame_width, 30))
+        text = font_large.render(current_block.neighbourhood, True, WHITE)
         self.screen.blit(text, ((self.viewport_frame_width // 2) - (text.get_width() // 2), self.viewport_frame_height + 15))
 
     # Update action buttons according to player status
@@ -126,9 +130,9 @@ class DrawUI:
 
         # Panel dimensions
         panel_x = 10
-        panel_y = (SCREEN_HEIGHT // 2) + 30
+        panel_y = (SCREEN_HEIGHT // 2) + 40
         panel_width = SCREEN_HEIGHT // 2
-        panel_height = SCREEN_HEIGHT * 3 // 20 
+        panel_height = SCREEN_HEIGHT * 3 // 20 - 10
 
         # Draw the panel background and border
         pygame.draw.rect(self.screen, WHITE, (panel_x, panel_y, panel_width, panel_height))
@@ -136,7 +140,7 @@ class DrawUI:
 
         # Render the title
         title_text = font_large.render("Available Actions", True, BLACK)
-        title_rect = title_text.get_rect(center=(panel_x + panel_width // 2, panel_y + 20))
+        title_rect = title_text.get_rect(center=(panel_x + panel_width // 2, panel_y + 30))
         self.screen.blit(title_text, title_rect)
         self.button_group.draw(self.screen)
 
@@ -344,22 +348,41 @@ class DrawUI:
     # Draw the player status panel
     def draw_status(self):
         """Draw the player status panel."""
-        status_start_x, status_start_y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT - 150
-        status_width, status_height = SCREEN_WIDTH // 4 - 20, 140
+        status_start_x, status_start_y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT * 25 // 32 + 10
+        status_width, status_height = SCREEN_WIDTH // 4 - 10, SCREEN_HEIGHT * 31 // 160
 
-        pygame.draw.rect(self.screen, BLACK, (status_start_x, status_start_y, status_width, status_height))
-        pygame.draw.rect(self.screen, WHITE, (status_start_x, status_start_y, status_width, status_height), 2)
+        status_panel = pygame.Surface((status_width, status_height), pygame.SRCALPHA)
+        scaled_player_portrait = pygame.transform.scale(self.player_portrait, (status_height - 20, status_height - 20))
+        status_panel.blit(scaled_player_portrait, (0, 0))
 
-        y_offset = status_start_y + 10
+        scaled_portrait_frame = pygame.transform.scale(self.player_frame, (status_height - 20, status_height - 20))
+        status_panel.blit(scaled_portrait_frame, (0, 0))
+
+        max_hp = self.player.max_hp
+        current_hp = self.player.hp
+        hp_ratio = max(current_hp / max_hp, 0)
+
+        pygame.draw.rect(status_panel, (255, 0, 0), (0, status_height - 20, status_height - 20, 20))
+        pygame.draw.rect(status_panel, (0, 255, 0), (0, status_height - 20, (status_height - 20) * hp_ratio, 20))
+
+        scaled_hp_bar = pygame.transform.scale(self.hp_bar, (status_height - 20, 20))
+        status_panel.blit(scaled_hp_bar, (0, status_height - 20))
+
+        scaled_player_info = pygame.transform.scale(self.player_info, (status_width - status_height + 20, status_height))
+        status_panel.blit(scaled_player_info, (status_height - 20, 0))
+
+        y_offset = 30
         status_text = []
         for status_type, status in self.player.status().items():
             line = f"{status_type}: {status}"
             status_text.append(line)
 
         for line in status_text:
-            text = font_large.render(line, True, WHITE)
-            self.screen.blit(text, (status_start_x + 10, y_offset))
+            text = font_small.render(line, True, BLACK)
+            status_panel.blit(text, (status_height, y_offset))
             y_offset += 20
+        
+        self.screen.blit(status_panel, (status_start_x, status_start_y))
 
     # Draw the inventory panel
     def draw_inventory_panel(self):
@@ -428,8 +451,8 @@ class DrawUI:
                 equipped_text = font_large.render(equipped_properties.item_type, True, ORANGE)
                 equipped_text_shadow = font_large.render(equipped_properties.item_type, True, BLACK)                
                 text_width = equipped_text.get_width()
-                self.screen.blit(equipped_text_shadow, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2) + 1, equipped_item_y + equipped_item_height + 11))                
-                self.screen.blit(equipped_text, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2), equipped_item_y + equipped_item_height + 10))
+                self.screen.blit(equipped_text_shadow, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2) + 1, equipped_item_y + equipped_item_height + 8))                
+                self.screen.blit(equipped_text, (equipped_item_x + (equipped_item_width // 2) - (text_width // 2), equipped_item_y + equipped_item_height + 7))
 
                 # Draw currently loaded ammo
                 if equipped_properties.item_function == ItemFunction.FIREARM:

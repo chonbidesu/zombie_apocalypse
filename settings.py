@@ -37,12 +37,12 @@ RANSACKED_MULTIPLIER = 0.3
 
 # Fonts
 pygame.init()
-font_xs = pygame.font.SysFont(None, 14)
-font_small = pygame.font.SysFont(None, 16)
-font_large = pygame.font.SysFont(None, 26)
-font_xl = pygame.font.SysFont(None, 56)
-font_xxl = pygame.font.SysFont(None, 102)
-font_chat = pygame.font.SysFont(None, 21)
+font_xs = pygame.font.Font('data/PixelifySans.ttf', 10)
+font_small = pygame.font.Font('data/PixelifySans.ttf', 12)
+font_large = pygame.font.Font('data/PixelifySans.ttf', 18)
+font_xl = pygame.font.Font('data/PixelifySans.ttf', 56)
+font_xxl = pygame.font.Font('data/PixelifySans.ttf', 102)
+font_chat = pygame.font.Font('data/PixelifySans.ttf', 16)
 
 # Colors
 WHITE = (255, 255, 255)

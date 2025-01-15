@@ -67,7 +67,7 @@ class GameInitializer:
 
         # Create player
         self.player = Player(
-            self.city, name="Alice", occupation="Doctor", x=50, y=50,
+            self.city, name="Joe", occupation="Plumber", x=50, y=50,
         )
 
         # Zombulate the city
