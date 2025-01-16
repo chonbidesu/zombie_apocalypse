@@ -102,6 +102,7 @@ class Player:
             "Name": self.name,
             "Occupation": self.occupation,
             "Location": self.location,
+            "HP": f"{self.hp} / {self.max_hp}",
             "Actions taken": self.ticker,
         }
         return status
