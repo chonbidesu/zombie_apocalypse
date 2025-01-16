@@ -20,7 +20,7 @@ class DrawUI:
         self.player_frame = pygame.image.load("assets/player_frame.png").convert_alpha()
         self.hp_bar = pygame.image.load("assets/hp_bar.png").convert_alpha()
         self.player_portrait = pygame.image.load("assets/male1.png").convert_alpha()
-        self.player_sprite_sheet_image = pygame.image.load("assets/female1_sprite_sheet.png").convert_alpha()
+        self.player_sprite_sheet_image = pygame.image.load("assets/male1_sprite_sheet.png").convert_alpha()
         self.player_info = pygame.image.load("assets/player_info.png").convert_alpha()
         self.viewport_frame = pygame.image.load('assets/viewport_frame.png').convert_alpha()
         self.description_panel_image = pygame.image.load("assets/description_panel.png").convert_alpha()
@@ -556,8 +556,12 @@ class DrawUI:
             self.animation_speed = 0.35
             self.last_update_time = pygame.time.get_ticks()
 
+            self.start_frame = 0
+            self.current_frame = 0
+
+            self.update_animation_set()
             self.image = self.sprite_sheet.get_image(
-                frame=0,
+                frame=self.current_frame,
                 width=self.frame_width,
                 height=self.frame_height,
                 scale=self.scale,
@@ -565,12 +569,26 @@ class DrawUI:
             )
             self.rect = self.image.get_rect()
 
+        def update_animation_set(self):
+            """Update the animation frame range based on player's HP."""
+            previous_start_frame = self.start_frame
+
+            if self.player.hp > self.player.max_hp * 0.5:
+                self.start_frame = 0  # Normal animation
+            else:
+                self.start_frame = self.frame_count  # Use the second set of frames
+
+            if self.start_frame != previous_start_frame:
+                self.current_frame = self.start_frame
+
         def update(self):
             """Update the sprite's animation frame."""
             now = pygame.time.get_ticks()
+            self.update_animation_set()
+
             if now - self.last_update_time > self.animation_speed * 1000:
                 self.last_update_time = now
-                self.current_frame = (self.current_frame + 1) % self.frame_count
+                self.current_frame = self.start_frame + ((self.current_frame - self.start_frame - 1) % self.frame_count)
                 self.image = self.sprite_sheet.get_image(
                     frame=self.current_frame,
                     width=self.frame_width,
