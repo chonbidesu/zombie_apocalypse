@@ -15,15 +15,21 @@ class DrawUI:
         self.city = city
         self.zombies = zombies
         self.map = self.Map(screen, player, self.wrap_text)
+
+        # Load images
         self.player_frame = pygame.image.load("assets/player_frame.png").convert_alpha()
         self.hp_bar = pygame.image.load("assets/hp_bar.png").convert_alpha()
         self.player_portrait = pygame.image.load("assets/male1.png").convert_alpha()
+        self.player_sprite_sheet_image = pygame.image.load("assets/female1_sprite_sheet.png").convert_alpha()
         self.player_info = pygame.image.load("assets/player_info.png").convert_alpha()
         self.viewport_frame = pygame.image.load('assets/viewport_frame.png').convert_alpha()
         self.description_panel_image = pygame.image.load("assets/description_panel.png").convert_alpha()
         self.chat_panel_image = pygame.image.load("assets/chat_panel.png").convert_alpha()
         self.inventory_panel_image = pygame.image.load("assets/inventory_panel.png").convert_alpha()
         self.equipped_image = pygame.image.load("assets/equipped_panel.png").convert_alpha()
+        self.zombie_sprite_sheet_image = pygame.image.load("assets/zombie_spritesheet.png").convert_alpha()
+
+        # Set up ui elements
         self.viewport_frame_width, self.viewport_frame_height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2
         self.grid_start_x, self.grid_start_y = (self.viewport_frame_width // 9) + 12, (self.viewport_frame_height // 9) + 12
         self.viewport_group = self.create_viewport_group()
@@ -31,9 +37,16 @@ class DrawUI:
         self.zombie_sprite_group = pygame.sprite.Group()
         self.enter_button = Button('enter', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
         self.leave_button = Button('leave', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
-        self.sprite_sheet_image = pygame.image.load("assets/zombie_spritesheet.png").convert_alpha()
-        self.zombie_sprite_sheet = spritesheet.SpriteSheet(self.sprite_sheet_image)
-        self.user_scrolled = False
+        self.zombie_sprite_sheet = spritesheet.SpriteSheet(self.zombie_sprite_sheet_image)
+
+        # Set up player portrait
+        self.player_portrait_scale = (SCREEN_HEIGHT * 31 // 160 - 20) // 66
+        self.player_sprite_sheet = spritesheet.SpriteSheet(self.player_sprite_sheet_image)
+        self.player_sprite = self.PlayerSprite(
+            self.screen, self.player, self.player_sprite_sheet, 6, 66, 66, self.player_portrait_scale, (0, 0, 0)
+        )
+        self.player_sprite_group = pygame.sprite.GroupSingle()
+        self.player_sprite_group.add(self.player_sprite)
 
     # Draw all ui elements to the screen
     def draw(self, chat_history):
@@ -350,10 +363,10 @@ class DrawUI:
         """Draw the player status panel."""
         status_start_x, status_start_y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT * 25 // 32 + 10
         status_width, status_height = SCREEN_WIDTH // 4 - 10, SCREEN_HEIGHT * 31 // 160
-
         status_panel = pygame.Surface((status_width, status_height), pygame.SRCALPHA)
-        scaled_player_portrait = pygame.transform.scale(self.player_portrait, (status_height - 20, status_height - 20))
-        status_panel.blit(scaled_player_portrait, (0, 0))
+
+        self.player_sprite_group.update()
+        self.player_sprite_group.draw(status_panel)
 
         scaled_portrait_frame = pygame.transform.scale(self.player_frame, (status_height - 20, status_height - 20))
         status_panel.blit(scaled_portrait_frame, (0, 0))
@@ -527,6 +540,45 @@ class DrawUI:
         # Reset the text_rect after we are done with it
         del self.text_rect
 
+    class PlayerSprite(pygame.sprite.Sprite):
+        """A player sprite for the status panel."""
+        def __init__(self, screen, player, sprite_sheet, frame_count, frame_width, frame_height, scale, colour):
+            super().__init__()
+            self.screen = screen
+            self.player = player
+            self.sprite_sheet = sprite_sheet
+            self.frame_count = frame_count
+            self.frame_height = frame_height
+            self.frame_width = frame_width
+            self.scale = scale
+            self.colour = colour
+            self.current_frame = 0
+            self.animation_speed = 0.35
+            self.last_update_time = pygame.time.get_ticks()
+
+            self.image = self.sprite_sheet.get_image(
+                frame=0,
+                width=self.frame_width,
+                height=self.frame_height,
+                scale=self.scale,
+                colour=self.colour,
+            )
+            self.rect = self.image.get_rect()
+
+        def update(self):
+            """Update the sprite's animation frame."""
+            now = pygame.time.get_ticks()
+            if now - self.last_update_time > self.animation_speed * 1000:
+                self.last_update_time = now
+                self.current_frame = (self.current_frame + 1) % self.frame_count
+                self.image = self.sprite_sheet.get_image(
+                    frame=self.current_frame,
+                    width=self.frame_width,
+                    height=self.frame_height,
+                    scale=self.scale,
+                    colour=self.colour,
+                )
+
     class BlockSprite(pygame.sprite.Sprite):
         """Represents a visual sprite for a CityBlock in the viewport."""
         def __init__(self, dx, dy, player, city, zombies, grid_start_x, grid_start_y, wrap_text):
@@ -674,7 +726,7 @@ class DrawUI:
                 self.image.fill((0, 255, 0))  # Green square for zombies
 
     class ZombieSprite(pygame.sprite.Sprite):
-        """A detailed zombie sprite for the description panel."""
+        """A zombie sprite for the description panel."""
         def __init__(self, screen, zombie, sprite_sheet, frame_count, frame_width, frame_height, scale, colour):
             super().__init__()
             self.screen = screen
