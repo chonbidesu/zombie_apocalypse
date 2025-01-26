@@ -194,21 +194,27 @@ class Player:
             return True
         return False
 
-    def barricade(self, modifier=1):
+    def barricade(self):
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
         properties = BLOCKS[current_block.type]
+        success_chances = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
         if properties.is_building and self.inside:
-            success_chance = BARRICADE_CHANCE * modifier
-            success_chance = max(0, min(success_chance, 1))  # Ensure the chance is between 0 and 1
+            if current_block.barricade.level >= 7 and current_block.barricade.sublevel >= 4:
+                return "You can't add more barricades."
+            
+            success_chance = success_chances[current_block.barricade.level]
             success = random.random() < success_chance
             if success:
-                add_barricade = current_block.barricade.adjust_barricade_level(1)
+                add_barricade = current_block.barricade.adjust_barricade_sublevel(1)
                 if not add_barricade:
                     return "You can't add more barricades."
-                if current_block.barricade.level == 4:
-                    return f"The building is now very strongly barricaded. If you add any more barricades, you cannot re-enter the building."
-                return f"You managed to add to the barricade. The building is now {current_block.barricade.get_barricade_description()}."
+                elif current_block.barricade.level == 4 and current_block.barricade.sublevel == 2:
+                    return f"You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
+                elif current_block.barricade.sublevel == 0:
+                    return f"You reinforce the barricade. The building is now {current_block.barricade.get_barricade_description()}."
+                elif current_block.barricade.sublevel > 0:
+                    return f"You reinforce the barricade."
             else:
                 return "You could not find anything to add to the barricade."
         else:

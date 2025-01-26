@@ -32,7 +32,7 @@ class Gamestate:
                         "is_ransacked": block.is_ransacked,
                         "fuel_expiration": block.fuel_expiration,
                         "barricade_level": block.barricade.level,
-                        "barricade_health": block.barricade.health,
+                        "barricade_sublevel": block.barricade.sublevel,
                     })
                 city_data.append(block_data)
         return city_data
@@ -105,7 +105,7 @@ class Gamestate:
                 block.generator_installed = block_data["generator_installed"]
                 block.fuel_expiration = block_data["fuel_expiration"]
                 block.barricade.set_barricade_level(block_data["barricade_level"])
-                block.barricade.health = block_data["barricade_health"]
+                block.barricade.sublevel = block_data["barricade_sublevel"]
                 block.is_ransacked = block_data["is_ransacked"]
             else:
                 block = outdoor_class()
@@ -168,7 +168,7 @@ class Gamestate:
                 player=player, city=city, chat_history=chat_history, x=x, y=y,
             )
             zombie.inside = inside
-            zombie.hp = zombie_data.get("hp", ZOMBIE_MAX_HP)
+            zombie.hp = zombie_data.get("hp", NPC_MAX_HP)
             zombie.action_points = zombie_data.get("action_points", 0)
             zombie.is_dead = zombie_data.get("is_dead", False)
             zombies.list.append(zombie)

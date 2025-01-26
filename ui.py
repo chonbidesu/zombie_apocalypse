@@ -771,7 +771,7 @@ class DrawUI:
             self.rect = self.image.get_rect()
 
         def draw_hp_bar(self):
-            max_hp = ZOMBIE_MAX_HP
+            max_hp = NPC_MAX_HP
             current_hp = self.zombie.hp
             bar_width = self.rect.width - 50
             hp_ratio = max(current_hp / max_hp, 0)
@@ -836,6 +836,8 @@ class DrawUI:
             
             self.screen.blit(self.city_map, (25, 25))
 
+            self._draw_map_info()
+
         def _draw_map(self, map_data): 
             index = 0
             for row in range(self.GRID_ROWS):
@@ -886,11 +888,13 @@ class DrawUI:
                             # Draw fog of war block
                             pygame.draw.rect(self.city_map, (125, 125, 125), (x, y, self.block_size, self.block_size))
 
-
-
                     else:
-                        # Draw block
-                        pygame.draw.rect(self.city_map, (255, 255, 255), (x, y, self.block_size, self.block_size))
+                        # Draw neighbourhood
+                        neighbourhood_block = pygame.Surface((self.block_size, self.block_size))
+                        neighbourhood_block.fill((255, 255, 255))
+                        label_name = map_data[index]
+                        neighbourhood_block = self._draw_block_label(neighbourhood_block, label_name)
+                        self.city_map.blit(neighbourhood_block, (x, y))
 
                     index += 1
 
@@ -904,7 +908,10 @@ class DrawUI:
                 0, self.block_size - text_height - 2, self.block_size, text_height + 2
             )
 
-            pygame.draw.rect(image_copy, WHITE, label_rect)
+            if self.zoom_in:
+                pygame.draw.rect(image_copy, WHITE, label_rect)
+            else:
+                pygame.draw.rect(image_copy, ORANGE, label_rect)
 
             # Draw text onto the block surface
             y_offset = label_rect.top + 5
@@ -957,17 +964,52 @@ class DrawUI:
                     
                     index += 1
 
+        def _draw_map_info(self):
+            map_info_width = SCREEN_WIDTH - self.MAP_SIZE - 30
+            self.map_info = pygame.Surface((map_info_width, self.MAP_SIZE))
+            self.map_info.fill((255, 255, 255))
+            map_info_text = {
+                'preheader': 'The City of',
+                'header': 'MALTON',
+                'body_1': 'Press ESC to exit map.',
+                'body_2': 'Use PAGE UP and PAGE DOWN to zoom.',
+            }
+            y_offset = 50
+            for format, text in map_info_text.items():
+                if format == 'header':
+                    line_size = font_xl.size(text)[1]
+                    line_surface = font_xl.render(text, True, BLACK)
+                    line_rect = line_surface.get_rect(midtop=(map_info_width // 2, y_offset))
+                    self.map_info.blit(line_surface, line_rect)
+                    y_offset += line_size
+                else:
+                    line_size = font_large.size(text)[1]
+                    line_surface = font_large.render(text, True, BLACK)
+                    line_rect = line_surface.get_rect(midtop=(map_info_width // 2, y_offset))
+                    self.map_info.blit(line_surface, line_rect)
+                    y_offset += line_size                    
+
+            self.map_surface.blit(self.map_info, (self.MAP_SIZE + 20, 20))
+
+
 
 
 class Cursor(object):
     def __init__(self):
-        self.image = pygame.image.load('assets/zombie_hand.png').convert_alpha()
+        self.default_image = pygame.image.load('assets/zombie_hand.png').convert_alpha()
+        self.attack_image = pygame.image.load('assets/crosshair.png').convert_alpha()
+        self.image = self.default_image
         self.rect = self.image.get_rect(center=(0,0))
         pygame.mouse.set_visible(False)
     
-    def update(self):
+    def update(self, game_ui):
+        self.image = self.default_image
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        self.rect.topleft = (mouse_x, mouse_y)
+        self.rect.topleft = (mouse_x, mouse_y)        
+        for zombie in game_ui.zombie_sprite_group:
+            if zombie.rect.collidepoint((mouse_x, mouse_y)):
+                self.image = self.attack_image
+                self.rect.center = (mouse_x, mouse_y)
 
     def draw(self):
         pygame.display.get_surface().blit(self.image, self.rect)

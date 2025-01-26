@@ -9,7 +9,7 @@ from collections import defaultdict
 from settings import *
 from player import Player
 from city import City
-from zombie import Zombie
+from npc import NPC
 import ui
 import zombulate
 import menus
@@ -49,7 +49,7 @@ class GameInitializer:
         try:
             game_state = saveload.Gamestate.load_game("savegame.pkl")
             self.player, self.city, self.zombies = game_state.reconstruct_game(
-                Player, City, Zombie, zombulate.GenerateZombies, 
+                Player, City, NPC, zombulate.GenerateZombies, 
                 blocks.BuildingBlock, blocks.CityBlock, self.chat_history,
             )
             self.game_ui = ui.DrawUI(screen, self.player, self.city, self.zombies)
@@ -130,7 +130,7 @@ def main():
                 game.popup_menu.draw()
 
         # Draw the cursor
-        game.cursor.update()
+        game.cursor.update(game.game_ui)
         game.cursor.draw()
 
         # Handle player death

@@ -23,12 +23,12 @@ CHAT_HEIGHT = SCREEN_HEIGHT * 1 // 4
 CHAT_LINES = 10
 
 # Gameplay
-BARRICADE_CHANCE = 0.5
 FUEL_DURATION = 200
 MAX_ITEMS = 10
 ATTACK_DIFFICULTY = 15
-ZOMBIE_MAX_HP = 50
+NPC_MAX_HP = 50
 ZOMBIE_CAPACITY = 6 # Limit of zombies per block
+HUMAN_CAPACITY = 2 # Limit of humans per block
 ZOMBIE_DAMAGE = 4
 STAND_UP_AP = 50
 SEARCH_MULTIPLIER = 1.0
@@ -99,6 +99,12 @@ ITEMS = {
     ItemType.PISTOL: ItemProperties('Pistol', 'a pistol', ItemFunction.FIREARM, 'assets/pistol.png', 2, 8, None, 7),
 }
 
+# NPC types
+class NPCType(Enum):
+    SURVIVOR = auto()
+    PREPPER = auto()
+    SCIENTIST = auto()
+    PKER = auto()
 
 # City block settings
 class BlockType(Enum):
@@ -159,7 +165,7 @@ class BarricadeState(Enum):
     NOT_BARRICADED = auto()
     LOOSELY_BARRICADED = auto()
     LIGHTLY_BARRICADED = auto()
-    STRONGLY_BARRICADED = auto()
+    QUITE_STRONGLY_BARRICADED = auto()
     VERY_STRONGLY_BARRICADED = auto()
     HEAVILY_BARRICADED = auto()
     VERY_HEAVILY_BARRICADED = auto()
@@ -170,7 +176,7 @@ BARRICADE_DESCRIPTIONS = {
     BarricadeState.NOT_BARRICADED: "not barricaded",
     BarricadeState.LOOSELY_BARRICADED: "loosely barricaded",
     BarricadeState.LIGHTLY_BARRICADED: "lightly barricaded",
-    BarricadeState.STRONGLY_BARRICADED: "strongly barricaded",
+    BarricadeState.QUITE_STRONGLY_BARRICADED: " quite strongly barricaded",
     BarricadeState.VERY_STRONGLY_BARRICADED: "very strongly barricaded",
     BarricadeState.HEAVILY_BARRICADED: "heavily barricaded",
     BarricadeState.VERY_HEAVILY_BARRICADED: "very heavily barricaded",

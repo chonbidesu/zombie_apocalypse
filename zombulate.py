@@ -1,6 +1,6 @@
 import random
 
-from zombie import Zombie
+from npc import NPC
 from settings import *
 
 class GenerateZombies:
@@ -27,7 +27,8 @@ class GenerateZombies:
     def add_zombie(self, x, y):
         """Add a single zombie at a specific location."""
         if 0 <= x < CITY_SIZE and 0 <= y < CITY_SIZE:
-            zombie = Zombie(self.player, self.city, self.chat_history, x, y)
+            type = random.choice(list(NPCType))
+            zombie = NPC(self.player, self.city, self.chat_history, x, y, type=type, is_human=False)
             block = self.city.block(x, y)
             block.current_zombies += 1
             self.list.append(zombie)

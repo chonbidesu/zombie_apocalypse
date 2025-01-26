@@ -33,6 +33,8 @@ class ActionType(Enum):
     PAUSE = auto()
     OPTIONS = auto()
     CLOSE_MAP = auto()
+    ZOOM_IN = auto()
+    ZOOM_OUT = auto()
     RESTART = auto()
 
 class ActionHandler:
@@ -72,14 +74,8 @@ class ActionHandler:
         if self.game.reading_map:
             key_to_action = {
                 pygame.K_ESCAPE: ActionType.CLOSE_MAP,
-                pygame.K_w: '',
-                pygame.K_s: '',
-                pygame.K_a: '',
-                pygame.K_d: '',
-                pygame.K_q: '',
-                pygame.K_e: '',
-                pygame.K_z: '',
-                pygame.K_c: '',
+                pygame.K_PAGEDOWN: ActionType.ZOOM_OUT,
+                pygame.K_PAGEUP: ActionType.ZOOM_IN,
             }
         else:
             key_to_action = {
@@ -210,6 +206,12 @@ class ActionHandler:
 
         elif action == ActionType.CLOSE_MAP:
             self.game.reading_map = False
+
+        elif action == ActionType.ZOOM_IN:
+            self.game.game_ui.map.zoom_in = True
+
+        elif action == ActionType.ZOOM_OUT:
+            self.game.game_ui.map.zoom_in = False
 
         player = self.game.player
         player.ticker += 1

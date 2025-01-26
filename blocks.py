@@ -76,7 +76,7 @@ class BuildingBlock(CityBlock):
             # Set default barricade level (0 by default, i.e., no barricade)
             self.level = level
             self.set_barricade_level(level)
-            self.health = 30
+            self.sublevel = 0
 
 
         def set_barricade_level(self, level):
@@ -86,17 +86,38 @@ class BuildingBlock(CityBlock):
             """
             self.level = max(0, min(level, 7))  # Keep the level within the bounds
             self.description = self.get_barricade_description()
-            self.health = 30
 
-        def adjust_barricade_level(self, delta):
+        def adjust_barricade_sublevel(self, delta):
             """
-            Adjust the barricade level by adding or subtracting `delta`.
+            Adjust the barricade sublevel by adding or subtracting `delta`.
             """
-            new_level = self.level + delta
-            if new_level > 7:
+            new_sublevel = self.sublevel + delta
+            if new_sublevel < 0:        # If last sublevel is reduced,
+                if self.level == 0:     # and the current barricade level is already zero,
+                    return False        # return False.
+                elif self.level <= 2:   # Otherwise, if the current barricade level is Loosely or Lightly,
+                    new_level = self.level - 1     # reduce the level by one
+                    self.sublevel = 1   # and reset the sublevel to one.
+                else:                   # For higher barricade levels,
+                    new_level = self.level - 1     # reduce the level by one
+                    self.sublevel = 3   # and reset the sublevel to three.
+            elif new_sublevel == 1 and self.level <= 1: # If barricades are added to an unbarricaded or loosely barricaded building,
+                new_level = self.level + 1         # increase barricade level by one.
+            elif 0 < new_sublevel <= 2:
+                self.sublevel = new_sublevel
+                return True
+            elif new_sublevel > 2 and self.level < 7:
+                new_level = self.level + 1
+                self.sublevel = 0
+            elif new_sublevel <= 4 and self.level == 7:
+                self.sublevel = new_sublevel
+                return True
+            else:
                 return False
-            self.set_barricade_level(new_level)  # Automatically handles out-of-bound levels
-            return True
+            
+            if 'new_level' in locals():
+                self.set_barricade_level(new_level)  # Automatically handles out-of-bound levels
+                return True
 
         def get_barricade_description(self):
             """

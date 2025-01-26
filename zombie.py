@@ -4,135 +4,232 @@ from enum import Enum, auto
 
 from settings import *
 
-class ZombieAction(Enum):
+class NPCType(Enum):
+    SURVIVOR = auto()
+    PREPPER = auto()
+    SCIENTIST = auto()
+    PKER = auto()
+
+class NPCAction(Enum):
+    GIVE_QUEST = auto()             # Provide a quest to the player
     FIND_TARGET = auto()            # Find a nearby player or lit building
     MOVE_TOWARDS = auto()           # Move toward the target
+    FOLLOW_PLAYER = auto()          # After encountering player, follow them
     ATTACK_PLAYER = auto()          # Attack the player
-    HANDLE_BARRICADE = auto()       # Attack barricades if target is a lit building
+    ATTACK_NPC = auto()             # Attack another NPC
+    EXTRACT_DNA = auto()            # Extract DNA from a zombie
+    REVIVE_NPC = auto()             # Revive a zombie to human form
+    HANDLE_BARRICADE = auto()       # Deal with barricades (reinforce or attack)
+    REPAIR_BUILDING = auto()
     WANDER = auto()                 # Move randomly
-    ENTER_BUILDING = auto()         # Enter unbarricaded buildings occasionally
+    ENTER_BUILDING = auto()         # Enter buildings
     RANSACK = auto()                # Ransack a building
     RELOCATE = auto()               # Move to an adjacent block due to overcrowding
     STAND_UP = auto()               # Stand up after death
 
-class Zombie:
-    """Represents a zombie in the city."""
-    def __init__(self, player, city, chat_history, x, y):
+class NPC:
+    """Represents an NPC in the city."""
+    def __init__(self, player, city, chat_history, x, y, type=None, is_human=False, inside=False):
         super().__init__()
+        self.type = type
         self.player = player
         self.location = (x, y)
         self.city = city
         self.chat_history = chat_history
-        self.hp = ZOMBIE_MAX_HP
+        self.hp = NPC_MAX_HP
         self.action_points = 0
         self.is_dead = False
-        self.inside = False
+        self.is_human = is_human
+        self.inside = inside
 
-        #  Sprites will be lazily loaded
-        self.zombie_sprite = None
-        self.viewport_zombie = None
-          
+        self.pursuing_player = False
+        self.last_known_player_location = None
+        
     def take_action(self):
-        """Determine and execute zombie behavior."""
+        """Determine and execute NPC behavior."""
+        if self.action_points < 1:
+            return False
+        
         current_block = self.city.block(self.location[0], self.location[1])
 
         # Determine behavior
         action = self.determine_behaviour(current_block)
 
-        if action == ZombieAction.RELOCATE:
-            self.relocate_zombie(current_block)
+        # Start NPC actions
+        if action == NPCAction.RELOCATE:
+            self.relocate_npc(current_block)
             return  # Skip action after relocation
 
-        if action == ZombieAction.ATTACK_PLAYER:
-            self.chat_history.append(self.attack(self.player))
+        elif action == NPCAction.ATTACK_PLAYER:
+            self.chat_history.append(self.attack())
+            return
+        
+        elif action == NPCAction.FOLLOW_PLAYER:
+            self.follow()
             return
 
-        if action == ZombieAction.HANDLE_BARRICADE:
+        elif action == NPCAction.HANDLE_BARRICADE:
             self.handle_barricades(current_block)
             return
 
-        if action == ZombieAction.MOVE_TOWARDS:
+        elif action == NPCAction.MOVE_TOWARDS:
             target_dx, target_dy = self.find_target_dxy()
             if target_dx is not None and self.action_points >= 2:
                 self.move_towards(target_dx, target_dy)
                 return
 
-        if action == ZombieAction.ENTER_BUILDING:
+        elif action == NPCAction.ENTER_BUILDING:
             self.enter()
             return
         
-        if action == ZombieAction.RANSACK:
+        elif action == NPCAction.RANSACK:
             self.ransack(current_block)
             return
 
-        if action == ZombieAction.WANDER:
+        elif action == NPCAction.WANDER:
             self.move()
             return
 
-        if action == ZombieAction.STAND_UP:
+        elif action == NPCAction.STAND_UP:
             self.stand_up()
             return
 
         return False  # No action taken
 
     def determine_behaviour(self, current_block):
-        """Determine the priority for the zombie."""
+        """Determine the priority for the NPC."""
         properties = BLOCKS[current_block.type]
         # Stand up if dead and have enough action points
         if self.is_dead:
-            if self.action_points >= STAND_UP_AP:
-                return ZombieAction.STAND_UP
-            else:
-                return False
+            return NPCAction.STAND_UP if self.action_points >= STAND_UP_AP else False
 
         # Relocate if the block is overcrowded
-        if current_block.current_zombies > ZOMBIE_CAPACITY:
-            return ZombieAction.RELOCATE
-
-        # Attack player if in the same block
-        if self.location == self.player.location and self.inside == self.player.inside and self.action_points >= 1:
-            return ZombieAction.ATTACK_PLAYER
-
-        # Handle barricades or building entry if at target location
-        if self.find_target_dxy() and self.action_points >= 1:
-            target_dx, target_dy = self.find_target_dxy()
-            if (target_dx, target_dy) == (0, 0):
-                return ZombieAction.HANDLE_BARRICADE
-            else:
-                return ZombieAction.MOVE_TOWARDS
-
-        # Chance to investigate nearby building
-        if properties.is_building and current_block.barricade.level == 0 and not self.inside and self.action_points >= 1:
-            roll = random.randint(1, 20)
-            if roll < 5:
-                return ZombieAction.ENTER_BUILDING
+        if self.is_human:
+            if current_block.current_humans > HUMAN_CAPACITY:
+                return NPCAction.RELOCATE
             
-        if self.inside:
-            if not current_block.is_ransacked and self.action_points >= 1:
-                roll = random.randint(1, 20)
-                if roll < 5:
-                    return ZombieAction.RANSACK
+            elif self.type == NPCType.SURVIVOR:
+                if self.location == self.player.location and self.inside == self.player.inside:
+                    return NPCAction.GIVE_QUEST
+                elif not self.inside:
+                    if properties.is_building:
+                        return NPCAction.ENTER_BUILDING
+                    else:
+                        return NPCAction.FIND_TARGET
+                
+            elif self.type == NPCType.PREPPER:
+                if properties.is_building and not self.inside:
+                    return NPCAction.ENTER_BUILDING
+                elif self.inside:
+                    if current_block.is_ransacked:
+                        return NPCAction.REPAIR_BUILDING
+                    elif current_block.barricade.level <= 4:
+                        return NPCAction.HANDLE_BARRICADE
+                    else:
+                        return NPCAction.FIND_TARGET
+            
+            elif self.type == NPCType.SCIENTIST:
+                if current_block.current_zombies > 0:
+                    return NPCAction.ATTACK_NPC
+                else:
+                    return NPCAction.FIND_TARGET
+                
+            elif self.type == NPCType.PKER:
+                if self.location == self.player.location and self.inside == self.player.inside:
+                    self.pursuing_player = True
+                    self.last_known_player_location = self.player.location
+                    return NPCAction.ATTACK_PLAYER
 
-        # Random movement if no targets or barricades present
-        if self.action_points >= 2:
-            return ZombieAction.WANDER
+        else: # if not self.is_human
+            if current_block.current_zombies > ZOMBIE_CAPACITY:
+                return NPCAction.RELOCATE
+            
+            elif self.location == self.player.location and self.inside == self.player.inside:
+                self.pursuing_player = True
+                self.last_known_player_location = self.player.location
+                return NPCAction.ATTACK_PLAYER            
+                
+            elif self.pursuing_player:
+                return NPCAction.FOLLOW_PLAYER
 
-        return None  # No behaviour determined
+            elif self.type == NPCType.SURVIVOR:
+                return NPCAction.WANDER
+            
+            elif self.type == NPCType.SCIENTIST:
+                return NPCAction.WANDER
+            
+            elif self.type == NPCType.PKER:
+                return NPCAction.WANDER
 
-    def relocate_zombie(self, current_block):
+            elif self.type == NPCType.PREPPER:
+                if properties.is_building and current_block.barricade.level == 0 and not self.inside and self.action_points >= 1:
+                    roll = random.randint(1, 20)
+                    if roll < 5:
+                        return NPCAction.ENTER_BUILDING
+                         
+                if self.inside:
+                    if not current_block.is_ransacked and self.action_points >= 1:
+                        roll = random.randint(1, 20)
+                        if roll < 5:
+                            return NPCAction.RANSACK
+                        
+                if self.find_target_dxy() and self.action_points >= 1:
+                    target_dx, target_dy = self.find_target_dxy()
+                    if (target_dx, target_dy) == (0, 0):
+                        return NPCAction.HANDLE_BARRICADE
+                    else:
+                        return NPCAction.MOVE_TOWARDS
+
+                # Random movement if no targets or barricades present
+                if self.action_points >= 2:
+                    return NPCAction.WANDER
+
+                return None  # No behaviour determined
+
+    def relocate_npc(self, current_block):
         """Move the zombie to an adjacent block due to overcrowding."""
         for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             adjacent_x, adjacent_y = self.location[0] + dx, self.location[1] + dy
             adjacent_block = self.city.block(adjacent_x, adjacent_y)
 
             if adjacent_block.current_zombies < ZOMBIE_CAPACITY:
-                print(f"Zombie at {self.location} relocating to ({adjacent_x}, {adjacent_y}) due to overcrowding.")
+                print(f"NPC at {self.location} relocating to ({adjacent_x}, {adjacent_y}) due to overcrowding.")
                 current_block.current_zombies -= 1
                 adjacent_block.current_zombies += 1
                 self.location = (adjacent_x, adjacent_y)
                 self.inside = False
                 return
 
+    def follow(self):
+        if not self.last_known_player_location:
+            self.pursuing_player = False
+            return False
+        
+        px, py = self.last_known_player_location
+        dx, dy = self.get_direction_toward(px, py)
+
+        if dx is not None and dy is not None:
+            self.move_towards(dx, dy)
+
+        if self.distance_to(self.player) > 2:
+            self.pursuing_player = False
+            self.last_known_player_location = None
+
+    def get_direction_toward(self, target_x, target_y):
+        """Calculate the best direction to move towards the target."""
+        dx = target_x - self.location[0]
+        dy = target_y - self.location[1]
+
+        if dx != 0:
+            dx = 1 if dx > 0 else -1
+        if dy != 0:
+            dy = 1 if dy > 0 else -1
+
+        return dx, dy
+    
+    def distance_to(self, target):
+        """Calculate Manhattan distance to the target."""
+        return abs(self.location[0] - target.location[0]) + abs(self.location[1] - target.location[1])
 
     def find_target_dxy(self):
         """Finds a nearby player or lit building."""
@@ -187,7 +284,7 @@ class Zombie:
             self.action_points -= 2
             self.inside = False
             return True
-
+        
         # If target block is full, attempt to move to another adjacent block
         for dx_alt, dy_alt in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             alt_x, alt_y = self.location[0] + dx_alt, self.location[1] + dy_alt
@@ -218,10 +315,7 @@ class Zombie:
         """Attacks the barricades of the given building."""
         if hasattr(building.barricade, "level") and building.barricade.level > 0:
             if random.random() < 0.3:  # 30% chance to successfully attack barricades
-                building.barricade.health -= 5
-                if building.barricade.health <= 0:  # Reduce barricade level if health reaches 0
-                    building.barricade.health = 30  # Reset health for the next level
-                    building.barricade.adjust_barricade_level(-1)
+                building.barricade.adjust_barricade_sublevel(-1)
                 self.action_points -= 1
                 if self.location == self.player.location:
                     if building.barricade.level == 0:
@@ -245,11 +339,11 @@ class Zombie:
             return True
         return False
 
-    def attack(self, player):
+    def attack(self):
         """Attempts to attack a player if in the same block."""
         self.action_points -= 1
         if random.random() < 0.3:
-            player.take_damage(ZOMBIE_DAMAGE)  # Zombies deal 10 damage
+            self.player.take_damage(ZOMBIE_DAMAGE)  # Zombies deal 10 damage
             return "A zombie slams into you!"
         else:
             return "A zombie swipes at you, but misses."
