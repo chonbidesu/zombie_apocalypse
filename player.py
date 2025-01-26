@@ -157,8 +157,8 @@ class Player:
                     weapon.durability -= 1
                     if weapon.durability <= 0:
                         weapon.kill()
-                        return target.zombie.take_damage(properties.damage) + " Your weapon breaks!"
-                return target.zombie.take_damage(properties.damage)
+                        return target.npc.take_damage(properties.damage) + " Your weapon breaks!"
+                return target.npc.take_damage(properties.damage)
             else:
                 return "Your attack misses."
         else:
@@ -166,7 +166,7 @@ class Player:
             attack_roll = roll >= ATTACK_DIFFICULTY
 
             if attack_roll:
-                return "You punch the zombie. " + target.zombie.take_damage(1)
+                return "You punch the zombie. " + target.npc.take_damage(1)
             else:
                 return "You try punching the zombie, but miss."
 

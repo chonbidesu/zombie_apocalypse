@@ -5,10 +5,10 @@ import pickle
 from settings import *
 
 class Gamestate:
-    def __init__(self, player, city, zombies):
-        self.city_data = self._serialize_city(city)
-        self.player_data = self._serialize_player(player)
-        self.zombie_data = self._serialize_zombies(zombies)
+    def __init__(self, game):
+        self.city_data = self._serialize_city(game.city)
+        self.player_data = self._serialize_player(game.player)
+        self.npc_data = self._serialize_npcs(game.zombies, game.humans)
 
     def _serialize_city(self, city):
         city_data = []
@@ -57,23 +57,39 @@ class Gamestate:
             ],
         }
 
-    def _serialize_zombies(self, zombies):
-        zombie_data = []
+    def _serialize_npcs(self, zombies, humans):
+        npc_data = []
+
         for zombie in zombies.list:
-            zombie_data.append({
+            npc_data.append({
                 "x": zombie.location[0],
                 "y": zombie.location[1],
+                "type": zombie.type,
                 "inside": zombie.inside,
+                "is_human": False,
                 "is_dead": zombie.is_dead,
                 "action_points": zombie.action_points,
                 "hp": zombie.hp,
             })
-        return zombie_data
+
+        for human in humans.list:
+            npc_data.append({
+                "x": human.location[0],
+                "y": human.location[1],
+                "type": human.type,
+                "inside": human.inside,
+                "is_human": True,
+                "is_dead": human.is_dead,
+                "action_points": human.action_points,
+                "hp": human.hp,
+            })
+
+        return npc_data
 
     @classmethod
-    def save_game(cls, file_path, player, city, zombies):
+    def save_game(cls, file_path, game):
         """Save the game state to a file."""
-        game_state = cls(player, city, zombies)
+        game_state = cls(game)
         with open(file_path, "wb") as file:
             pickle.dump(game_state, file)
         print("Game saved successfully.")
@@ -86,8 +102,9 @@ class Gamestate:
         print("Game loaded successfully.")
         return game_state
 
-    def reconstruct_game(self, player_class, city_class, zombie_class, zombulate_class, 
-                         building_class, outdoor_class, chat_history,
+    def reconstruct_game(
+        self, game, player_class, city_class, npc_class, populate_class, 
+        building_class, outdoor_class,
     ):
         """Reconstruct the game objects."""
         # Reconstruct city
@@ -155,22 +172,28 @@ class Gamestate:
         player.hp = self.player_data.get("hp", player.max_hp)
         player.ticker = self.player_data.get("ticker", 0)
 
-        # Create zombie list
-        zombies = zombulate_class(player, city, chat_history, total_zombies=0)
+        # Create NPC lists
+        zombies = populate_class(game, total_npcs=0, is_human=False)
+        humans = populate_class(game, total_npcs=0, is_human=True)
 
-        # Reconstruct zombies
-        for zombie_data in self.zombie_data:
-            x = zombie_data["x"]
-            y = zombie_data["y"]
-            inside = zombie_data["inside"]
+        # Reconstruct NPCs
+        for npc_data in self.npc_data:
+            x = npc_data["x"]
+            y = npc_data["y"]
+            type = npc_data["type"]
+            is_human = npc_data["is_human"]
+            inside = npc_data["inside"]
 
-            zombie = zombie_class(
-                player=player, city=city, chat_history=chat_history, x=x, y=y,
+            npc = npc_class(
+                game=game, x=x, y=y, type=type, is_human=is_human, inside=inside,
             )
-            zombie.inside = inside
-            zombie.hp = zombie_data.get("hp", NPC_MAX_HP)
-            zombie.action_points = zombie_data.get("action_points", 0)
-            zombie.is_dead = zombie_data.get("is_dead", False)
-            zombies.list.append(zombie)
+            npc.hp = npc_data.get("hp", NPC_MAX_HP)
+            npc.action_points = npc_data.get("action_points", 0)
+            npc.is_dead = npc_data.get("is_dead", False)
+            
+            if npc.is_human:
+                humans.list.append(npc)
+            else:
+                zombies.list.append(npc)
 
-        return player, city, zombies
+        return player, city, zombies, humans

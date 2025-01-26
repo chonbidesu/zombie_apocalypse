@@ -9,12 +9,10 @@ import spritesheet
 
 class DrawUI:
     """A class to draw the ui panel to the screen."""
-    def __init__(self, screen, player, city, zombies):
+    def __init__(self, game, screen):
+        self.game = game
         self.screen = screen
-        self.player = player
-        self.city = city
-        self.zombies = zombies
-        self.map = self.Map(screen, player, self.wrap_text)
+        self.map = self.Map(screen, game.player, self.wrap_text)
 
         # Load images
         self.player_frame = pygame.image.load("assets/player_frame.png").convert_alpha()
@@ -28,6 +26,7 @@ class DrawUI:
         self.inventory_panel_image = pygame.image.load("assets/inventory_panel.png").convert_alpha()
         self.equipped_image = pygame.image.load("assets/equipped_panel.png").convert_alpha()
         self.zombie_sprite_sheet_image = pygame.image.load("assets/zombie_spritesheet.png").convert_alpha()
+        self.human_sprite_image = pygame.image.load("assets/human_character.png").convert_alpha()
 
         # Set up ui elements
         self.viewport_frame_width, self.viewport_frame_height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2
@@ -35,15 +34,17 @@ class DrawUI:
         self.viewport_group = self.create_viewport_group()
         self.button_group = self.create_button_group()
         self.zombie_sprite_group = pygame.sprite.Group()
+        self.human_sprite_group = pygame.sprite.Group()
         self.enter_button = Button('enter', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
         self.leave_button = Button('leave', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
         self.zombie_sprite_sheet = spritesheet.SpriteSheet(self.zombie_sprite_sheet_image)
+        self.human_sprite_sheet = spritesheet.SpriteSheet(self.human_sprite_image)
 
         # Set up player portrait
         self.player_portrait_scale = (SCREEN_HEIGHT * 31 // 160 - 20) // 66
         self.player_sprite_sheet = spritesheet.SpriteSheet(self.player_sprite_sheet_image)
         self.player_sprite = self.PlayerSprite(
-            self.screen, self.player, self.player_sprite_sheet, 6, 66, 66, self.player_portrait_scale, (0, 0, 0)
+            self.screen, self.game.player, self.player_sprite_sheet, 6, 66, 66, self.player_portrait_scale, (0, 0, 0)
         )
         self.player_sprite_group = pygame.sprite.GroupSingle()
         self.player_sprite_group.add(self.player_sprite)
@@ -67,7 +68,7 @@ class DrawUI:
 
         for dy in range(-1, 2):
             for dx in range(-1, 2):
-                block_sprite = self.BlockSprite(dx, dy, self.player, self.city, self.zombies, self.grid_start_x, self.grid_start_y, self.wrap_text)
+                block_sprite = self.BlockSprite(dx, dy, self.game, self.grid_start_x, self.grid_start_y, self.wrap_text)
                 viewport_group.add(block_sprite)
         return viewport_group
 
@@ -118,15 +119,15 @@ class DrawUI:
 
     def draw_neighbourhood_name(self):
         # Draw neighbourhood name
-        current_x, current_y = self.player.location
-        current_block = self.city.block(current_x, current_y)
+        current_x, current_y = self.game.player.location
+        current_block = self.game.city.block(current_x, current_y)
         pygame.draw.rect(self.screen, ORANGE, (10, self.viewport_frame_height + 10, self.viewport_frame_width, 30))
         text = font_large.render(current_block.neighbourhood, True, WHITE)
         self.screen.blit(text, ((self.viewport_frame_width // 2) - (text.get_width() // 2), self.viewport_frame_height + 15))
 
     # Update action buttons according to player status
     def update_action_buttons(self):
-        if self.player.inside:
+        if self.game.player.inside:
             for button in self.button_group:
                 if button.name == 'enter':
                     self.button_group.remove(button)
@@ -159,12 +160,12 @@ class DrawUI:
 
     def get_current_observations(self):
         """Get the current observations based on the player's surroundings."""
-        current_x, current_y = self.player.location
-        current_block = self.city.block(current_x, current_y)        
+        current_x, current_y = self.game.player.location
+        current_block = self.game.city.block(current_x, current_y)        
         current_observations = ""
 
         # Inside building observations
-        if self.player.inside:
+        if self.game.player.inside:
             current_observations += f'You are standing inside {current_block.name}. '
             if not current_block.lights_on:
                 current_observations += 'With the lights out, you can hardly see anything. '
@@ -194,8 +195,8 @@ class DrawUI:
 
         # Add observations for zombies and dead bodies
         zombies_here = [
-            zombie for zombie in self.zombies.list
-            if zombie.location == self.player.location and zombie.inside == self.player.inside
+            zombie for zombie in self.game.zombies.list
+            if zombie.location == self.game.player.location and zombie.inside == self.game.player.inside
         ]
         living_zombies = [zombie for zombie in zombies_here if not zombie.is_dead]
         dead_zombies = [zombie for zombie in zombies_here if zombie.is_dead]
@@ -217,10 +218,10 @@ class DrawUI:
 
     def update_observations(self):
         """Update the observations list based on the player's current state."""
-        current_x, current_y = self.player.location
-        current_block = self.city.block(current_x, current_y)        
+        current_x, current_y = self.game.player.location
+        current_block = self.game.city.block(current_x, current_y)        
         current_block.observations.clear()  # Clear existing observations
-        if self.player.inside:
+        if self.game.player.inside:
             current_block.observations.append(self.get_current_observations())
             current_block.observations.append(current_block.block_inside_desc)
         else:
@@ -229,41 +230,66 @@ class DrawUI:
 
     def description(self):
         """Return the current list of observations as a list."""
-        current_x, current_y = self.player.location
-        current_block = self.city.block(current_x, current_y)        
+        current_x, current_y = self.game.player.location
+        current_block = self.game.city.block(current_x, current_y)        
         self.update_observations()  # Ensure observations are current
         return current_block.observations
 
-    def update_zombie_sprites(self):
+    def update_npc_sprites(self):
         """
-        Update the zombie sprites' visibility and position.
+        Update NPC sprites' visibility and position.
         """
-        # Keep track of zombies currently at the player's location
+        # Keep track of NPCs currently at the player's location
         zombies_here = [
-            zombie for zombie in self.zombies.list
-            if zombie.location == self.player.location and zombie.inside == self.player.inside
+            zombie for zombie in self.game.zombies.list
+            if zombie.location == self.game.player.location and zombie.inside == self.game.player.inside
         ]
+        humans_here = [
+            human for human in self.game.humans.list
+            if human.location == self.game.player.location and human.inside == self.game.player.inside
+        ]        
 
         # Update existing sprites or create new ones if necessary
         updated_sprites = []
+
         for zombie in zombies_here:
             # Check if a sprite for this zombie already exists
             existing_sprite = next(
-                (sprite for sprite in self.zombie_sprite_group if sprite.zombie == zombie), None
+                (sprite for sprite in self.zombie_sprite_group if sprite.npc == zombie), None
             )
             if existing_sprite:
                 updated_sprites.append(existing_sprite)
             elif not zombie.is_dead:
                 # Create a new sprite for the zombie
-                new_sprite = self.ZombieSprite(
-                    self.screen, zombie, self.zombie_sprite_sheet, 8, 264, 390, 0.5, (0, 0, 0)
+                new_sprite = self.NPCSprite(
+                    self.screen, zombie, self.zombie_sprite_sheet, 8, 264, 390, 0.4, (0, 0, 0)
                 )
                 self.zombie_sprite_group.add(new_sprite)
                 updated_sprites.append(new_sprite)
 
         # Remove sprites for zombies that are no longer here
         for sprite in list(self.zombie_sprite_group):
-            if sprite not in updated_sprites or sprite.zombie.is_dead:
+            if sprite not in updated_sprites or sprite.npc.is_dead:
+                sprite.kill()
+
+        for human in humans_here:
+            # Check if a sprite for this human already exists
+            existing_sprite = next(
+                (sprite for sprite in self.human_sprite_group if sprite.npc == human), None
+            )
+            if existing_sprite:
+                updated_sprites.append(existing_sprite)
+            elif not human.is_dead:
+                # Create a new sprite for the human
+                new_sprite = self.NPCSprite(
+                    self.screen, human, self.human_sprite_sheet, 1, 264, 390, 0.4, (0, 0, 0)
+                )
+                self.human_sprite_group.add(new_sprite)
+                updated_sprites.append(new_sprite)                
+
+        # Remove sprites for humans that are no longer here
+        for sprite in list(self.human_sprite_group):
+            if sprite not in updated_sprites or sprite.npc.is_dead:
                 sprite.kill()
 
     def draw_description_panel(self):
@@ -277,9 +303,9 @@ class DrawUI:
         self.screen.blit(scaled_panel_image, (description_start_x, 10))
 
         # Determine the setting image
-        current_x, current_y = self.player.location
-        current_block = self.city.block(current_x, current_y)        
-        image_suffix = "inside" if self.player.inside else "outside"
+        current_x, current_y = self.game.player.location
+        current_block = self.game.city.block(current_x, current_y)        
+        image_suffix = "inside" if self.game.player.inside else "outside"
         image_path = f"assets/{current_block.type.name.lower()}_{image_suffix}.png"
 
         try:
@@ -298,21 +324,32 @@ class DrawUI:
         setting_image_y = 50
         self.screen.blit(scaled_setting_image, (setting_image_x, setting_image_y))
 
-        # Arrange zombie sprites in a row, aligning their bottom edges
-        zombie_width = 50  # Define the width for each zombie sprite
-        zombie_spacing = 50  # Define the spacing between sprites
-        row_start_x = setting_image_x + (setting_image_width - len(self.zombie_sprite_group) * (zombie_width + zombie_spacing)) // 2
+        # Arrange sprite groups in a row, aligning their bottom edges
+        sprite_width = 50  # Define the width for each zombie sprite
+        sprite_spacing = 20  # Define the spacing between sprites
+        zombie_row_start_x = setting_image_x + setting_image_width - len(self.zombie_sprite_group) * (sprite_width + sprite_spacing) - 10
+        human_row_start_x = setting_image_x + 10
         row_start_y = setting_image_y + setting_image_height + 20  # Align with bottom edge of setting image
 
         for index, sprite in enumerate(self.zombie_sprite_group):
-            # Calculate position for each sprite
+            # Calculate position for each zombie sprite
             sprite.rect.midbottom = (
-                row_start_x + index * (zombie_width + zombie_spacing) + zombie_width // 2,
+                zombie_row_start_x + index * (sprite_width + sprite_spacing) + sprite_width // 2,
+                row_start_y
+            )
+
+        for index, sprite in enumerate(self.human_sprite_group):
+            # Calculate position for each zombie sprite
+            sprite.rect.midbottom = (
+                human_row_start_x + index * (sprite_width + sprite_spacing) + sprite_width // 2,
                 row_start_y
             )
 
         self.zombie_sprite_group.update()
         self.zombie_sprite_group.draw(self.screen)
+
+        self.human_sprite_group.update()
+        self.human_sprite_group.draw(self.screen)        
 
         # Get the description text and wrap it to fit within the panel
         text_start_y = setting_image_y + setting_image_height + 20
@@ -371,8 +408,8 @@ class DrawUI:
         scaled_portrait_frame = pygame.transform.scale(self.player_frame, (status_height - 20, status_height - 20))
         status_panel.blit(scaled_portrait_frame, (0, 0))
 
-        max_hp = self.player.max_hp
-        current_hp = self.player.hp
+        max_hp = self.game.player.max_hp
+        current_hp = self.game.player.hp
         hp_ratio = max(current_hp / max_hp, 0)
 
         pygame.draw.rect(status_panel, (255, 0, 0), (0, status_height - 20, status_height - 20, 20))
@@ -386,7 +423,7 @@ class DrawUI:
 
         y_offset = 30
         status_text = []
-        for status_type, status in self.player.status().items():
+        for status_type, status in self.game.player.status().items():
             line = f"{status_type}: {status}"
             status_text.append(line)
 
@@ -432,7 +469,7 @@ class DrawUI:
         second_row_y = first_row_y + item_height + int(panel_height * 0.11)
 
         # Scale each inventory item image before drawing
-        for index, item in enumerate(list(self.player.inventory)[:MAX_ITEMS]):
+        for index, item in enumerate(list(self.game.player.inventory)[:MAX_ITEMS]):
             row = index // MAX_ITEMS_PER_ROW
             col = index % MAX_ITEMS_PER_ROW
 
@@ -447,7 +484,7 @@ class DrawUI:
                 item.scale_image(item_width, item_height)
 
             # Highlight the item's slot if the item is equipped
-            if item in self.player.weapon:
+            if item in self.game.player.weapon:
                 equipped_properties = ITEMS[item.type]
                 highlight.fill((TRANS_YELLOW))
                 self.screen.blit(highlight, item.rect.topleft)
@@ -455,7 +492,7 @@ class DrawUI:
                 # Draw enlarged equipped item
                 equipped_item_width = equipped_width * 3 // 5
                 equipped_item_height = equipped_height * 3 // 5
-                enlarged_image = pygame.transform.scale(self.player.weapon.sprite.image, (equipped_item_width, equipped_item_height))
+                enlarged_image = pygame.transform.scale(self.game.player.weapon.sprite.image, (equipped_item_width, equipped_item_height))
                 equipped_item_x = equipped_x + equipped_width // 2 - (equipped_item_width // 2)
                 equipped_item_y = equipped_y + equipped_height // 2 - (equipped_item_height // 2)
                 self.screen.blit(enlarged_image, (equipped_item_x, equipped_item_y))
@@ -479,7 +516,7 @@ class DrawUI:
                 highlight.fill((0, 0, 0, 0))
 
         # Draw the inventory group to screen
-        self.player.inventory.draw(self.screen)
+        self.game.player.inventory.draw(self.screen)
 
     def circle_wipe(self, target_function, chat_history, duration=1.0):
         """Perform a circle wipe transition effect and call the target_function to change game state."""
@@ -502,7 +539,7 @@ class DrawUI:
 
         # Execute the target function
         result = target_function()
-        self.update_zombie_sprites()
+        self.update_npc_sprites()
 
         # Reverse circle wipe to reveal new state
         for radius in range(0, max_radius, increment):
@@ -599,13 +636,11 @@ class DrawUI:
 
     class BlockSprite(pygame.sprite.Sprite):
         """Represents a visual sprite for a CityBlock in the viewport."""
-        def __init__(self, dx, dy, player, city, zombies, grid_start_x, grid_start_y, wrap_text):
+        def __init__(self, dx, dy, game, grid_start_x, grid_start_y, wrap_text):
             super().__init__()
             self.dx = dx
             self.dy = dy
-            self.player = player
-            self.city = city
-            self.zombies = zombies
+            self.game = game
             self.block = None # The block this sprite represents
             self.properties = None # Properties of the block
             self.wrap_text = wrap_text
@@ -613,7 +648,7 @@ class DrawUI:
             self.viewport_y = grid_start_y + (dy + 1) * BLOCK_SIZE  # Translate relative dy to viewport position
             self.image = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
             self.rect = self.image.get_rect(topleft=(self.viewport_x, self.viewport_y))
-            self.viewport_zombies = []
+            self.viewport_npcs = []
 
 
         def update_data(self):
@@ -621,12 +656,12 @@ class DrawUI:
             Update the sprite's data based on the player's current location and CityBlock objects.
             """
             # Determine the target block coordinates based on player location and dx, dy offsets
-            target_x = self.player.location[0] + self.dx
-            target_y = self.player.location[1] + self.dy
+            target_x = self.game.player.location[0] + self.dx
+            target_y = self.game.player.location[1] + self.dy
 
             # Check if the target coordinates are within city bounds
             if 0 <= target_x < CITY_SIZE and 0 <= target_y < CITY_SIZE:
-                self.block = self.city.block(target_x, target_y)  # Retrieve the CityBlock at (x, y)
+                self.block = self.game.city.block(target_x, target_y)  # Retrieve the CityBlock at (x, y)
                 self.properties = BLOCKS[self.block.type]
 
                 # Load the block image
@@ -642,32 +677,41 @@ class DrawUI:
                 self.draw_block_label()
 
                 # Clear the current list of viewport zombies
-                self.viewport_zombies.clear()
+                self.viewport_npcs.clear()
 
-                # Add ViewportZombies if zombies are present in this block
+                # Add ViewportNPCs if they are present in this block
                 matching_zombies = [
-                    zombie for zombie in self.zombies.list if zombie.location[0] == target_x and zombie.location[1] == target_y and not zombie.is_dead
+                    zombie for zombie in self.game.zombies.list if zombie.location[0] == target_x and zombie.location[1] == target_y and not zombie.is_dead
                 ]
+                zombie_count = len(matching_zombies)
                 for index, zombie in enumerate(matching_zombies):
-                    viewport_zombie = self.ViewportZombie(zombie, index, len(matching_zombies))
-                    self.viewport_zombies.append(viewport_zombie)
+                    viewport_zombie = self.ViewportNPC(zombie, index, zombie_count)
+                    self.viewport_npcs.append(viewport_zombie)
+
+                matching_humans = [
+                    human for human in self.game.humans.list if human.location[0] == target_x and human.location[1] == target_y and not human.is_dead
+                ]
+                human_count = len(matching_humans)
+                for index, human in enumerate(matching_humans):
+                    viewport_human = self.ViewportNPC(human, index, human_count, row_offset=2)
+                    self.viewport_npcs.append(viewport_human)
 
                 # Draw the zombies onto the block image
-                self.draw_zombies()
+                self.draw_npcs()
 
             else:
                 self.image.set_alpha(0)
 
                           
-        def draw_zombies(self):
-            """Draw zombie sprites onto the block."""
-            for viewport_zombie in self.viewport_zombies:
-                zombie_image = viewport_zombie.image
-                zombie_rect = zombie_image.get_rect(center=viewport_zombie.position)                
-                if viewport_zombie.zombie.inside and self.player.inside and viewport_zombie.zombie.location == self.player.location:
-                    self.image.blit(zombie_image, zombie_rect)
-                elif not viewport_zombie.zombie.inside and not self.player.inside:
-                    self.image.blit(zombie_image, zombie_rect)
+        def draw_npcs(self):
+            """Draw NPC sprites onto the block."""
+            for viewport_npc in self.viewport_npcs:
+                npc_image = viewport_npc.image
+                npc_rect = npc_image.get_rect(center=viewport_npc.position)                
+                if viewport_npc.npc.inside and self.game.player.inside and viewport_npc.npc.location == self.game.player.location:
+                    self.image.blit(npc_image, npc_rect)
+                elif not viewport_npc.npc.inside and not self.game.player.inside:
+                    self.image.blit(npc_image, npc_rect)
 
         def draw_block_label(self):
             """Render the block label onto the block's surface."""
@@ -718,37 +762,48 @@ class DrawUI:
             self.image = pygame.transform.scale(zoomed_surface, (BLOCK_SIZE, BLOCK_SIZE))
 
 
-        class ViewportZombie:
-            """A zombie representation for drawing in the viewport."""
-            def __init__(self, zombie, index, total_zombies):
-                self.zombie = zombie
-                self.size = BLOCK_SIZE // 6  # Zombie size as a fraction of the block size
+        class ViewportNPC:
+            """A NPC representation for drawing in the viewport."""
+            def __init__(self, npc, index, total_npcs, row_offset=0):
+                self.npc = npc
+                self.size = BLOCK_SIZE // 6  # NPC size as a fraction of the block size
 
-                # Determine row and column for this zombie
-                row = index // 3  # Row 0 or 1
+                # Determine row and column for this NPC
+                row = index // 3  # Row 0 or 1 plus row offset
                 col = index % 3   # Column 0, 1, or 2
 
                 # Calculate horizontal positioning for each column
-                row_width = min(total_zombies - row * 3, 3) * (self.size + 2)  # Width of the row
+                row_width = min(total_npcs - row * 3, 3) * (self.size + 2)  # Width of the row
                 row_start_x = (BLOCK_SIZE - row_width) // 2  # Center the row horizontally
                 x = row_start_x + col * (self.size + 2) + self.size // 2
 
                 # Calculate vertical positioning for each row
                 row_height = self.size + 2
-                y = (BLOCK_SIZE // 2) + (row - 0.5) * row_height  # Row 0 above, row 1 below
+                y = (BLOCK_SIZE // 3) + (row + row_offset - 0.5) * row_height  # Row 0 above, row 1 below
 
                 self.position = (x, y)
 
+                # Determine colour based on NPC type
+                if npc.is_human:
+                    if hasattr(npc, "hostile") and npc.hostile:
+                        colour = (255, 0, 0)
+                    elif hasattr(npc, "hostile") and not npc.hostile:
+                        colour = (0, 0, 255)
+                    else:
+                        colour = (128, 128, 128)
+                else:
+                    colour = (0, 255, 0)
+
                 # Create the zombie image
                 self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
-                self.image.fill((0, 255, 0))  # Green square for zombies
+                self.image.fill(colour)
 
-    class ZombieSprite(pygame.sprite.Sprite):
-        """A zombie sprite for the description panel."""
-        def __init__(self, screen, zombie, sprite_sheet, frame_count, frame_width, frame_height, scale, colour):
+    class NPCSprite(pygame.sprite.Sprite):
+        """An NPC sprite for the description panel."""
+        def __init__(self, screen, npc, sprite_sheet, frame_count, frame_width, frame_height, scale, colour):
             super().__init__()
             self.screen = screen
-            self.zombie = zombie  # Reference to the parent zombie
+            self.npc = npc  # Reference to the parent NPC
             self.sprite_sheet = sprite_sheet
             self.frame_count = frame_count  # Total number of frames
             self.frame_width = frame_width  # Width of each frame
@@ -772,7 +827,7 @@ class DrawUI:
 
         def draw_hp_bar(self):
             max_hp = NPC_MAX_HP
-            current_hp = self.zombie.hp
+            current_hp = self.npc.hp
             bar_width = self.rect.width - 50
             hp_ratio = max(current_hp / max_hp, 0)
 

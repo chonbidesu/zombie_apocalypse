@@ -224,9 +224,17 @@ class ActionHandler:
                         block.lights_on = False
 
         # Each zombie gains an action point
+        seen_by_zombies = 0
+        pursued_by_zombies = 0
         for zombie in self.game.zombies.list:
+            if zombie.last_known_player_location:
+                seen_by_zombies += 1
+            if zombie.pursuing_player:
+                pursued_by_zombies += 1
             zombie.action_points += 1
             zombie.take_action()
+        print(f"Seen by {seen_by_zombies} zombies.")
+        print(f"Pursued by {pursued_by_zombies} zombies.")
         
         # Movement
         if action == ActionType.MOVE_UP:
@@ -360,6 +368,6 @@ class ActionHandler:
             self.game.chat_history.append(f"Dropped {properties.description}.")
 
         # Update zombie sprites after taking action
-        self.game.game_ui.update_zombie_sprites()
+        self.game.game_ui.update_npc_sprites()
 
 

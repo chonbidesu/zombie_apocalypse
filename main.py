@@ -11,7 +11,7 @@ from player import Player
 from city import City
 from npc import NPC
 import ui
-import zombulate
+import populate
 import menus
 import saveload
 import blocks
@@ -48,12 +48,12 @@ class GameInitializer:
         """Initialize the game state by loading or creating a new game."""
         try:
             game_state = saveload.Gamestate.load_game("savegame.pkl")
-            self.player, self.city, self.zombies = game_state.reconstruct_game(
-                Player, City, NPC, zombulate.GenerateZombies, 
-                blocks.BuildingBlock, blocks.CityBlock, self.chat_history,
+            self.player, self.city, self.zombies, self.humans = game_state.reconstruct_game(
+                self, Player, City, NPC, populate.GenerateNPCs, 
+                blocks.BuildingBlock, blocks.CityBlock,
             )
-            self.game_ui = ui.DrawUI(screen, self.player, self.city, self.zombies)
-            self.game_ui.update_zombie_sprites()
+            self.game_ui = ui.DrawUI(self, screen)
+            self.game_ui.update_npc_sprites()
 
         except (FileNotFoundError, EOFError, pickle.UnpicklingError):
             print("Save file not found or corrupted. Creating a new game.")
@@ -71,18 +71,19 @@ class GameInitializer:
             self.city, name="Jane", occupation="Doctor", x=50, y=50,
         )
 
-        # Zombulate the city
-        self.zombies = zombulate.GenerateZombies(self.player, self.city, self.chat_history, total_zombies=1000)
+        # Populate the city
+        self.zombies = populate.GenerateNPCs(self, total_npcs=1000, is_human=False)
+        self.humans = populate.GenerateNPCs(self, total_npcs=1000, is_human=True)
 
         # Initialize UI
-        self.game_ui = ui.DrawUI(screen, self.player, self.city, self.zombies)
-        self.game_ui.update_zombie_sprites()
+        self.game_ui = ui.DrawUI(self, screen)
+        self.game_ui.update_npc_sprites()
 
         print("New game created.")
 
     def save_game(self):
         """Save the game state to a file."""
-        saveload.Gamestate.save_game("savegame.pkl", self.player, self.city, self.zombies)
+        saveload.Gamestate.save_game("savegame.pkl", self)
 
     def pause_game(self):
         """Toggle game pause state."""
