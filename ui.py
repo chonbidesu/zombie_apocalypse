@@ -26,7 +26,7 @@ class DrawUI:
         self.inventory_panel_image = pygame.image.load("assets/inventory_panel.png").convert_alpha()
         self.equipped_image = pygame.image.load("assets/equipped_panel.png").convert_alpha()
         self.zombie_sprite_sheet_image = pygame.image.load("assets/zombie_spritesheet.png").convert_alpha()
-        self.human_sprite_image = pygame.image.load("assets/human_character.png").convert_alpha()
+        self.human_sprite_sheet_image = pygame.image.load("assets/human_spritesheet.png").convert_alpha()
 
         # Set up ui elements
         self.viewport_frame_width, self.viewport_frame_height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT // 2
@@ -38,7 +38,7 @@ class DrawUI:
         self.enter_button = Button('enter', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
         self.leave_button = Button('leave', x=40 + 2 * 120, y=(SCREEN_HEIGHT // 2) + 80)
         self.zombie_sprite_sheet = spritesheet.SpriteSheet(self.zombie_sprite_sheet_image)
-        self.human_sprite_sheet = spritesheet.SpriteSheet(self.human_sprite_image)
+        self.human_sprite_sheet = spritesheet.SpriteSheet(self.human_sprite_sheet_image)
 
         # Set up player portrait
         self.player_portrait_scale = (SCREEN_HEIGHT * 31 // 160 - 20) // 66
@@ -191,15 +191,20 @@ class DrawUI:
                 if current_block.lights_on:
                     current_observations += "Lights are on inside. "
             else:
-                current_observations += f'You are standing in {properties.description}.'
+                current_observations += f'You are standing in {properties.description}. '
 
         # Add observations for zombies and dead bodies
         zombies_here = [
             zombie for zombie in self.game.zombies.list
             if zombie.location == self.game.player.location and zombie.inside == self.game.player.inside
         ]
+        humans_here = [
+            human for human in self.game.humans.list
+            if human.location == self.game.player.location and human.inside == self.game.player.inside
+        ]
         living_zombies = [zombie for zombie in zombies_here if not zombie.is_dead]
-        dead_zombies = [zombie for zombie in zombies_here if zombie.is_dead]
+        living_humans = [human for human in humans_here if not human.is_dead]
+        dead_bodies = [npc for npc in zombies_here + humans_here if npc.is_dead]
 
         if living_zombies:
             if len(living_zombies) == 1:
@@ -207,11 +212,17 @@ class DrawUI:
             else:
                 current_observations += f"There are {len(living_zombies)} zombies here. "
 
-        if dead_zombies:
-            if len(dead_zombies) == 1:
-                current_observations += "You see a dead body."
+        if living_humans:
+            if len(living_humans) == 1:
+                current_observations += "There is another survivor here. "
             else:
-                current_observations += f"You see {len(dead_zombies)} dead bodies."
+                current_observations += f"There are {len(living_humans)} other survivors here. "
+
+        if dead_bodies:
+            if len(dead_bodies) == 1:
+                current_observations += "You see a dead body. "
+            else:
+                current_observations += f"You see {len(dead_bodies)} dead bodies. "
 
         return current_observations
 
@@ -262,7 +273,7 @@ class DrawUI:
             elif not zombie.is_dead:
                 # Create a new sprite for the zombie
                 new_sprite = self.NPCSprite(
-                    self.screen, zombie, self.zombie_sprite_sheet, 8, 264, 390, 0.4, (0, 0, 0)
+                    self.screen, zombie, self.zombie_sprite_sheet, 8, 44, 54, 2.5, (0, 0, 0)
                 )
                 self.zombie_sprite_group.add(new_sprite)
                 updated_sprites.append(new_sprite)
@@ -282,7 +293,7 @@ class DrawUI:
             elif not human.is_dead:
                 # Create a new sprite for the human
                 new_sprite = self.NPCSprite(
-                    self.screen, human, self.human_sprite_sheet, 1, 264, 390, 0.4, (0, 0, 0)
+                    self.screen, human, self.human_sprite_sheet, 8, 44, 64, 2.5, (0, 0, 0)
                 )
                 self.human_sprite_group.add(new_sprite)
                 updated_sprites.append(new_sprite)                
@@ -328,8 +339,8 @@ class DrawUI:
         sprite_width = 50  # Define the width for each zombie sprite
         sprite_spacing = 20  # Define the spacing between sprites
         zombie_row_start_x = setting_image_x + setting_image_width - len(self.zombie_sprite_group) * (sprite_width + sprite_spacing) - 10
-        human_row_start_x = setting_image_x + 10
-        row_start_y = setting_image_y + setting_image_height + 20  # Align with bottom edge of setting image
+        human_row_start_x = setting_image_x + 20
+        row_start_y = setting_image_y + setting_image_height  # Align with bottom edge of setting image
 
         for index, sprite in enumerate(self.zombie_sprite_group):
             # Calculate position for each zombie sprite
@@ -832,7 +843,7 @@ class DrawUI:
             hp_ratio = max(current_hp / max_hp, 0)
 
             bar_x = self.rect.x + 25
-            bar_y = self.rect.y + self.rect.height - 15
+            bar_y = self.rect.y + self.rect.height + 5
 
             pygame.draw.rect(self.screen, (255, 0, 0), (bar_x, bar_y, bar_width, self.hp_bar_height))
             pygame.draw.rect(self.screen, (0, 255, 0), (bar_x, bar_y, bar_width * hp_ratio, self.hp_bar_height))
@@ -1045,8 +1056,6 @@ class DrawUI:
                     y_offset += line_size                    
 
             self.map_surface.blit(self.map_info, (self.MAP_SIZE + 20, 20))
-
-
 
 
 class Cursor(object):
