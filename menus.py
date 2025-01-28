@@ -4,7 +4,7 @@ import pygame
 from pygame import Color, Rect, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, USEREVENT
 
 from settings import *
-from widgets import Button
+from ui.widgets import Button
 
 # pygame must be initialized before we can create a Font.
 pygame.init()

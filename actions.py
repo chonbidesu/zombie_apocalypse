@@ -105,7 +105,7 @@ class ActionHandler:
                 action = ActionType.MOVE_TO
                 self.execute_action(action)                
 
-        for button in self.game.game_ui.button_group:
+        for button in self.game.game_ui.actions_panel.button_group:
             button.handle_event(event)
 
         for button in self.game.pause_menu.button_group:
@@ -130,7 +130,7 @@ class ActionHandler:
                     self.game.popup_menu = None
 
         # Handle button clicks
-        for button in self.game.game_ui.button_group:
+        for button in self.game.game_ui.actions_panel.button_group:
             action_name = button.handle_event(event)
             if action_name:
                 button_to_action = {
@@ -175,7 +175,7 @@ class ActionHandler:
 
     def get_click_target(self, mouse_pos):
         """Get the target of a mouse click, saving the sprite and returning the target type."""
-        for sprite in self.game.game_ui.viewport_group:
+        for sprite in self.game.game_ui.viewport.viewport_group:
             if sprite.dx == 0 and sprite.dy == 0 and sprite.rect.collidepoint(mouse_pos):
                 self.mouse_sprite = sprite
                 return 'center block'
@@ -186,7 +186,7 @@ class ActionHandler:
             if sprite.rect.collidepoint(mouse_pos):
                 self.mouse_sprite = sprite  
                 return 'item'
-        for sprite in self.game.game_ui.zombie_sprite_group:
+        for sprite in self.game.game_ui.description_panel.zombie_sprite_group:
             if sprite.rect.collidepoint(mouse_pos):
                 self.mouse_sprite = sprite                
                 return 'zombie'
@@ -263,21 +263,21 @@ class ActionHandler:
 
         # Building actions
         elif action == ActionType.BARRICADE:
-            self.game.game_ui.action_progress('Barricading', self.game.chat_history)
+            self.game.game_ui.action_progress.start('Barricading')
             self.game.chat_history.append(player.barricade())
         elif action == ActionType.SEARCH:
-            self.game.game_ui.action_progress('Searching', self.game.chat_history)
+            self.game.game_ui.action_progress.start('Searching')
             self.game.chat_history.append(player.search())
         elif action == ActionType.ENTER:
             current_block = player.city.block(player.location[0], player.location[1])
             properties = BLOCKS[current_block.type]
             if properties.is_building:
-                result = self.game.game_ui.circle_wipe(player.enter, self.game.chat_history)
+                result = self.game.game_ui.effects.circle_wipe(player.enter, self.game.chat_history)
                 self.game.chat_history.append(result)
             else:
                 self.game.chat_history.append(player.enter())
         elif action == ActionType.LEAVE:
-            result = self.game.game_ui.circle_wipe(player.leave, self.game.chat_history)
+            result = self.game.game_ui.effects.circle_wipe(player.leave, self.game.chat_history)
             self.game.chat_history.append(result)
 
         # Inventory actions
@@ -311,7 +311,7 @@ class ActionHandler:
         
             elif item.type == ItemType.PORTABLE_GENERATOR:
                 if player.inside:
-                    self.game.game_ui.action_progress('Installing generator', self.game.chat_history)
+                    self.game.game_ui.action_progress.start('Installing generator')
                     result, item_used = player.install_generator()
                     self.game.chat_history.append(result)
                     if item_used:
@@ -321,7 +321,7 @@ class ActionHandler:
        
             elif item.type == ItemType.FUEL_CAN:
                 if player.inside:
-                    self.game.game_ui.action_progress('Fuelling generator', self.game.chat_history)
+                    self.game.game_ui.action_progress.start('Fuelling generator')
                     result, item_used = player.fuel_generator()
                     self.game.chat_history.append(result)
                     if item_used:
@@ -331,7 +331,7 @@ class ActionHandler:
 
             elif item.type == ItemType.TOOLBOX:
                 if player.inside:
-                    self.game.game_ui.action_progress('Repairing building', self.game.chat_history)
+                    self.game.game_ui.action_progress.start('Repairing building')
                     self.game.chat_history.append(player.repair_building())
                 else:
                     self.game.chat_history.append("You have to be inside a building to use this.")
@@ -368,6 +368,6 @@ class ActionHandler:
             self.game.chat_history.append(f"Dropped {properties.description}.")
 
         # Update zombie sprites after taking action
-        self.game.game_ui.update_npc_sprites()
+        self.game.game_ui.description_panel.update_npc_sprites()
 
 

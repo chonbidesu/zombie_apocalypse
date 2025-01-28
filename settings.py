@@ -34,6 +34,8 @@ STAND_UP_AP = 50
 SEARCH_MULTIPLIER = 1.0
 LIGHTSON_MULTIPLIER = 2.5
 RANSACKED_MULTIPLIER = 0.3
+MAX_ITEMS = 10  # Define the maximum number of items in inventory
+MAX_ITEMS_PER_ROW = 5
 
 # Fonts
 pygame.init()

@@ -1,10 +1,8 @@
 # main.py
-import os
 import pickle
 import pygame
 import sys
 from pygame.locals import *
-from collections import defaultdict
 
 from settings import *
 from player import Player
@@ -30,7 +28,7 @@ class GameInitializer:
     def __init__(self):
         self.player = None
         self.city = None
-        self.cursor = ui.Cursor()
+        self.cursor = ui.widgets.Cursor()
         self.paused = False
         self.pause_menu = menus.PauseMenu()
         self.popup_menu = None
@@ -53,7 +51,7 @@ class GameInitializer:
                 blocks.BuildingBlock, blocks.CityBlock,
             )
             self.game_ui = ui.DrawUI(self, screen)
-            self.game_ui.update_npc_sprites()
+            self.game_ui.description_panel.update_npc_sprites()
 
         except (FileNotFoundError, EOFError, pickle.UnpicklingError):
             print("Save file not found or corrupted. Creating a new game.")
@@ -77,7 +75,7 @@ class GameInitializer:
 
         # Initialize UI
         self.game_ui = ui.DrawUI(self, screen)
-        self.game_ui.update_npc_sprites()
+        self.game_ui.description_panel.update_npc_sprites()
 
         print("New game created.")
 
