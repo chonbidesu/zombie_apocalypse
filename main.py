@@ -51,7 +51,7 @@ class GameInitializer:
                 blocks.BuildingBlock, blocks.CityBlock,
             )
             self.game_ui = ui.DrawUI(self, screen)
-            self.game_ui.description_panel.update_npc_sprites()
+            #self.game_ui.description_panel.update_npc_sprites()
 
         except (FileNotFoundError, EOFError, pickle.UnpicklingError):
             print("Save file not found or corrupted. Creating a new game.")
@@ -75,7 +75,7 @@ class GameInitializer:
 
         # Initialize UI
         self.game_ui = ui.DrawUI(self, screen)
-        self.game_ui.description_panel.update_npc_sprites()
+        self.game_ui.update()
 
         print("New game created.")
 
@@ -105,7 +105,6 @@ def main():
     game = GameInitializer()
 
     while running:
-        screen.fill(DARK_GREEN)
 
         # Handle events
         events = pygame.event.get()
@@ -121,6 +120,7 @@ def main():
 
         else:
             # Draw game elements to screen
+            game.game_ui.update()
             game.game_ui.draw(game.chat_history)
 
             # Handle right-click menu

@@ -59,13 +59,13 @@ class StatusPanel:
         self.screen = screen
         self.width, self.height = SCREEN_WIDTH // 4 - 10, SCREEN_HEIGHT * 31 // 160
         self.portrait_size = self.height - 20
-        self.original_hp_bar = pygame.image.load("assets/hp_bar.png").convert_alpha()
+        self.original_hp_bar = pygame.image.load(resource_path("assets/hp_bar.png")).convert_alpha()
         self.hp_bar = pygame.transform.scale(self.original_hp_bar, (self.portrait_size, 20))
-        self.original_portrait_frame = pygame.image.load("assets/player_frame.png").convert_alpha()
+        self.original_portrait_frame = pygame.image.load(resource_path("assets/player_frame.png")).convert_alpha()
         self.portrait_frame = pygame.transform.scale(self.original_portrait_frame, (self.portrait_size, self.portrait_size))
-        #self.player_portrait = pygame.image.load("assets/male1.png").convert_alpha()
-        self.player_sprite_sheet_image = pygame.image.load("assets/male1_sprite_sheet.png").convert_alpha()
-        self.player_info = pygame.image.load("assets/player_info.png").convert_alpha()
+        self.player_sprite_sheet_image = pygame.image.load(resource_path("assets/male1_sprite_sheet.png")).convert_alpha()
+        self.original_player_info = pygame.image.load(resource_path("assets/player_info.png")).convert_alpha()
+        self.player_info = pygame.transform.scale(self.original_player_info, (self.width - self.height + 20, self.height))
 
         # Set up player portrait
         self.player_portrait_scale = (SCREEN_HEIGHT * 31 // 160 - 20) // 66
@@ -80,14 +80,22 @@ class StatusPanel:
         x, y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT * 25 // 32 + 10
         status_panel = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
+        # Draw player portrait
+        self.player_sprite_group.update()
+        self.player_sprite_group.draw(status_panel)
+        status_panel.blit(self.portrait_frame, (0, 0))
+
         # Draw HP bar
         max_hp = self.game.player.max_hp
         current_hp = self.game.player.hp
         hp_ratio = max(current_hp / max_hp, 0)
+        pygame.draw.rect(status_panel, (255, 0, 0), (0, self.height - 20, self.portrait_size, 20))
+        pygame.draw.rect(status_panel, (0, 255, 0), (0, self.height - 20, self.portrait_size * hp_ratio, 20))
+        status_panel.blit(self.hp_bar, (0, self.height - 20))
 
-        pygame.draw.rect(status_panel, (255, 0, 0), (0, self.height - 20, self.width, 20))
-        pygame.draw.rect(status_panel, (0, 255, 0), (0, self.height - 20, self.width * hp_ratio, 20))
 
+        # Draw player status
+        status_panel.blit(self.player_info, (self.portrait_size, 0))
         self._render_player_status(status_panel)
 
         # Blit to screen
@@ -109,7 +117,7 @@ class StatusPanel:
 class ChatPanel:
     def __init__(self, screen):
         self.screen = screen
-        self.original_image = pygame.image.load("assets/chat_panel.png").convert_alpha()
+        self.original_image = pygame.image.load(resource_path("assets/chat_panel.png")).convert_alpha()
         self.width, self.height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT * 3 // 10
         self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
 
@@ -137,9 +145,9 @@ class InventoryPanel:
         self.screen = screen
         self.width, self.height = (SCREEN_WIDTH * 7 // 16) + (SCREEN_HEIGHT * -7 // 32) - 20, SCREEN_HEIGHT * 31 // 160
         self.weapon_size = self.height
-        self.original_image = pygame.image.load("assets/inventory_panel.png").convert_alpha()
+        self.original_image = pygame.image.load(resource_path("assets/inventory_panel.png")).convert_alpha()
         self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
-        self.original_weapon_image = pygame.image.load("assets/equipped_panel.png").convert_alpha()
+        self.original_weapon_image = pygame.image.load(resource_path("assets/equipped_panel.png")).convert_alpha()
         self.weapon_image = pygame.transform.scale(self.original_weapon_image, (self.weapon_size, self.weapon_size))
 
     def draw(self):
@@ -222,57 +230,65 @@ class DescriptionPanel:
         self.game = game
         self.width = SCREEN_WIDTH - (SCREEN_HEIGHT // 2) - 20
         self.height = SCREEN_HEIGHT * 25 // 32
+        self.x = SCREEN_HEIGHT // 2 + 10
         
-        self.original_image = pygame.image.load("assets/description_panel.png").convert_alpha()
+        self.original_image = pygame.image.load(resource_path("assets/description_panel.png")).convert_alpha()
         self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
 
         self.setting_width = self.width * 5 // 6
         self.setting_height = self.setting_width * 4 // 9  # 9:4 aspect ratio
+        self.setting_image_x = self.x + (self.width - self.setting_width) // 2
+        self.setting_image_y = 50
 
         # Set up sprite elements
         self.zombie_sprite_group = pygame.sprite.Group()
-        self.zombie_sprite_sheet_image = pygame.image.load("assets/zombie_spritesheet.png").convert_alpha()
+        self.zombie_sprite_sheet_image = pygame.image.load(resource_path("assets/zombie_spritesheet.png")).convert_alpha()
         self.zombie_sprite_sheet = SpriteSheet(self.zombie_sprite_sheet_image)
 
         self.human_sprite_group = pygame.sprite.Group()      
-        self.human_sprite_sheet_image = pygame.image.load("assets/human_spritesheet.png").convert_alpha()
+        self.human_sprite_sheet_image = pygame.image.load(resource_path("assets/human_spritesheet.png")).convert_alpha()
         self.human_sprite_sheet = SpriteSheet(self.human_sprite_sheet_image)        
 
-    def draw(self):
-        x = SCREEN_HEIGHT // 2 + 10
+        # Store current description and setting image data
+        self.current_description = []
+        self.setting_image = None
 
+    def draw(self):
         # Blit the panel background
-        self.screen.blit(self.image, (x, 10))
+        self.screen.blit(self.image, (self.x, 10))
 
         # Blit the setting image at the top of the panel
-        setting_image = self._get_setting_image()
-        self.setting_image_x = x + (self.width - setting_image.get_width()) // 2
-        self.setting_image_y = 50
-        self.screen.blit(setting_image, (self.setting_image_x, self.setting_image_y)) 
+        self.screen.blit(self.setting_image, (self.setting_image_x, self.setting_image_y)) 
 
-        # Draw NPC sprites
-        self.zombie_sprite_group.update()
-        self._position_npc_sprites(self.zombie_sprite_group, 'right')       
+        # Draw NPC sprites  
         self.zombie_sprite_group.draw(self.screen)
-
-        self.human_sprite_group.update()
-        self._position_npc_sprites(self.human_sprite_group, 'left')       
         self.human_sprite_group.draw(self.screen) 
 
         # Render each paragraph inside the description panel
         text_start_y = self.setting_image_y + self.setting_height + 20
-        for line in self._get_formatted_description():
+        for line in self.current_description:
             text = font_large.render(line, True, BLACK)
-            text_rect = text.get_rect(x=x + 50, y=text_start_y)  # Padding of 50px on the left
+            text_rect = text.get_rect(x=self.x + 50, y=text_start_y)  # Padding of 50px on the left
             self.screen.blit(text, text_rect)
             text_start_y += font_large.size(line)[1]  # Move down for the next line        
+
+    def update(self):
+        self._update_observations()
+        self._update_npc_sprites()
+        self.setting_image = self._get_setting_image()
+        self.current_description = self._get_formatted_description()
+        self.zombie_sprite_group.update()
+        self._position_npc_sprites(self.zombie_sprite_group, 'right')
+        self.human_sprite_group.update()
+        self._position_npc_sprites(self.human_sprite_group, 'left')    
+
 
     def _get_setting_image(self):
         """Determine the setting image."""
         current_x, current_y = self.game.player.location
         current_block = self.game.city.block(current_x, current_y)        
         image_suffix = "inside" if self.game.player.inside else "outside"
-        image_path = f"assets/{current_block.type.name.lower()}_{image_suffix}.png"
+        image_path = resource_path(f"assets/{current_block.type.name.lower()}_{image_suffix}.png")
 
         try:
             setting_image = pygame.image.load(image_path)
@@ -304,7 +320,7 @@ class DescriptionPanel:
     def _get_formatted_description(self):
         """Get the description text and wrap it to fit within the panel"""
         paragraphs = []
-        for observation in self.description():
+        for observation in self._description():
             wrapped_text = WrapText(observation, font_large, self.width - 100)  # 50px padding on each side
             for line in wrapped_text.lines:
                 paragraphs.append(line)
@@ -312,7 +328,7 @@ class DescriptionPanel:
 
         return paragraphs
 
-    def get_current_observations(self):
+    def _get_current_observations(self):
         """Get the current observations based on the player's surroundings."""
         current_x, current_y = self.game.player.location
         current_block = self.game.city.block(current_x, current_y)        
@@ -380,29 +396,28 @@ class DescriptionPanel:
 
         return current_observations
 
-    def update_observations(self):
+    def _update_observations(self):
         """Update the observations list based on the player's current state."""
         current_x, current_y = self.game.player.location
         current_block = self.game.city.block(current_x, current_y)        
         current_block.observations.clear()  # Clear existing observations
         if self.game.player.inside:
-            current_block.observations.append(self.get_current_observations())
+            current_block.observations.append(self._get_current_observations())
             current_block.observations.append(current_block.block_inside_desc)
         else:
-            current_block.observations.append(self.get_current_observations())
+            current_block.observations.append(self._get_current_observations())
             current_block.observations.append(current_block.block_outside_desc)
 
-    def description(self):
+    def _description(self):
         """Return the current list of observations as a list."""
         current_x, current_y = self.game.player.location
         current_block = self.game.city.block(current_x, current_y)        
-        self.update_observations()  # Ensure observations are current
+        self._update_observations()  # Ensure observations are current
         return current_block.observations
 
-    def update_npc_sprites(self):
-        """
-        Update NPC sprites' visibility and position.
-        """
+    def _update_npc_sprites(self):
+        """Update NPC sprites' visibility."""
+
         # Keep track of NPCs currently at the player's location
         zombies_here = [
             zombie for zombie in self.game.zombies.list

@@ -44,7 +44,7 @@ class Player:
         self.location = (x, y)  # Initial location in the 100x100 grid
         self.inside = inside
         self.is_dead = False  # Status of the player
-        self.search_chances = self.load_search_chances("assets/search.csv")
+        self.search_chances = self.load_search_chances(resource_path("assets/search.csv"))
         self.ticker = 0  # Tracks the number of actions taken
         self.city = city
 
@@ -201,24 +201,24 @@ class Player:
         success_chances = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
         if properties.is_building and self.inside:
             if current_block.barricade.level >= 7 and current_block.barricade.sublevel >= 4:
-                return "You can't add more barricades."
+                return "You can't add more barricades.", False
             
             success_chance = success_chances[current_block.barricade.level]
             success = random.random() < success_chance
             if success:
                 add_barricade = current_block.barricade.adjust_barricade_sublevel(1)
                 if not add_barricade:
-                    return "You can't add more barricades."
+                    return "You can't add more barricades.", False
                 elif current_block.barricade.level == 4 and current_block.barricade.sublevel == 2:
-                    return f"You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
+                    return f"You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in.", False
                 elif current_block.barricade.sublevel == 0:
-                    return f"You reinforce the barricade. The building is now {current_block.barricade.get_barricade_description()}."
+                    return f"You reinforce the barricade. The building is now {current_block.barricade.get_barricade_description()}.", False
                 elif current_block.barricade.sublevel > 0:
-                    return f"You reinforce the barricade."
+                    return f"You reinforce the barricade.", False
             else:
-                return "You could not find anything to add to the barricade."
+                return "You could not find anything to add to the barricade.", False
         else:
-            return "You can't barricade here."
+            return "You can't barricade here.", False
 
     def repair_building(self):
         current_x, current_y = self.location
@@ -227,9 +227,9 @@ class Player:
         if properties.is_building and self.inside:
             if current_block.is_ransacked:
                 current_block.is_ransacked = False
-                return "You repaired the interior of the building and cleaned up the mess."
+                return "You repaired the interior of the building and cleaned up the mess.", False
             else:
-                return "There's nothing to repair here."
+                return "There's nothing to repair here.", False
 
     def enter(self):
         current_x, current_y = self.location
@@ -240,9 +240,9 @@ class Player:
                 if current_block.barricade.level == 0:
                     self.inside = True
                     return "You entered the building."
-                if current_block.barricade.level <= 4:
+                elif current_block.barricade.level <= 4:
                     self.inside = True
-                    return "You climb through the barricades."
+                    return "You climb through the barricades and are now inside."
                 else:
                     return "You can't find a way through the barricades."
             return "You are already inside."
@@ -254,8 +254,14 @@ class Player:
         properties = BLOCKS[current_block.type]
         if properties.is_building:
             if self.inside:
-                self.inside = False
-                return "You left the building."
+                if current_block.barricade.level == 0:
+                    self.inside = False
+                    return "You left the building."
+                elif current_block.barricade.level <= 4:
+                    self.inside = False
+                    return "You climb through the barricades and are now outside."
+                else:
+                    return "The building has been so heavily barricaded that you cannot leave through the main doors."                    
             return "You are already outside."
         return "You can't leave this place."
 
@@ -283,21 +289,21 @@ class Player:
                         item_properties = ITEMS[item.type]
                         if item is not None:
                             if items_held >= MAX_ITEMS:
-                                return f"You found {item_properties.description}, but you are carrying too much and it falls under a pile of debris!"
+                                return f"You found {item_properties.description}, but you are carrying too much and it falls under a pile of debris!", False
                             elif item_type == 'PORTABLE_GENERATOR':
                                 for sprite in self.inventory:
                                     if hasattr(sprite, 'type') and sprite.type == ItemType.PORTABLE_GENERATOR:
-                                        return 'You found Portable Generator, but you can only carry one at a time.'
+                                        return 'You found Portable Generator, but you can only carry one at a time.', False
                             self.inventory.add(item)
-                            return f"You found {item_properties.description}!"
+                            return f"You found {item_properties.description}!", False
                         else:
-                            return f"Tried to add {item_properties.description} to inventory!"
-                return f"You found nothing."
+                            return f"Tried to add {item_properties.description} to inventory!", False
+                return f"You found nothing.", False
             
             else:
-                return "You search around the building but there is nothing to be found."
+                return "You search around the building but there is nothing to be found.", False
         else:
-            return "You search but there is nothing to be found."
+            return "You search but there is nothing to be found.", False
         
     def install_generator(self):
         current_x, current_y = self.location

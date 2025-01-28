@@ -2,6 +2,15 @@
 import pygame
 from enum import Enum, auto
 from collections import namedtuple
+import os
+import sys
+
+# Define resource path function
+def resource_path(relative_path):
+    """Get the absolute path to a resource, working for both dev & PyInstaller."""
+    if hasattr(sys, '_MEIPASS'):  # PyInstaller extracts files here in --onefile mode
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 # Saved game file
 SAVE_FILE = "savegame.pkl"
@@ -39,12 +48,12 @@ MAX_ITEMS_PER_ROW = 5
 
 # Fonts
 pygame.init()
-font_xs = pygame.font.Font('data/PixelifySans.ttf', 10)
-font_small = pygame.font.Font('data/PixelifySans.ttf', 12)
-font_large = pygame.font.Font('data/PixelifySans.ttf', 18)
-font_xl = pygame.font.Font('data/PixelifySans.ttf', 56)
-font_xxl = pygame.font.Font('data/PixelifySans.ttf', 102)
-font_chat = pygame.font.Font('data/PixelifySans.ttf', 16)
+font_xs = pygame.font.Font(resource_path('data/PixelifySans.ttf'), 10)
+font_small = pygame.font.Font(resource_path('data/PixelifySans.ttf'), 12)
+font_large = pygame.font.Font(resource_path('data/PixelifySans.ttf'), 18)
+font_xl = pygame.font.Font(resource_path('data/PixelifySans.ttf'), 56)
+font_xxl = pygame.font.Font(resource_path('data/PixelifySans.ttf'), 102)
+font_chat = pygame.font.Font(resource_path('data/PixelifySans.ttf'), 16)
 
 # Colors
 WHITE = (255, 255, 255)
@@ -87,18 +96,18 @@ ItemProperties = namedtuple(
 )
 
 ITEMS = {
-    ItemType.FIRST_AID_KIT: ItemProperties('First Aid Kit', 'a first aid kit', ItemFunction.ITEM, 'assets/first_aid_kit.png', None, None, None, None),
-    ItemType.PORTABLE_GENERATOR: ItemProperties('Portable Generator', 'a portable generator', ItemFunction.ITEM, 'assets/portable_generator.png', None, None, None, None),
-    ItemType.FUEL_CAN: ItemProperties('Fuel Can', 'a fuel can', ItemFunction.ITEM, 'assets/fuel_can.png', None, None, None, None),
-    ItemType.MAP: ItemProperties('Map', 'a map', ItemFunction.ITEM, 'assets/map.png', None, None, None, None),
-    ItemType.TOOLBOX: ItemProperties('Toolbox', 'a toolbox', ItemFunction.ITEM, 'assets/toolbox.png', None, None, None, None),
-    ItemType.SHOTGUN_SHELL: ItemProperties('Shotgun Shell', 'a shotgun shell', ItemFunction.AMMO, 'assets/shotgun_shell.png', None, None, None, None),
-    ItemType.PISTOL_CLIP: ItemProperties('Pistol Clip', 'a pistol clip', ItemFunction.AMMO, 'assets/pistol_clip.png', None, None, None, None),
-    ItemType.CROWBAR: ItemProperties('Crowbar', 'a crowbar', ItemFunction.MELEE, 'assets/crowbar.png', 5, 3, 30, None),
-    ItemType.FIRE_AXE: ItemProperties('Fire Axe', 'a fire axe', ItemFunction.MELEE, 'assets/fire_axe.png', 5, 4, 20, None),
-    ItemType.SHOVEL: ItemProperties('Shovel', 'a shovel', ItemFunction.MELEE, 'assets/shovel.png', 5, 2, 20, None),
-    ItemType.SHOTGUN: ItemProperties('Shotgun', 'a shotgun', ItemFunction.FIREARM, 'assets/shotgun.png', 4, 20, None, 2),
-    ItemType.PISTOL: ItemProperties('Pistol', 'a pistol', ItemFunction.FIREARM, 'assets/pistol.png', 2, 8, None, 7),
+    ItemType.FIRST_AID_KIT: ItemProperties('First Aid Kit', 'a first aid kit', ItemFunction.ITEM, resource_path('assets/first_aid_kit.png'), None, None, None, None),
+    ItemType.PORTABLE_GENERATOR: ItemProperties('Portable Generator', 'a portable generator', ItemFunction.ITEM, resource_path('assets/portable_generator.png'), None, None, None, None),
+    ItemType.FUEL_CAN: ItemProperties('Fuel Can', 'a fuel can', ItemFunction.ITEM, resource_path('assets/fuel_can.png'), None, None, None, None),
+    ItemType.MAP: ItemProperties('Map', 'a map', ItemFunction.ITEM, resource_path('assets/map.png'), None, None, None, None),
+    ItemType.TOOLBOX: ItemProperties('Toolbox', 'a toolbox', ItemFunction.ITEM, resource_path('assets/toolbox.png'), None, None, None, None),
+    ItemType.SHOTGUN_SHELL: ItemProperties('Shotgun Shell', 'a shotgun shell', ItemFunction.AMMO, resource_path('assets/shotgun_shell.png'), None, None, None, None),
+    ItemType.PISTOL_CLIP: ItemProperties('Pistol Clip', 'a pistol clip', ItemFunction.AMMO, resource_path('assets/pistol_clip.png'), None, None, None, None),
+    ItemType.CROWBAR: ItemProperties('Crowbar', 'a crowbar', ItemFunction.MELEE, resource_path('assets/crowbar.png'), 5, 3, 30, None),
+    ItemType.FIRE_AXE: ItemProperties('Fire Axe', 'a fire axe', ItemFunction.MELEE, resource_path('assets/fire_axe.png'), 5, 4, 20, None),
+    ItemType.SHOVEL: ItemProperties('Shovel', 'a shovel', ItemFunction.MELEE, resource_path('assets/shovel.png'), 5, 2, 20, None),
+    ItemType.SHOTGUN: ItemProperties('Shotgun', 'a shotgun', ItemFunction.FIREARM, resource_path('assets/shotgun.png'), 4, 20, None, 2),
+    ItemType.PISTOL: ItemProperties('Pistol', 'a pistol', ItemFunction.FIREARM, resource_path('assets/pistol.png'), 2, 8, None, 7),
 }
 
 # NPC types
@@ -138,27 +147,27 @@ BlockProperties = namedtuple(
 )
 
 BLOCKS = {
-    BlockType.FIRE_STATION: BlockProperties("a fire station", True, "assets/fire_station.bmp"),
-    BlockType.POLICE_DEPARTMENT: BlockProperties("a police department", True, "assets/police_department.bmp"),
-    BlockType.HOSPITAL: BlockProperties("a hospital", True, "assets/hospital.bmp"),
-    BlockType.LIBRARY: BlockProperties("a library", True, "assets/library.bmp"),
-    BlockType.CHURCH: BlockProperties("a church", True, "assets/church.bmp"),
-    BlockType.WAREHOUSE: BlockProperties("a warehouse", True, "assets/warehouse.bmp"),
-    BlockType.AUTO_REPAIR: BlockProperties("an auto repair shop", True, "assets/auto_repair.bmp"),
-    BlockType.FACTORY: BlockProperties("a factory", True, "assets/factory.bmp"),
-    BlockType.SCHOOL: BlockProperties("a school", True, "assets/school.bmp"),
-    BlockType.NECROTECH_LAB: BlockProperties("a NecroTech lab", True, "assets/necrotech_lab.bmp"),
-    BlockType.JUNKYARD: BlockProperties("a junkyard", True, "assets/junkyard.bmp"),
-    BlockType.MUSEUM: BlockProperties("a museum", True, "assets/museum.bmp"),
-    BlockType.NIGHTCLUB: BlockProperties("a nightclub", True, "assets/nightclub.bmp"),
-    BlockType.PUB: BlockProperties("a pub", True, "assets/pub.bmp"),
-    BlockType.MALL: BlockProperties("a mall", True, "assets/mall.bmp"),
+    BlockType.FIRE_STATION: BlockProperties("a fire station", True, resource_path("assets/fire_station.bmp")),
+    BlockType.POLICE_DEPARTMENT: BlockProperties("a police department", True, resource_path("assets/police_department.bmp")),
+    BlockType.HOSPITAL: BlockProperties("a hospital", True, resource_path("assets/hospital.bmp")),
+    BlockType.LIBRARY: BlockProperties("a library", True, resource_path("assets/library.bmp")),
+    BlockType.CHURCH: BlockProperties("a church", True, resource_path("assets/church.bmp")),
+    BlockType.WAREHOUSE: BlockProperties("a warehouse", True, resource_path("assets/warehouse.bmp")),
+    BlockType.AUTO_REPAIR: BlockProperties("an auto repair shop", True, resource_path("assets/auto_repair.bmp")),
+    BlockType.FACTORY: BlockProperties("a factory", True, resource_path("assets/factory.bmp")),
+    BlockType.SCHOOL: BlockProperties("a school", True, resource_path("assets/school.bmp")),
+    BlockType.NECROTECH_LAB: BlockProperties("a NecroTech lab", True, resource_path("assets/necrotech_lab.bmp")),
+    BlockType.JUNKYARD: BlockProperties("a junkyard", True, resource_path("assets/junkyard.bmp")),
+    BlockType.MUSEUM: BlockProperties("a museum", True, resource_path("assets/museum.bmp")),
+    BlockType.NIGHTCLUB: BlockProperties("a nightclub", True, resource_path("assets/nightclub.bmp")),
+    BlockType.PUB: BlockProperties("a pub", True, resource_path("assets/pub.bmp")),
+    BlockType.MALL: BlockProperties("a mall", True, resource_path("assets/mall.bmp")),
 
-    BlockType.STREET: BlockProperties("a street", False, "assets/streets.bmp"),
-    BlockType.PARK: BlockProperties("a park", False, "assets/park.bmp"),
-    BlockType.CEMETERY: BlockProperties("a cemetery", False, "assets/cemetery.bmp"),
-    BlockType.MONUMENT: BlockProperties("a monument", False, "assets/monument.bmp"),
-    BlockType.CARPARK: BlockProperties("a carpark", False, "assets/carpark.bmp"),
+    BlockType.STREET: BlockProperties("a street", False, resource_path("assets/streets.bmp")),
+    BlockType.PARK: BlockProperties("a park", False, resource_path("assets/park.bmp")),
+    BlockType.CEMETERY: BlockProperties("a cemetery", False, resource_path("assets/cemetery.bmp")),
+    BlockType.MONUMENT: BlockProperties("a monument", False, resource_path("assets/monument.bmp")),
+    BlockType.CARPARK: BlockProperties("a carpark", False, resource_path("assets/carpark.bmp")),
 }
 
 
@@ -208,3 +217,4 @@ NEIGHBOURHOODS = [
     "New Arkham", "Old Arkham", "Spicer Hills", "Williamsville", "Buttonville",
     "Wyke Hills", "Hollomstown", "Danversbank", "Whittenside", "Miltown"
 ]
+

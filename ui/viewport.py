@@ -8,7 +8,7 @@ class Viewport:
     def __init__(self, game, screen):
         self.game = game
         self.screen = screen
-        self.frame = pygame.image.load('assets/viewport_frame.png').convert_alpha()
+        self.frame = pygame.image.load(resource_path('assets/viewport_frame.png')).convert_alpha()
         self.frame_size = SCREEN_HEIGHT // 2
         self.grid_topleft = (self.frame_size // 9) + 12
         self.viewport_group = self._create_viewport_group()
@@ -17,6 +17,7 @@ class Viewport:
         scaled_viewport_frame = pygame.transform.scale(self.frame, (self.frame_size, self.frame_size))
         self.screen.blit(scaled_viewport_frame, (10, 10))
         self.viewport_group.draw(self.screen)
+        self.draw_neighbourhood_name()
 
     #  Set up viewport group
     def _create_viewport_group(self):
@@ -42,9 +43,9 @@ class Viewport:
         # Draw neighbourhood name
         current_x, current_y = self.game.player.location
         current_block = self.game.city.block(current_x, current_y)
-        pygame.draw.rect(self.screen, ORANGE, (10, self.viewport_frame_height + 10, self.viewport_frame_width, 30))
+        pygame.draw.rect(self.screen, ORANGE, (10, self.frame_size + 10, self.frame_size, 30))
         text = font_large.render(current_block.neighbourhood, True, WHITE)
-        self.screen.blit(text, ((self.viewport_frame_width // 2) - (text.get_width() // 2), self.viewport_frame_height + 15))        
+        self.screen.blit(text, ((self.frame_size // 2) - (text.get_width() // 2), self.frame_size + 15))        
 
 
 class BlockSprite(pygame.sprite.Sprite):

@@ -2,6 +2,8 @@
 
 import pygame
 
+from settings import *
+
 class Button(pygame.sprite.Sprite):
     """A button that changes images on mouse events."""
     def __init__(self, name, x, y):
@@ -17,7 +19,7 @@ class Button(pygame.sprite.Sprite):
     def image_up(self):
         """Lazy load the 'up' image when first accessed."""
         if self._image_up is None:
-            self._image_up = pygame.image.load(f"assets/{self.name}_up.png").convert_alpha()
+            self._image_up = pygame.image.load(resource_path(f"assets/{self.name}_up.png")).convert_alpha()
             self._image_up = pygame.transform.scale(self._image_up, (100, 49))  # Scale when loading
         return self._image_up
 
@@ -25,7 +27,7 @@ class Button(pygame.sprite.Sprite):
     def image_down(self):
         """Lazy load the 'down' image when first accessed."""
         if self._image_down is None:
-            self._image_down = pygame.image.load(f"assets/{self.name}_down.png").convert_alpha()
+            self._image_down = pygame.image.load(resource_path(f"assets/{self.name}_down.png")).convert_alpha()
             self._image_down = pygame.transform.scale(self._image_down, (100, 49))  # Scale when loading
         return self._image_down
 
@@ -64,8 +66,8 @@ class Button(pygame.sprite.Sprite):
 
 class Cursor(object):
     def __init__(self):
-        self.default_image = pygame.image.load('assets/zombie_hand.png').convert_alpha()
-        self.attack_image = pygame.image.load('assets/crosshair.png').convert_alpha()
+        self.default_image = pygame.image.load(resource_path('assets/zombie_hand.png')).convert_alpha()
+        self.attack_image = pygame.image.load(resource_path('assets/crosshair.png')).convert_alpha()
         self.image = self.default_image
         self.rect = self.image.get_rect(center=(0,0))
         pygame.mouse.set_visible(False)

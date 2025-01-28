@@ -2,6 +2,7 @@ from settings import *
 from ui.panels import StatusPanel, ChatPanel, ActionsPanel, InventoryPanel, DescriptionPanel
 from ui.viewport import Viewport
 from ui.utils import ActionProgress
+from ui.effects import ScreenTransition
 
 class DrawUI:
     """Manages all UI elements and delegates rendering to subcomponents."""
@@ -14,15 +15,21 @@ class DrawUI:
         self.chat_panel = ChatPanel(screen)
         self.inventory_panel = InventoryPanel(game, screen)
         self.description_panel = DescriptionPanel(game, screen)
-        self.action_progress = ActionProgress(screen)
+        self.action_progress = ActionProgress(game, screen)
+        self.screen_transition = ScreenTransition(screen, self.draw, self.update)
 
     def draw(self, chat_history):
-        self.viewport.update()
+        self.screen.fill(DARK_GREEN)
         self.viewport.draw()
-        self.actions_panel.update()
         self.actions_panel.draw()
         self.status_panel.draw()
         self.chat_panel.draw(chat_history)
         self.inventory_panel.draw()
         self.description_panel.draw()
         self.action_progress.draw()
+
+    def update(self):
+        self.viewport.update()
+        self.actions_panel.update()
+        self.description_panel.update()
+

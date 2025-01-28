@@ -34,18 +34,21 @@ class WrapText:
 
 class ActionProgress:
     """Display a 'Searching...' message with incrementing dots, or a similar message."""
-    def __init__(self, screen):
+    def __init__(self, game, screen):
+        self.game = game
         self.screen = screen
         self.active_message = None
         self.start_ticks = 0
         self.duration = 0
+        self.target_function = None
         self.clock = pygame.time.Clock()
 
-    def start(self, message, duration=3):
+    def start(self, message, target_function, duration=1.5):
         """Start displaying an action progress message for a set duration."""
         self.active_message = message
         self.start_ticks = pygame.time.get_ticks()
         self.duration = duration * 1000
+        self.target_function = target_function
 
     def draw(self):
         """Draw the action progress message if it's active."""
@@ -60,6 +63,13 @@ class ActionProgress:
             # Stop displaying once duration ends
             if elapsed > self.duration:
                 self.active_message = None
+                if self.target_function:
+                    result, item_used = self.target_function()
+                    self.game.chat_history.append(result)
+                    if item_used:
+                        item_used.kill()
+                    self.target_function = None
+
 
 class SpriteSheet():
     def __init__(self, image):

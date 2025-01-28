@@ -224,16 +224,13 @@ class ActionHandler:
                         block.lights_on = False
 
         # Each zombie gains an action point
-        seen_by_zombies = 0
         pursued_by_zombies = 0
         for zombie in self.game.zombies.list:
-            if zombie.last_known_player_location:
-                seen_by_zombies += 1
             if zombie.pursuing_player:
                 pursued_by_zombies += 1
+                print(f"Action points lost: {zombie.action_points_lost}")                
             zombie.action_points += 1
             zombie.take_action()
-        print(f"Seen by {seen_by_zombies} zombies.")
         print(f"Pursued by {pursued_by_zombies} zombies.")
         
         # Movement
@@ -263,21 +260,19 @@ class ActionHandler:
 
         # Building actions
         elif action == ActionType.BARRICADE:
-            self.game.game_ui.action_progress.start('Barricading')
-            self.game.chat_history.append(player.barricade())
+            self.game.game_ui.action_progress.start('Barricading', player.barricade)
         elif action == ActionType.SEARCH:
-            self.game.game_ui.action_progress.start('Searching')
-            self.game.chat_history.append(player.search())
+            self.game.game_ui.action_progress.start('Searching', player.search)
         elif action == ActionType.ENTER:
             current_block = player.city.block(player.location[0], player.location[1])
             properties = BLOCKS[current_block.type]
             if properties.is_building:
-                result = self.game.game_ui.effects.circle_wipe(player.enter, self.game.chat_history)
+                result = self.game.game_ui.screen_transition.circle_wipe(player.enter, self.game.chat_history)
                 self.game.chat_history.append(result)
             else:
                 self.game.chat_history.append(player.enter())
         elif action == ActionType.LEAVE:
-            result = self.game.game_ui.effects.circle_wipe(player.leave, self.game.chat_history)
+            result = self.game.game_ui.screen_transition.circle_wipe(player.leave, self.game.chat_history)
             self.game.chat_history.append(result)
 
         # Inventory actions
@@ -311,7 +306,7 @@ class ActionHandler:
         
             elif item.type == ItemType.PORTABLE_GENERATOR:
                 if player.inside:
-                    self.game.game_ui.action_progress.start('Installing generator')
+                    self.game.game_ui.action_progress.start('Installing generator', player.install_generator)
                     result, item_used = player.install_generator()
                     self.game.chat_history.append(result)
                     if item_used:
@@ -368,6 +363,6 @@ class ActionHandler:
             self.game.chat_history.append(f"Dropped {properties.description}.")
 
         # Update zombie sprites after taking action
-        self.game.game_ui.description_panel.update_npc_sprites()
+        self.game.game_ui.update()
 
 

@@ -10,7 +10,7 @@ from ui.widgets import Button
 pygame.init()
 
 try:
-    font = pygame.font.Font('data/Vera.ttf', 14)
+    font = pygame.font.Font(resource_path('data/Vera.ttf'), 14)
 except:
     print('warning: cannot load font Vera.ttf: using system default')
     font = pygame.font.SysFont(None, 20)
