@@ -1,41 +1,8 @@
+# events.py
+
 import pygame
-from enum import Enum, auto
 
 from settings import *
-
-class ActionType(Enum):
-    # Movement actions
-    MOVE_UP = auto()
-    MOVE_DOWN = auto()
-    MOVE_LEFT = auto()
-    MOVE_RIGHT = auto()
-    MOVE_UPLEFT = auto()
-    MOVE_UPRIGHT = auto()
-    MOVE_DOWNLEFT = auto()
-    MOVE_DOWNRIGHT = auto()
-
-    # Button actions
-    BARRICADE = auto()
-    SEARCH = auto()
-    ENTER = auto()
-    LEAVE = auto()
-
-    # Popup menu actions
-    EQUIP = auto()
-    UNEQUIP = auto()
-    USE = auto()
-    DROP = auto()
-    MOVE_TO = auto()
-    ATTACK = auto()
-
-    # System actions
-    QUIT = auto()
-    PAUSE = auto()
-    OPTIONS = auto()
-    CLOSE_MAP = auto()
-    ZOOM_IN = auto()
-    ZOOM_OUT = auto()
-    RESTART = auto()
 
 class ActionHandler:
     def __init__(self, game):

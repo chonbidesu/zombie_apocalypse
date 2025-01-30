@@ -82,3 +82,44 @@ class SpriteSheet():
         image.set_colorkey(colour)
 
         return image
+    
+class DeathScreen():
+    """Display a death screen with restart options."""
+    def __init__(self, game, screen):
+        self.game = game
+        self.screen = screen
+        self.overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.overlay.set_alpha(150)
+        self.overlay.fill(BLACK)
+        self.restart = False
+
+        # Render DEATH message and restart option
+        # Render "YOU DIED" and "RESTART? Y / N"
+        self.text_you_died = font_xxl.render("YOU DIED", True, (255, 0, 0))
+        self.text_restart = font_xl.render("RESTART? Y / N", True, WHITE)
+
+        # Get text positions
+        self.you_died_rect = self.text_you_died.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))
+        self.restart_rect = self.text_restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))        
+        
+    def draw(self):
+        """Blit overlay and text onto the screen"""
+        self.screen.blit(self.overlay, (0, 0))
+        self.screen.blit(self.text_you_died, self.you_died_rect)
+        self.screen.blit(self.text_restart, self.restart_rect)
+
+        pygame.display.flip()  # Update display
+
+        # Handle restart or quit actions
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_y:  # Restart game logic
+                        self.restart = True
+                    elif event.key == pygame.K_n:  # Quit game
+                        pygame.quit()
+                        sys.exit()

@@ -134,8 +134,8 @@ def main():
 
         # Handle player death
         if game.player.is_dead:
-            result = game.player.show_death_screen(screen)
-            if result == "restart":
+            game.game_ui.death_screen.draw()
+            if game.game_ui.death_screen.restart:
                 game = GameInitializer()  # Reinitialize the game
 
 
