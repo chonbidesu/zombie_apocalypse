@@ -3,7 +3,6 @@
 import pygame
 
 from settings import *
-from characters.actions import ActionExecutor
 
 class SystemAction(Enum):
     QUIT = auto()
@@ -25,11 +24,24 @@ class PlayerAction(Enum):
     MOVE_DOWNLEFT = auto()
     MOVE_DOWNRIGHT = auto()
 
+    # Right-click menu actions
+    EQUIP = auto()
+    UNEQUIP = auto()
+    USE = auto()
+    DROP = auto()    
+
+    # Button actions
+    BARRICADE = auto()
+    SEARCH = auto()
+    ENTER = auto()
+    LEAVE = auto()
+
 
 class EventHandler:
     def __init__(self, game):
         self.game = game
-        self.actions = ActionExecutor(game, game.player)
+        self.state = self.game.player.state
+        self.actions = self.game.player.actions
         self.mouse_sprite = None
 
     def handle_events(self, events, ContextMenu):
@@ -52,12 +64,10 @@ class EventHandler:
 
             elif event.type == pygame.USEREVENT and event.code == 'MENU':
                 if event.name is None:
-                    self.game.popup_menu = None
+                    self.game.popup_menu = None # Close menu if no option selected
                 else:
                     self.handle_popup_menu(event.text)
-
-                    #self.game.game_ui.update_viewport()
-                    self.game.popup_menu = None                
+                    self.game.popup_menu = None # Close menu after selection
 
     def handle_keydown(self, event):
         """Handle key press events."""
@@ -69,14 +79,14 @@ class EventHandler:
             }
         else:
             key_to_action = {
-                pygame.K_w: ActionType.MOVE_UP,
-                pygame.K_s: ActionType.MOVE_DOWN,
-                pygame.K_a: ActionType.MOVE_LEFT,
-                pygame.K_d: ActionType.MOVE_RIGHT,
-                pygame.K_q: ActionType.MOVE_UPLEFT,
-                pygame.K_e: ActionType.MOVE_UPRIGHT,
-                pygame.K_z: ActionType.MOVE_DOWNLEFT,
-                pygame.K_c: ActionType.MOVE_DOWNRIGHT,
+                pygame.K_w: PlayerAction.MOVE_UP,
+                pygame.K_s: PlayerAction.MOVE_DOWN,
+                pygame.K_a: PlayerAction.MOVE_LEFT,
+                pygame.K_d: PlayerAction.MOVE_RIGHT,
+                pygame.K_q: PlayerAction.MOVE_UPLEFT,
+                pygame.K_e: PlayerAction.MOVE_UPRIGHT,
+                pygame.K_z: PlayerAction.MOVE_DOWNLEFT,
+                pygame.K_c: PlayerAction.MOVE_DOWNRIGHT,
                 pygame.K_ESCAPE: SystemAction.PAUSE,
             }
         action = key_to_action.get(event.key)
@@ -88,12 +98,12 @@ class EventHandler:
         if event.button == 1:
             mouse_pos = pygame.mouse.get_pos()
             target = self.get_click_target(mouse_pos)
-            if target == 'zombie':
-                action = ActionType.ATTACK
+            if target == 'npc':
+                action = self.state.Action.ATTACK
                 self.act(action)
             elif target == 'block' and not self.game.popup_menu:
-                action = ActionType.MOVE_TO
-                self.act(action)                
+                action = self.state.Action.MOVE
+                self.act(action)             
 
         for button in self.game.game_ui.actions_panel.button_group:
             button.handle_event(event)
@@ -124,10 +134,10 @@ class EventHandler:
             action_name = button.handle_event(event)
             if action_name:
                 button_to_action = {
-                    'barricade': ActionType.BARRICADE,
-                    'search': ActionType.SEARCH,
-                    'enter': ActionType.ENTER,
-                    'leave': ActionType.LEAVE,
+                    'barricade': PlayerAction.BARRICADE,
+                    'search': PlayerAction.SEARCH,
+                    'enter': PlayerAction.ENTER,
+                    'leave': PlayerAction.LEAVE,
                 }
                 action = button_to_action.get(action_name)
                 if action:
@@ -137,9 +147,9 @@ class EventHandler:
             action_name = button.handle_event(event)
             if action_name:
                 button_to_action = {
-                    'play': ActionType.PAUSE,
-                    'options': ActionType.OPTIONS,
-                    'exit': ActionType.QUIT,
+                    'play': SystemAction.PAUSE,
+                    'options': SystemAction.OPTIONS,
+                    'exit': SystemAction.QUIT,
                 }
                 action = button_to_action.get(action_name)
                 if action:
@@ -148,16 +158,16 @@ class EventHandler:
     def handle_popup_menu(self, action):
         """Handle popup menu actions."""
         menu_to_action = {
-            'Equip': ActionType.EQUIP,
-            'Unequip': ActionType.UNEQUIP,
-            'Use': ActionType.USE,
-            'Install': ActionType.USE,
-            'Reload': ActionType.USE,
-            'Drop': ActionType.DROP,
-            'Barricade': ActionType.BARRICADE,
-            'Search': ActionType.SEARCH,
-            'Enter': ActionType.ENTER,
-            'Leave': ActionType.LEAVE,
+            'Equip': PlayerAction.EQUIP,
+            'Unequip': PlayerAction.UNEQUIP,
+            'Use': PlayerAction.USE,
+            'Install': PlayerAction.USE,
+            'Reload': PlayerAction.USE,
+            'Drop': PlayerAction.DROP,
+            'Barricade': PlayerAction.BARRICADE,
+            'Search': PlayerAction.SEARCH,
+            'Enter': PlayerAction.ENTER,
+            'Leave': PlayerAction.LEAVE,
         }
         action_type = menu_to_action.get(action)
         if action_type:
@@ -180,93 +190,91 @@ class EventHandler:
             if sprite.rect.collidepoint(mouse_pos):
                 self.mouse_sprite = sprite                
                 return 'zombie'
+        for sprite in self.game.game_ui.description_panel.human_sprite_group:
+            if sprite.rect.collidepoint(mouse_pos):
+                self.mouse_sprite = sprite                
+                return 'human'
         return 'screen'
 
     def act(self, action):
-        """Execute the action based on ActionType."""
-        if action == ActionType.QUIT:
+        """Execute the action based on action type."""
+        if action == SystemAction.QUIT:
             self.game.quit_game()
 
-        elif action == ActionType.PAUSE:
+        elif action == SystemAction.PAUSE:
             # Toggle game pause
             self.game.pause_game()
             return
-        elif action == ActionType.OPTIONS:
+        elif action == SystemAction.OPTIONS:
             pass
 
-        elif action == ActionType.CLOSE_MAP:
+        elif action == SystemAction.CLOSE_MAP:
             self.game.reading_map = False
 
-        elif action == ActionType.ZOOM_IN:
+        elif action == SystemAction.ZOOM_IN:
             self.game.game_ui.map.zoom_in = True
 
-        elif action == ActionType.ZOOM_OUT:
+        elif action == SystemAction.ZOOM_OUT:
             self.game.game_ui.map.zoom_in = False
 
-        player = self.game.player
-        player.ticker += 1
+        self.game.ticker += 1
 
         # Check buildings for fuel expiry
-        for row in player.city.grid:
+        for row in self.game.city.grid:
             for block in row:
-                if hasattr(block, 'fuel_expiration') and block.fuel_expiration < player.ticker:
+                if hasattr(block, 'fuel_expiration') and block.fuel_expiration < self.game.ticker:
                     if block.lights_on:
                         block.lights_on = False
 
-        # Each zombie gains an action point
-        pursued_by_zombies = 0
-        for zombie in self.game.zombies.list:
-            if zombie.pursuing_player:
-                pursued_by_zombies += 1
-                print(f"Action points lost: {zombie.action_points_lost}")                
+        # Each character gains an action point
+        for zombie in self.game.characters.list:              
             zombie.action_points += 1
             zombie.take_action()
-        print(f"Pursued by {pursued_by_zombies} zombies.")
         
         # Movement
-        if action == ActionType.MOVE_UP:
-            player.move(0, -1)
-        elif action == ActionType.MOVE_DOWN:
-            player.move(0, 1)
-        elif action == ActionType.MOVE_LEFT:
-            player.move(-1, 0)
-        elif action == ActionType.MOVE_RIGHT:
-            player.move(1, 0)
-        elif action == ActionType.MOVE_UPLEFT:
-            player.move(-1, -1)
-        elif action == ActionType.MOVE_UPRIGHT:
-            player.move(1, -1)
-        elif action == ActionType.MOVE_DOWNLEFT:
-            player.move(-1, 1)
-        elif action == ActionType.MOVE_DOWNRIGHT:
-            player.move(1, 1)       
-        elif action == ActionType.MOVE_TO:
+        if action == PlayerAction.MOVE_UP:
+            self.game.player.action.move(0, -1)
+        elif action == PlayerAction.MOVE_DOWN:
+            self.game.player.action.move(0, 1)
+        elif action == PlayerAction.MOVE_LEFT:
+            self.game.player.action.move(-1, 0)
+        elif action == PlayerAction.MOVE_RIGHT:
+            self.game.player.action.move(1, 0)
+        elif action == PlayerAction.MOVE_UPLEFT:
+            self.game.player.action.move(-1, -1)
+        elif action == PlayerAction.MOVE_UPRIGHT:
+            self.game.player.action.move(1, -1)
+        elif action == PlayerAction.MOVE_DOWNLEFT:
+            self.game.player.action.move(-1, 1)
+        elif action == PlayerAction.MOVE_DOWNRIGHT:
+            self.game.player.action.move(1, 1)       
+        elif action == self.state.Action.MOVE:
             dx, dy = self.mouse_sprite.dx, self.mouse_sprite.dy
-            player.move(dx, dy)
+            self.game.player.action.move(dx, dy)
         
         # Combat
-        elif action == ActionType.ATTACK:
-            self.game.chat_history.append(player.attack(self.mouse_sprite))
+        elif action == self.state.Action.ATTACK:
+            self.game.chat_history.append(self.game.player.action.attack(self.mouse_sprite))
 
         # Building actions
-        elif action == ActionType.BARRICADE:
-            self.game.game_ui.action_progress.start('Barricading', player.barricade)
-        elif action == ActionType.SEARCH:
-            self.game.game_ui.action_progress.start('Searching', player.search)
-        elif action == ActionType.ENTER:
-            current_block = player.city.block(player.location[0], player.location[1])
+        elif action == PlayerAction.BARRICADE:
+            self.game.game_ui.action_progress.start('Barricading', self.game.player.action.barricade)
+        elif action == PlayerAction.SEARCH:
+            self.game.game_ui.action_progress.start('Searching', self.game.player.action.search)
+        elif action == PlayerAction.ENTER:
+            current_block = self.game.player.city.block(self.game.player.location[0], self.game.player.location[1])
             properties = BLOCKS[current_block.type]
             if properties.is_building:
-                result = self.game.game_ui.screen_transition.circle_wipe(player.enter, self.game.chat_history)
+                result = self.game.game_ui.screen_transition.circle_wipe(self.game.player.action.enter, self.game.chat_history)
                 self.game.chat_history.append(result)
             else:
-                self.game.chat_history.append(player.enter())
-        elif action == ActionType.LEAVE:
-            result = self.game.game_ui.screen_transition.circle_wipe(player.leave, self.game.chat_history)
+                self.game.chat_history.append(self.game.player.action.enter())
+        elif action == PlayerAction.LEAVE:
+            result = self.game.game_ui.screen_transition.circle_wipe(self.game.player.action.leave, self.game.chat_history)
             self.game.chat_history.append(result)
 
         # Inventory actions
-        elif action == ActionType.EQUIP:
+        elif action == PlayerAction.EQUIP:
             item = self.mouse_sprite
             properties = ITEMS[item.type]
             if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
@@ -276,13 +284,13 @@ class EventHandler:
             else:
                 self.game.chat_history.append(f"You can't equip {properties.description}!")
 
-        elif action == ActionType.UNEQUIP:
+        elif action == PlayerAction.UNEQUIP:
             item = self.mouse_sprite
             properties = ITEMS[item.type]
             player.weapon.empty()
             self.game.chat_history.append(f"Unequipped {properties.description}.")
 
-        elif action == ActionType.USE:
+        elif action == PlayerAction.USE:
             item = self.mouse_sprite
             properties = ITEMS[item.type]
 
@@ -346,7 +354,7 @@ class EventHandler:
                 else:
                     self.game.chat_history.append(f"You can't reload {properties.description}.")                
      
-        elif action == ActionType.DROP:
+        elif action == PlayerAction.DROP:
             item = self.mouse_sprite
             properties = ITEMS[item.type]
             item.kill()

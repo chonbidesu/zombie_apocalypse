@@ -13,7 +13,7 @@ import populate
 import menus
 import saveload
 import blocks
-import characters.events as events
+import events as events
 
 # Initialize Pygame
 pygame.init()

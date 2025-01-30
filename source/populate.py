@@ -3,28 +3,23 @@ import random
 from npc import NPC
 from settings import *
 
-class GenerateNPCs:
+class GenerateCharacters:
     """Class to generate and manage NPCs in the city."""
-    def __init__(self, game, total_npcs=100, is_human=False):
-        """
-        Initialize the GenerateNPCs class.
-        """
+    def __init__(self, game, total_humans, total_zombies):
         self.game = game
-        self.total_npcs = total_npcs
-        self.is_human = is_human
         self.list = []
 
-        self.populate_city()
+        self.populate_city(total_humans, total_zombies)
 
-    def populate_city(self):
+    def populate_city(self, total_humans, total_zombies):
         """Populate the city with NPCs at random locations."""
         for _ in range(self.total_npcs):
             x = random.randint(0, CITY_SIZE - 1)
             y = random.randint(0, CITY_SIZE - 1)
             self.add_npc(x, y)
 
-    def add_npc(self, x, y):
-        """Add a single zombie at a specific location."""
+    def add_npc(self, x, y, state):
+        """Add a single npc at a specific location."""
         if 0 <= x < CITY_SIZE and 0 <= y < CITY_SIZE:
             type = random.choice(list(NPCType))
             npc = NPC(self.game, x, y, type=type, is_human=self.is_human)

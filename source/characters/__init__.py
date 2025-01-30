@@ -4,6 +4,7 @@ from settings import *
 from items import Item, Weapon
 from characters.human_state import Human
 from characters.zombie_state import Zombie
+from characters.actions import ActionExecutor
 
 class Character:
     """Base class for Player and NPC Characters."""
@@ -18,10 +19,20 @@ class Character:
         self.inside = inside
         self.inventory = []
         self.weapon = None
-        self.human_state = Human()
-        self.zombie_state = Zombie()
+        self.state = self._get_state()
+        self.human_skills = set()
+        self.zombie_skills = set()
+        self.action = ActionExecutor(game, self)
 
-        self._assign_starting_trait()
+        self._assign_occupational_skill()
+
+    # Set initial state
+    def _get_state(self):
+        if self.is_human:
+            state = Human()
+        else:
+            state = Zombie()
+        return state
 
     def take_damage(self, amount):
         """Reduces the player's health by the given amount."""

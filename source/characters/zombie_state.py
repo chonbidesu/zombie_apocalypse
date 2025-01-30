@@ -5,7 +5,7 @@ from enum import Enum, auto
 
 from settings import *
 
-class ZombieAction(Enum):
+class Action(Enum):
     # NPC actions
     FIND_TARGET = auto()            # Find a nearby location to move
     PURSUE = auto()                 # Pursue an enemy character based on last known location
@@ -18,7 +18,7 @@ class ZombieAction(Enum):
     ENTER = auto()                  # Enter a building
     LEAVE = auto()                  # Leave a building
     RANSACK = auto()                # Ransack a building
-    STAND_UP = auto()               # Stand up after death or revivification
+    STAND = auto()               # Stand up after death or revivification
 
 class ZombieSkill(Enum):
     pass

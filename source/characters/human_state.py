@@ -5,9 +5,9 @@ from enum import Enum, auto
 from settings import *
 from characters.actions import ActionExecutor
 
-class HumanAction(Enum):
+class Action(Enum):
     # NPC actions
-    #GIVE_QUEST = auto()            # Provide a quest to the player
+    GIVE_QUEST = auto()             # Provide a quest to the player
     FIND_TARGET = auto()            # Find a nearby location to move
     PURSUE = auto()                 # Pursue an enemy character based on last known location
     WANDER = auto()                 # Move randomly
@@ -16,8 +16,8 @@ class HumanAction(Enum):
     # Gameplay actions
     MOVE = auto()                   # Move to the target
     ATTACK = auto()                 # Attack a target enemy
-    #EXTRACT_DNA = auto()           # Extract DNA from a zombie
-    #REVIVIFY = auto()              # Revive a zombie to human form
+    EXTRACT_DNA = auto()            # Extract DNA from a zombie
+    REVIVIFY = auto()               # Revive a zombie to human form
     BARRICADE = auto()              # Reinforce the barricades
     SEARCH = auto()                 # Search for an item
     REPAIR = auto()                 # Repair damaged buildings
@@ -47,7 +47,6 @@ class Human:
     def __init__(self, game, character, type=None):
         self.character = character
         self.type = type
-        self.actions = ActionExecutor(game, character)
 
     def act(self, action_points):
         """Execute AI behaviour."""
