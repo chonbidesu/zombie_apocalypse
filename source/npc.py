@@ -28,7 +28,7 @@ class NPC:
         self.type = type
         self.game = game
         self.location = (x, y)
-        self.hp = NPC_MAX_HP
+        self.hp = MAX_HP
         self.action_points = 0
         self.is_dead = False
         self.is_human = is_human

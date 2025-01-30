@@ -39,7 +39,7 @@ class Zombie:
         current_block = self.game.city.block(self.character.location[0], self.character.location[1])
 
         # Determine behaviour
-        action = self.determine_behaviour(current_block)
+        action = self._determine_behaviour(current_block)
 
         # Call action function
         if action == ZombieAction.RELOCATE:
@@ -81,4 +81,45 @@ class Zombie:
 
         return False  # No action taken        
 
+    def _determine_behaviour(self, current_block):
+        """Determine the priority for the zombie."""
+        properties = BLOCKS[current_block.type]
+        # Stand up if dead and have enough action points
+        if self.is_dead:
+            return ZombieAction.STAND_UP if self.action_points >= STAND_UP_AP else False
 
+        # Relocate if the block is overcrowded
+        if current_block.zombies > ZOMBIE_CAPACITY:
+            return ZombieAction.RELOCATE        
+            
+        elif current_block.humans > 0:
+            return ZombieAction.ATTACK
+
+        elif self.is_enemy_adjacent():
+            self.pursuing_enemy = True
+            #self.last_known_enemy_location = self.game.player.location
+            return ZombieAction.PURSUE
+
+        elif properties.is_building and current_block.barricade.level == 0 and not self.inside and self.action_points >= 1:
+            roll = random.randint(1, 20)
+            if roll < 5:
+                return ZombieAction.ENTER
+                    
+        if self.inside:
+            if not current_block.is_ransacked and self.action_points >= 1:
+                roll = random.randint(1, 20)
+                if roll < 5:
+                    return ZombieAction.RANSACK
+                
+        if self.find_target_dxy() and self.action_points >= 1:
+            target_dx, target_dy = self.find_target_dxy()
+            if (target_dx, target_dy) == (0, 0):
+                return ZombieAction.HANDLE_BARRICADE
+            else:
+                return ZombieAction.MOVE_TOWARDS
+
+        # Random movement if no targets or barricades present
+        if self.action_points >= 2:
+            return ZombieAction.WANDER
+
+        return None  # No behaviour determined

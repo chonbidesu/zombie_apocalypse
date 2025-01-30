@@ -1,127 +1,11 @@
-# player.py
-import random
-import csv
-from collections import defaultdict
-import pygame
-import sys
-from enum import Enum, auto
+# actions.py
 
-from settings import *
-from items import Item, Weapon
-  
+class ActionExecutor:
+    """Handles executing actions for both player and AI characters."""
+    def __init__(self, character):
+        self.character = character  # Define the actor
 
-
-
-
-class Player:
-    """Represents the player's character."""
-    def __init__(self, city, name, occupation, x, y, inside=False):
-        self.name = name
-        self.occupation = occupation
-        self.inventory = pygame.sprite.Group()  # Items carried by the player
-        self.weapon = pygame.sprite.GroupSingle()  # The currently equipped weapon
-        self.max_hp = 50  # Maximum hit points
-        self.hp = self.max_hp  # Current hit points
-        self.skills = set()
-        self.location = (x, y)  # Initial location in the 100x100 grid
-        self.inside = inside
-        self.is_dead = False  # Status of the player
-        self.search_chances = self.load_search_chances(resource_path("assets/search.csv"))
-        self.ticker = 0  # Tracks the number of actions taken
-        self.city = city
-
-        self.assign_starting_trait(self.occupation)
-
-    
-    def assign_starting_trait(self, occupation):
-        """Assigns a starting trait based on the player's occupation."""
-        traits = {
-            "Doctor": Skill.FIRST_AID,
-            "Soldier": Skill.FIREARMS_TRAINING,
-            "Engineer": Skill.CONSTRUCTION,
-            "Athlete": Skill.BODY_BUILDING,
-            "Plumber": Skill.FREE_RUNNING,
-        }
-        self.skills.add(traits[occupation])
-    
-    def gain_skill(self, choice):
-        """Gain a skill if it's not already learned and enough XP is available."""
-        SKILL_COST = 150  # cost to acquire a skill
-
-        if choice in self.skills:
-            print(f"{choice.name} already learned.")
-            return False
-
-        if self.xp >= SKILL_COST:
-            self.xp -= SKILL_COST
-            self.skills.add(choice)
-            self.SKILL_EFFECTS[choice]["effect"](self)
-            print(f"Learned skill: {self.SKILL_EFFECTS[choice]['description']}")
-            return True
-
-        print("Not enough XP to learn this skill.")
-        return False
-
-    def take_damage(self, amount):
-        """Reduces the player's health by the given amount."""
-        self.hp -= amount
-        if self.hp <= 0:
-            self.hp = 0
-            self.die()
-
-    def heal(self, amount):
-        """Heals the player by the given amount up to max health."""
-        self.hp = min(self.hp + amount, self.max_hp)
-
-    def die(self):
-        """Handles the player's death."""
-        self.is_dead = True
-        return "The player has died."
-
-    def status(self):
-        """Returns the player's current status."""
-        status = {
-            "Name": self.name,
-            "Occupation": self.occupation,
-            "Location": self.location,
-            "HP": f"{self.hp} / {self.max_hp}",
-            "Actions taken": self.ticker,
-        }
-        return status
-
-    def load_search_chances(self, file_path):
-        """Load search chances from a CSV file."""
-        search_chances = defaultdict(dict)
-        with open(file_path, "r", encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                item = row['Item']
-                for building_type, chance in row.items():
-                    if building_type != 'Item':  # Skip the 'Item' column
-                        search_chances[item][building_type] = float(chance)
-        return search_chances
-
-    def create_item(self, type):
-        """Create an item or weapon based on its name."""
-        # Check if the item is a weapon
-        item_type = getattr(ItemType, type)
-        properties = ITEMS[item_type]
-        if properties.item_function == ItemFunction.MELEE:
-            # Create a melee weapon
-            weapon = Weapon(type=item_type)
-            return weapon
-        elif properties.item_function == ItemFunction.FIREARM:
-            # Create a firearm
-            weapon = Weapon(type=item_type)
-            return weapon
-        elif properties.item_function == ItemFunction.ITEM or properties.item_function == ItemFunction.AMMO:
-            # Create a regular item
-            item = Item(type=item_type)
-            return item
-
-
-    # Start of player actions
-    def attack(self, target):
+        def attack(self, target):
         if self.weapon:
             weapon = self.weapon.sprite
             properties = ITEMS[weapon.type]
@@ -306,6 +190,4 @@ class Player:
         else:
             current_block.fuel_expiration = self.ticker + FUEL_DURATION
             current_block.lights_on = True
-            return "You fuel the generator. The lights are now on.", True
-
-
+            return "You fuel the generator. The lights are now on.", True        

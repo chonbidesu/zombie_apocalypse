@@ -4,6 +4,15 @@ import pygame
 
 from settings import *
 
+class SystemAction(Enum):
+    QUIT = auto()
+    PAUSE = auto()
+    OPTIONS = auto()
+    CLOSE_MAP = auto()
+    ZOOM_IN = auto()
+    ZOOM_OUT = auto()
+    RESTART = auto()
+
 class ActionHandler:
     def __init__(self, game):
         self.game = game
@@ -13,7 +22,7 @@ class ActionHandler:
         """Handle all game events."""
         for event in events:
             if event.type == pygame.QUIT:
-                self.execute_action(ActionType.QUIT)
+                self.execute_action(SystemAction.QUIT)
 
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event)
@@ -40,9 +49,9 @@ class ActionHandler:
         """Handle key press events."""
         if self.game.reading_map:
             key_to_action = {
-                pygame.K_ESCAPE: ActionType.CLOSE_MAP,
-                pygame.K_PAGEDOWN: ActionType.ZOOM_OUT,
-                pygame.K_PAGEUP: ActionType.ZOOM_IN,
+                pygame.K_ESCAPE: SystemAction.CLOSE_MAP,
+                pygame.K_PAGEDOWN: SystemAction.ZOOM_OUT,
+                pygame.K_PAGEUP: SystemAction.ZOOM_IN,
             }
         else:
             key_to_action = {

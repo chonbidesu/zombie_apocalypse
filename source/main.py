@@ -13,7 +13,7 @@ import populate
 import menus
 import saveload
 import blocks
-import actions
+import characters.events as events
 
 # Initialize Pygame
 pygame.init()
@@ -39,7 +39,7 @@ class GameInitializer:
             "Diagonally 'q', 'e', 'z', 'c'."
         ]
 
-        self.action_handler = actions.ActionHandler(self)
+        self.action_handler = events.ActionHandler(self)
         self.initialize_game()
 
     def initialize_game(self):

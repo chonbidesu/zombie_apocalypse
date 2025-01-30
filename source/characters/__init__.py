@@ -1,11 +1,13 @@
-# character.py
+# __init__.py
 
 from settings import *
 from items import Item, Weapon
+from characters.human_state import Human
+from characters.zombie_state import Zombie
 
 class Character:
     """Base class for Player and NPC Characters."""
-    def __init__(self, game, name, occupation, x, y, is_human, inside=False):
+    def __init__(self, game, occupation, x, y, is_human, inside=False):
         self.game = game
         self.occupation = occupation
         self.location = (x, y)
@@ -15,6 +17,8 @@ class Character:
         self.is_human = is_human
         self.inside = inside
         self.inventory = []
+        self.human_state = Human()
+        self.zombie_state = Zombie()
 
         self._assign_starting_trait()
 
