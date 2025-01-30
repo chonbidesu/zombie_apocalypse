@@ -152,7 +152,7 @@ class NPC:
         properties = BLOCKS[current_block.type]
         # Stand up if dead and have enough action points
         if self.is_dead:
-            return NPCAction.STAND_UP if self.action_points >= STAND_UP_AP else False
+            return NPCAction.STAND_UP if self.action_points >= STAND_AP else False
 
         # Relocate if the block is overcrowded
         if current_block.current_zombies > ZOMBIE_CAPACITY:

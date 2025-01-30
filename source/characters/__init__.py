@@ -17,6 +17,7 @@ class Character:
         self.is_human = is_human
         self.inside = inside
         self.inventory = []
+        self.weapon = None
         self.human_state = Human()
         self.zombie_state = Zombie()
 

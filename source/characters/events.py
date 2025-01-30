@@ -3,6 +3,7 @@
 import pygame
 
 from settings import *
+from characters.actions import ActionExecutor
 
 class SystemAction(Enum):
     QUIT = auto()
@@ -13,16 +14,29 @@ class SystemAction(Enum):
     ZOOM_OUT = auto()
     RESTART = auto()
 
-class ActionHandler:
+class PlayerAction(Enum):
+    # Movement
+    MOVE_UP = auto()
+    MOVE_DOWN = auto()
+    MOVE_LEFT = auto()
+    MOVE_RIGHT = auto()
+    MOVE_UPLEFT = auto()
+    MOVE_UPRIGHT = auto()
+    MOVE_DOWNLEFT = auto()
+    MOVE_DOWNRIGHT = auto()
+
+
+class EventHandler:
     def __init__(self, game):
         self.game = game
+        self.actions = ActionExecutor(game, game.player)
         self.mouse_sprite = None
 
     def handle_events(self, events, ContextMenu):
         """Handle all game events."""
         for event in events:
             if event.type == pygame.QUIT:
-                self.execute_action(SystemAction.QUIT)
+                self.act(SystemAction.QUIT)
 
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event)
@@ -63,11 +77,11 @@ class ActionHandler:
                 pygame.K_e: ActionType.MOVE_UPRIGHT,
                 pygame.K_z: ActionType.MOVE_DOWNLEFT,
                 pygame.K_c: ActionType.MOVE_DOWNRIGHT,
-                pygame.K_ESCAPE: ActionType.PAUSE,
+                pygame.K_ESCAPE: SystemAction.PAUSE,
             }
         action = key_to_action.get(event.key)
         if action:
-            self.execute_action(action)
+            self.act(action)
 
     def handle_mousebuttondown(self, event):
         """Handle mouse button down events."""
@@ -76,10 +90,10 @@ class ActionHandler:
             target = self.get_click_target(mouse_pos)
             if target == 'zombie':
                 action = ActionType.ATTACK
-                self.execute_action(action)
+                self.act(action)
             elif target == 'block' and not self.game.popup_menu:
                 action = ActionType.MOVE_TO
-                self.execute_action(action)                
+                self.act(action)                
 
         for button in self.game.game_ui.actions_panel.button_group:
             button.handle_event(event)
@@ -117,7 +131,7 @@ class ActionHandler:
                 }
                 action = button_to_action.get(action_name)
                 if action:
-                    self.execute_action(action)
+                    self.act(action)
 
         for button in self.game.pause_menu.button_group:
             action_name = button.handle_event(event)
@@ -129,7 +143,7 @@ class ActionHandler:
                 }
                 action = button_to_action.get(action_name)
                 if action:
-                    self.execute_action(action)
+                    self.act(action)
 
     def handle_popup_menu(self, action):
         """Handle popup menu actions."""
@@ -147,7 +161,7 @@ class ActionHandler:
         }
         action_type = menu_to_action.get(action)
         if action_type:
-            self.execute_action(action_type)
+            self.act(action_type)
 
     def get_click_target(self, mouse_pos):
         """Get the target of a mouse click, saving the sprite and returning the target type."""
@@ -168,7 +182,7 @@ class ActionHandler:
                 return 'zombie'
         return 'screen'
 
-    def execute_action(self, action):
+    def act(self, action):
         """Execute the action based on ActionType."""
         if action == ActionType.QUIT:
             self.game.quit_game()

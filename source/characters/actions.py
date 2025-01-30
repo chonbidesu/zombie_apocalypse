@@ -1,62 +1,112 @@
 # actions.py
 
+import random
+
+from settings import *
+
 class ActionExecutor:
     """Handles executing actions for both player and AI characters."""
-    def __init__(self, character):
-        self.character = character  # Define the actor
+    def __init__(self, game, actor):
+        self.game = game
+        self.actor = actor  # Define the actor
 
-        def attack(self, target):
-        if self.weapon:
-            weapon = self.weapon.sprite
+    def witness_action(self, message):
+        """Append action message to chat if the player is present."""
+        player = self.game.player
+        if self.actor.location == player.location and self.actor.inside == player.inside:
+            self.game.chat_history.append(message)
+
+    def attack(self, target):
+        weapon = self.actor.weapon
+        if weapon:
             properties = ITEMS[weapon.type]
             if properties.item_function == ItemFunction.FIREARM:
                 if weapon.loaded_ammo == 0:
-                    return "Your weapon is out of ammo."
+                    return self.game.chat_history.append("Your weapon is out of ammo.")
 
             roll = random.randint(1, 20)
             attack_roll = (roll + properties.attack) >= ATTACK_DIFFICULTY
 
             if attack_roll:
+                weapon_broke = False
                 if properties.item_function == ItemFunction.FIREARM:
                     weapon.loaded_ammo -= 1
                 elif properties.item_function == ItemFunction.MELEE:
                     weapon.durability -= 1
                     if weapon.durability <= 0:
-                        weapon.kill()
-                        return target.npc.take_damage(properties.damage) + " Your weapon breaks!"
+                        self.actor.inventory.remove(weapon)
+                        self.actor.weapon = None
+                        weapon_broke = True
+
+                # Display result in chat window if applicable
+                if self.actor == self.game.player:
+                    self.game.chat_history.append(f"You attack {target.name} for {properties.damage} damage.")
+                    if weapon_broke:
+                        self.game.chat_history.append(f"Your weapon breaks!")
+                else:
+                    self.witness_action(f"{self.actor.name} attacks {target.name} for {properties.damage} damage.")
+
                 return target.npc.take_damage(properties.damage)
             else:
-                return "Your attack misses."
-        else:
+                if self.actor == self.game.player:
+                    self.game.chat_history.append("Your attack misses.")
+
+        else: # If no weapon equipped, punch the enemy.
             roll = random.randint(1, 20)
             attack_roll = roll >= ATTACK_DIFFICULTY
 
             if attack_roll:
-                return "You punch the zombie. " + target.npc.take_damage(1)
+                # Display result in chat window if applicable
+                if self.actor == self.game.player:
+                    self.game.chat_history.append(f"You punch {target.name} for 1 damage.")
+                else:
+                    self.witness_action(f"{self.actor.name} punches {target.name} for 1 damage.")
             else:
                 return "You try punching the zombie, but miss."
 
 
     def reload(self):
-        weapon = self.weapon.sprite
+        weapon = self.actor.weapon.sprite
         if weapon.type == ItemType.PISTOL:
             weapon.loaded_ammo = weapon.max_ammo
-            return "You slap a new pistol clip into your gun."
+            if self.actor == self.game.player:
+                self.game.chat_history.append("You slap a new pistol clip into your gun.")
+            else:
+                self.witness_action(f"{self.actor.name} reloads their pistol.")
         elif weapon.type == ItemType.SHOTGUN:
             weapon.loaded_ammo += 1
-            return "You load a shell into your shotgun."
+            if self.actor == self.game.player:
+                self.game.chat_history.append("You load a shell into your shotgun.")
+            else:
+                self.witness_action(f"{self.actor.name} loads a shell into their shotgun.")
 
     def move(self, dx, dy):
-        """Moves the player to a new location on the grid."""
-        x, y = self.location
+        """Moves the actor to a new location."""
+        x, y = self.actor.location
         new_x, new_y = x + dx, y + dy
 
         # Check if the new coordinates are valid within the grid
         if 0 <= new_x < 100 and 0 <= new_y < 100:
             # If a player moves, they are no longer inside.
-            if self.inside:
-                self.inside = False
+            if self.actor.inside:
+                self.actor.inside = False
+            self.actor.location = (new_x, new_y)
+
+    def wander(self):
+        """Randomly moves the actor to an adjacent block."""
+        x, y = self.location[0], self.location[1]
+        dx, dy = random.choice([(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)])
+        new_x, new_y = x + dx, y + dy
+        current_block = self.game.city.block(x, y)
+
+        if 0 <= new_x < CITY_SIZE and 0 <= new_y < CITY_SIZE:  # Ensure within city bounds
+            new_block = self.game.city.block(new_x, new_y)
+            self.action_points -= 2
+            self.action_points_lost += 2
+            current_block.current_zombies -= 1
+            new_block.current_zombies += 1
             self.location = (new_x, new_y)
+            self.inside = False
             return True
         return False
 
@@ -191,3 +241,12 @@ class ActionExecutor:
             current_block.fuel_expiration = self.ticker + FUEL_DURATION
             current_block.lights_on = True
             return "You fuel the generator. The lights are now on.", True        
+        
+    def stand(self):
+        """Actor stands up at full health after collecting enough action points."""
+        if self.location == self.game.player.location and self.inside == self.game.player.inside:
+            self.game.chat_history.append("A zombie stirs, and gets to its feet, swaying.")
+        self.is_dead = False
+        self.hp = 50
+        self.action_points -= 50
+        self.action_points_lost += 50        
