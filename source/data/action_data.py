@@ -1,0 +1,51 @@
+# action_data.py
+
+from enum import Enum, auto
+
+
+class Action(Enum):
+    # NPC actions
+    GIVE_QUEST = auto()             # Provide a quest to the player
+    FIND_TARGET = auto()            # Find a nearby location to move
+    PURSUE = auto()                 # Pursue an enemy character based on last known location
+    WANDER = auto()                 # Move randomly
+    RELOCATE = auto()               # Push character to an adjacent block due to overcrowding
+
+    # Gameplay actions
+    MOVE = auto()                   # Move to the target
+    ATTACK = auto()                 # Attack a target enemy
+    EXTRACT_DNA = auto()            # Extract DNA from a zombie
+    REVIVIFY = auto()               # Revive a zombie to human form
+    BARRICADE = auto()              # Reinforce the barricades
+    DECADE = auto()                 # Tear down the barricades
+    SEARCH = auto()                 # Search for an item
+    REPAIR = auto()                 # Repair damaged buildings
+    RANSACK = auto()
+    ENTER = auto()                  # Enter a building
+    LEAVE = auto()                  # Leave a building
+    STAND = auto()                  # Stand up after death or revivification
+
+    # Player Movement
+    MOVE_UP = auto()
+    MOVE_DOWN = auto()
+    MOVE_LEFT = auto()
+    MOVE_RIGHT = auto()
+    MOVE_UPLEFT = auto()
+    MOVE_UPRIGHT = auto()
+    MOVE_DOWNLEFT = auto()
+    MOVE_DOWNRIGHT = auto()
+
+    # Inventory actions
+    EQUIP = auto()
+    UNEQUIP = auto()
+    USE = auto()
+    DROP = auto()
+
+    # System actions
+    QUIT = auto()
+    PAUSE = auto()
+    OPTIONS = auto()
+    CLOSE_MAP = auto()
+    ZOOM_IN = auto()
+    ZOOM_OUT = auto()
+    RESTART = auto()

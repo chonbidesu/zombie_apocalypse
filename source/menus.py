@@ -5,6 +5,7 @@ from pygame import Color, Rect, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, USE
 
 from settings import *
 from ui.widgets import Button
+from data import ITEMS, ItemType, ItemFunction, BLOCKS, resource_path
 
 # pygame must be initialized before we can create a Font.
 pygame.init()
@@ -51,11 +52,11 @@ class PauseMenu:
 
 class ContextMenu:
     """Create a context-sensitive popup menu based on the target"""
-    def __init__(self, menu_type, player, sprite=None):
-        self.mouse_sprite = sprite
+    def __init__(self, click_target, player):
+        self.sprite = click_target.sprite
         self.player = player
 
-        self.menu = self.create_menu(menu_type)
+        self.menu = self.create_menu(click_target.type)
 
     def create_menu(self, menu_type):
         menu_data = self.get_menu_data(menu_type)
@@ -64,21 +65,21 @@ class ContextMenu:
 
     def get_menu_data(self, menu_type):
         if menu_type == 'item':
-            properties = ITEMS[self.mouse_sprite.type]
+            properties = ITEMS[self.sprite.type]
             if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
-                if self.mouse_sprite in self.player.weapon:
+                if self.sprite in self.player.weapon:
                     menu_data = [properties.item_type, 'Unequip', 'Drop']
                 else:
                     menu_data = [properties.item_type, 'Equip', 'Drop']
-            elif self.mouse_sprite.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX,]:
+            elif self.sprite.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX,]:
                 menu_data = [properties.item_type, 'Use', 'Drop']
-            elif self.mouse_sprite.type == ItemType.PORTABLE_GENERATOR:
+            elif self.sprite.type == ItemType.PORTABLE_GENERATOR:
                 menu_data = [properties.item_type, 'Install', 'Drop']
             elif properties.item_function == ItemFunction.AMMO:
                 menu_data = [properties.item_type, 'Reload', 'Drop']
         
         elif menu_type == 'center block':
-            properties = BLOCKS[self.mouse_sprite.block.type]
+            properties = BLOCKS[self.sprite.block.type]
             if properties.is_building:
                 if not self.player.inside:
                     menu_data = ['Actions', 'Barricade', 'Search', 'Enter']

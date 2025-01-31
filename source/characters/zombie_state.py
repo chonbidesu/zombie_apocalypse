@@ -1,33 +1,14 @@
 # zombie_state.py
 
 import random
-from enum import Enum, auto
 
 from settings import *
-
-class Action(Enum):
-    # NPC actions
-    FIND_TARGET = auto()            # Find a nearby location to move
-    PURSUE = auto()                 # Pursue an enemy character based on last known location
-    WANDER = auto()                 # Move randomly
-    RELOCATE = auto()               # Push character to an adjacent block due to overcrowding
-
-    # Gameplay actions
-    MOVE = auto()                   # Move to the target
-    ATTACK = auto()                 # Attack a target enemy
-    ENTER = auto()                  # Enter a building
-    LEAVE = auto()                  # Leave a building
-    RANSACK = auto()                # Ransack a building
-    STAND = auto()               # Stand up after death or revivification
-
-class ZombieSkill(Enum):
-    pass
+from data import Action
 
 class Zombie:
     """Represents the zombie state."""
     def __init__(self, character, type=None):
-        self.character = character
-        self.type = type
+        self.character = character # Reference the parent character
 
     def act(self, action_points):
         """Execute AI behaviour."""

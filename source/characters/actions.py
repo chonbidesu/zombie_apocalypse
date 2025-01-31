@@ -3,67 +3,132 @@
 import random
 
 from settings import *
+from data import Action, ITEMS, ItemType, ItemFunction, BLOCKS
 
 class ActionExecutor:
     """Handles executing actions for both player and AI characters."""
     def __init__(self, game, actor):
         self.game = game
-        self.actor = actor  # Define the actor
+        self.actor = actor  # Define the acting character
 
-    def witness_action(self, message):
-        """Append action message to chat if the player is present."""
-        player = self.game.player
-        if self.actor.location == player.location and self.actor.inside == player.inside:
-            self.game.chat_history.append(message)
+    def execute(self, action, target):
+        """Execute AI and player actions."""
+
+        # System actions
+        if action == Action.QUIT:
+            self.game.quit_game()
+
+        elif action == Action.PAUSE:
+            self.game.pause_game()
+
+        elif action == Action.OPTIONS:
+            pass # NEED TO SET THIS UP
+
+        elif action == Action.CLOSE_MAP:
+            self.close_map()
+
+        elif action == Action.ZOOM_IN:
+            self.zoom_in()
+
+        elif action == Action.ZOOM_OUT:
+            self.zoom_out()
+
+        # Movement
+        elif action == Action.MOVE_UP:
+            self.move(0, -1)
+        elif action == Action.MOVE_DOWN:
+            self.move(0, 1)
+        elif action == Action.MOVE_LEFT:
+            self.move(-1, 0)
+        elif action == Action.MOVE_RIGHT:
+            self.move(1, 0)
+        elif action == Action.MOVE_UPLEFT:
+            self.move(-1, -1)
+        elif action == Action.MOVE_UPRIGHT:
+            self.move(1, -1)
+        elif action == Action.MOVE_DOWNLEFT:
+            self.move(-1, 1)
+        elif action == Action.MOVE_DOWNRIGHT:
+            self.move(1, 1)       
+        elif action == Action.MOVE:
+            dx, dy = target.dx, target.dy
+            self.move(dx, dy)
+        
+        # Combat
+        elif action == Action.ATTACK:
+            self.attack(target)            
+
+        # Building actions
+        elif action == Action.BARRICADE:
+            self.barricade()
+        elif action == Action.SEARCH:
+            self.search()
+        elif action == Action.ENTER:
+            self.enter()
+        elif action == Action.LEAVE:
+            self.leave()
+
+        # Inventory actions
+        elif action == Action.EQUIP:
+            self.equip(target)
+
+        elif action == Action.UNEQUIP:
+            self.unequip(target)
+
+        elif action == Action.USE:
+            self.use(target)
+     
+        elif action == Action.DROP:
+            self.drop(target)
+
+        # Update sprites after taking action
+        self.game.game_ui.update()
 
     def attack(self, target):
+        """Execute an attack depending on the attacker's state."""
+        if self.actor.is_human:
+            self._human_attack(target)
+        else:
+            self._zombie_attack(target)
+
+    def _human_attack(self, target):
         weapon = self.actor.weapon
         if weapon:
             properties = ITEMS[weapon.type]
-            if properties.item_function == ItemFunction.FIREARM:
-                if weapon.loaded_ammo == 0:
-                    return self.game.chat_history.append("Your weapon is out of ammo.")
+            if properties.item_function == ItemFunction.FIREARM and weapon.loaded_ammo == 0:
+                    return False
 
             roll = random.randint(1, 20)
-            attack_roll = (roll + properties.attack) >= ATTACK_DIFFICULTY
+            attack_success = (roll + properties.attack) >= ATTACK_DIFFICULTY
 
-            if attack_roll:
-                weapon_broke = False
-                if properties.item_function == ItemFunction.FIREARM:
-                    weapon.loaded_ammo -= 1
-                elif properties.item_function == ItemFunction.MELEE:
-                    weapon.durability -= 1
-                    if weapon.durability <= 0:
-                        self.actor.inventory.remove(weapon)
-                        self.actor.weapon = None
-                        weapon_broke = True
-
-                # Display result in chat window if applicable
-                if self.actor == self.game.player:
-                    self.game.chat_history.append(f"You attack {target.name} for {properties.damage} damage.")
-                    if weapon_broke:
-                        self.game.chat_history.append(f"Your weapon breaks!")
-                else:
-                    self.witness_action(f"{self.actor.name} attacks {target.name} for {properties.damage} damage.")
-
-                return target.npc.take_damage(properties.damage)
-            else:
-                if self.actor == self.game.player:
-                    self.game.chat_history.append("Your attack misses.")
+            if attack_success:
+                self._deplete_weapon(weapon, properties)
+                target.npc.take_damage(properties.damage)
 
         else: # If no weapon equipped, punch the enemy.
             roll = random.randint(1, 20)
-            attack_roll = roll >= ATTACK_DIFFICULTY
+            attack_success = roll >= ATTACK_DIFFICULTY
 
-            if attack_roll:
-                # Display result in chat window if applicable
-                if self.actor == self.game.player:
-                    self.game.chat_history.append(f"You punch {target.name} for 1 damage.")
-                else:
-                    self.witness_action(f"{self.actor.name} punches {target.name} for 1 damage.")
-            else:
-                return "You try punching the zombie, but miss."
+            if attack_success:
+                target.npc.take_damage(1)
 
+    def _zombie_attack(self, target):
+        attack_type, damage = self._get_zombie_attack()
+        roll = random.randint(1, 20)
+        attack_success = roll >= ATTACK_DIFFICULTY
+
+        if attack_success:
+            target.take_damage(damage)
+
+    def _deplete_weapon(self, weapon, properties):
+        """Reduce loaded ammo or durability, depending on weapon type."""
+        if properties.item_function == ItemFunction.FIREARM:
+            weapon.loaded_ammo -= 1
+        elif properties.item_function == ItemFunction.MELEE:
+            weapon.durability -= 1
+            if weapon.durability <= 0:
+                self.actor.inventory.remove(weapon)
+                self.actor.weapon = None        
 
     def reload(self):
         weapon = self.actor.weapon.sprite
@@ -220,7 +285,88 @@ class ActionExecutor:
                 return "You search around the building but there is nothing to be found.", False
         else:
             return "You search but there is nothing to be found.", False
+
+    def equip(self, item):        
+        properties = ITEMS[item.type]
+        if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
+            player.weapon = item
+            self.game.chat_history.append(f"Equipped {properties.description}.")
+        else:
+            self.game.chat_history.append(f"You can't equip {properties.description}!")
+
+    def unequip(self, item):
+        properties = ITEMS[item.type]
+        player.weapon = None
+        self.game.chat_history.append(f"Unequipped {properties.description}.")
+
+    def use(self, item):
+        properties = ITEMS[item.type]
+
+        if item.type == ItemType.FIRST_AID_KIT:
+            if player.hp < player.max_hp:
+                player.heal(20)
+                player.inventory.remove(item)
+                self.game.chat_history.append("Used a first aid kit, feeling a bit better.")
+            else:
+                self.game.chat_history.append("You already feel healthy.")
+    
+        elif item.type == ItemType.PORTABLE_GENERATOR:
+            if player.inside:
+                self.game.game_ui.action_progress.start('Installing generator', player.install_generator)
+                result, item_used = player.install_generator()
+                self.game.chat_history.append(result)
+                if item_used:
+                    item.kill()
+            else:
+                self.game.chat_history.append("Generators must be installed inside buildings.")
+    
+        elif item.type == ItemType.FUEL_CAN:
+            if player.inside:
+                self.game.game_ui.action_progress.start('Fuelling generator')
+                result, item_used = player.fuel_generator()
+                self.game.chat_history.append(result)
+                if item_used:
+                    item.kill()
+            else:
+                self.game.chat_history.append("There is no generator here.")
+
+        elif item.type == ItemType.TOOLBOX:
+            if player.inside:
+                self.game.game_ui.action_progress.start('Repairing building')
+                self.game.chat_history.append(player.repair_building())
+            else:
+                self.game.chat_history.append("You have to be inside a building to use this.")
+
+        elif item.type == ItemType.MAP:
+            self.game.reading_map = True
         
+        elif item.type == ItemType.PISTOL_CLIP:
+            weapon = player.weapon.sprite
+            if weapon.type == ItemType.PISTOL:
+                if weapon.loaded_ammo < weapon.max_ammo:
+                    self.game.chat_history.append(player.reload())
+                    item.kill()
+                else:
+                    self.game.chat_history.append("Your weapon is already fully loaded.")
+            else:
+                self.game.chat_history.append(f"You can't reload {properties.description}.")
+
+        elif item.type == ItemType.SHOTGUN_SHELL:
+            weapon = player.weapon.sprite
+            if weapon.type == ItemType.SHOTGUN:
+                if weapon.loaded_ammo < weapon.max_ammo:
+                    self.game.chat_history.append(player.reload())
+                    item.kill()
+                else:
+                    self.game.chat_history.append("Your weapon is already fully loaded.")
+            else:
+                self.game.chat_history.append(f"You can't reload {properties.description}.")               
+
+    def drop(self, item):
+        properties = ITEMS[item.type]
+        item.kill()
+        self.game.chat_history.append(f"Dropped {properties.description}.")        
+
     def install_generator(self):
         current_x, current_y = self.location
         current_block = self.city.block(current_x, current_y)
@@ -250,3 +396,14 @@ class ActionExecutor:
         self.hp = 50
         self.action_points -= 50
         self.action_points_lost += 50        
+
+    def close_map(self):
+        self.game.reading_map = False
+    
+    def zoom_in(self):
+        self.game.game_ui.map.zoom_in = True
+
+    def zoom_out(self):
+        self.game.game_ui.map.zoom_in = False
+
+

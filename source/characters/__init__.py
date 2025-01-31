@@ -1,6 +1,7 @@
 # __init__.py
 
 from settings import *
+from data import ITEMS, ItemType, ItemFunction
 from items import Item, Weapon
 from characters.human_state import Human
 from characters.zombie_state import Zombie
