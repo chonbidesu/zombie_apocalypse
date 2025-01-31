@@ -232,9 +232,6 @@ class ActionExecutor:
         properties = ITEMS[item.type]
         if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
             self.actor.weapon = item
-            self.game.chat_history.append(f"Equipped {properties.description}.")
-        else:
-            self.game.chat_history.append(f"You can't equip {properties.description}!")
 
     def unequip(self, item):
         properties = ITEMS[item.type]
@@ -247,82 +244,65 @@ class ActionExecutor:
             if self.actor.hp < self.actor.max_hp:
                 self.actor.heal(20)
                 self.actor.inventory.remove(item)
-                self.game.chat_history.append("Used a first aid kit, feeling a bit better.")
-            else:
-                self.game.chat_history.append("You already feel healthy.")
     
         elif item.type == ItemType.PORTABLE_GENERATOR:
             if self.actor.inside:
-                self.game.game_ui.action_progress.start('Installing generator', self.actor.install_generator)
-                result, item_used = self.actor.install_generator()
-                self.game.chat_history.append(result)
+                item_used = self.actor.install_generator()
                 if item_used:
-                    item.kill()
-            else:
-                self.game.chat_history.append("Generators must be installed inside buildings.")
+                    self.actor.inventory.remove(item)
     
         elif item.type == ItemType.FUEL_CAN:
             if self.actor.inside:
-                self.game.game_ui.action_progress.start('Fuelling generator')
-                result, item_used = self.actor.fuel_generator()
-                self.game.chat_history.append(result)
+                item_used = self.actor.fuel_generator()
                 if item_used:
-                    item.kill()
-            else:
-                self.game.chat_history.append("There is no generator here.")
+                    self.actor.inventory.remove(item)
 
         elif item.type == ItemType.TOOLBOX:
             if self.actor.inside:
-                self.game.game_ui.action_progress.start('Repairing building')
-                self.game.chat_history.append(self.actor.repair_building())
-            else:
-                self.game.chat_history.append("You have to be inside a building to use this.")
+                self.repair_building()
 
         elif item.type == ItemType.MAP:
             self.game.reading_map = True
         
         elif item.type == ItemType.PISTOL_CLIP:
-            weapon = self.actor.weapon.sprite
+            weapon = self.actor.weapon
             if weapon.type == ItemType.PISTOL:
                 if weapon.loaded_ammo < weapon.max_ammo:
-                    self.game.chat_history.append(self.actor.reload())
-                    item.kill()
-                else:
-                    self.game.chat_history.append("Your weapon is already fully loaded.")
-            else:
-                self.game.chat_history.append(f"You can't reload {properties.description}.")
+                    self.reload(weapon)
+                    self.actor.inventory.remove(item)
 
         elif item.type == ItemType.SHOTGUN_SHELL:
             weapon = self.actor.weapon.sprite
             if weapon.type == ItemType.SHOTGUN:
                 if weapon.loaded_ammo < weapon.max_ammo:
-                    self.game.chat_history.append(self.actor.reload())
-                    item.kill()
-                else:
-                    self.game.chat_history.append("Your weapon is already fully loaded.")
-            else:
-                self.game.chat_history.append(f"You can't reload {properties.description}.")               
+                    self.actor.reload(weapon)
+                    self.actor.inventory.remove(item)          
 
     def drop(self, item):
-        properties = ITEMS[item.type]
-        item.kill()
-        self.game.chat_history.append(f"Dropped {properties.description}.")        
+        self.actor.inventory.remove(item)
 
     def install_generator(self):
         x, y = self.actor.location
-        current_block = self.city.block(x, y)
-        if current_block.generator_installed:
-            return "Generator is already installed.", False
+        building = self.game.city.block(x, y)
+        if building.generator_installed:
+            return False
         else:
-            current_block.generator_installed = True
-            return "You install a generator. It needs fuel to operate.", True
+            building.generator_installed = True
+            return True
         
     def fuel_generator(self):
         x, y = self.actor.location
-        current_block = self.city.block(x, y)
-        current_block.fuel_expiration = self.game.ticker + FUEL_DURATION
-        current_block.lights_on = True
+        building = self.city.block(x, y)
+        building.fuel_expiration = self.game.ticker + FUEL_DURATION
+        building.lights_on = True
+        return True
         
+    def repair_building(self):
+        x, y = self.actor.location
+        building = self.city.block(x, y)
+        building.ransack_level = 0
+        building.ruined = False       
+
     def stand(self):
         """Actor stands up at full health after collecting enough action points."""
         self.is_dead = False

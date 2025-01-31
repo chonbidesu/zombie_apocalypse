@@ -41,7 +41,8 @@ class BuildingBlock(CityBlock):
         self.barricade = self.BarricadeLevel()
         self.fuel_expiration = 0
         self.block_inside_desc = 'The inside of a building.'
-        self.is_ransacked = False
+        self.ransack_level = False
+        self.ruined = False
         self.lights_on = False
         self.generator_installed = False
 
