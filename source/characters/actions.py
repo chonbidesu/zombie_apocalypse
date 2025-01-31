@@ -84,15 +84,14 @@ class ActionExecutor:
         # Update sprites after taking action
         self.game.game_ui.update()
 
-    def attack(self, target):
+    def attack(self, target, weapon=None):
         """Execute an attack depending on the attacker's state."""
         if self.actor.is_human:
-            self._human_attack(target)
+            self._human_attack(target, weapon)
         else:
-            self._zombie_attack(target)
+            self._zombie_attack(target, weapon)
 
-    def _human_attack(self, target):
-        weapon = self.actor.weapon
+    def _human_attack(self, target, weapon):
         if weapon:
             properties = ITEMS[weapon.type]
             if properties.item_function == ItemFunction.FIREARM and weapon.loaded_ammo == 0:
@@ -103,22 +102,21 @@ class ActionExecutor:
 
             if attack_success:
                 self._deplete_weapon(weapon, properties)
-                target.npc.take_damage(properties.damage)
+                target.take_damage(properties.damage)
 
         else: # If no weapon equipped, punch the enemy.
             roll = random.randint(1, 20)
             attack_success = roll >= ATTACK_DIFFICULTY
 
             if attack_success:
-                target.npc.take_damage(1)
+                target.take_damage(1)
 
-    def _zombie_attack(self, target):
-        attack_type, damage = self._get_zombie_attack()
+    def _zombie_attack(self, target, weapon):
         roll = random.randint(1, 20)
-        attack_success = roll >= ATTACK_DIFFICULTY
+        attack_success = (roll + weapon.attack) >= ATTACK_DIFFICULTY
 
         if attack_success:
-            target.take_damage(damage)
+            target.take_damage(weapon.damage)
 
     def _deplete_weapon(self, weapon, properties):
         """Reduce loaded ammo or durability, depending on weapon type."""
@@ -131,20 +129,12 @@ class ActionExecutor:
                 self.actor.weapon = None        
 
     def reload(self):
-        weapon = self.actor.weapon.sprite
+        weapon = self.actor.weapon
         if weapon.type == ItemType.PISTOL:
             weapon.loaded_ammo = weapon.max_ammo
-            if self.actor == self.game.player:
-                self.game.chat_history.append("You slap a new pistol clip into your gun.")
-            else:
-                self.witness_action(f"{self.actor.name} reloads their pistol.")
         elif weapon.type == ItemType.SHOTGUN:
             weapon.loaded_ammo += 1
-            if self.actor == self.game.player:
-                self.game.chat_history.append("You load a shell into your shotgun.")
-            else:
-                self.witness_action(f"{self.actor.name} loads a shell into their shotgun.")
-
+ 
     def move(self, dx, dy):
         """Moves the actor to a new location."""
         x, y = self.actor.location
@@ -159,7 +149,7 @@ class ActionExecutor:
 
     def wander(self):
         """Randomly moves the actor to an adjacent block."""
-        x, y = self.location[0], self.location[1]
+        x, y = self.actor.location[0], self.actor.location[1]
         dx, dy = random.choice([(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)])
         new_x, new_y = x + dx, y + dy
         current_block = self.game.city.block(x, y)
@@ -170,92 +160,53 @@ class ActionExecutor:
             self.action_points_lost += 2
             current_block.current_zombies -= 1
             new_block.current_zombies += 1
-            self.location = (new_x, new_y)
+            self.actor.location = (new_x, new_y)
             self.inside = False
             return True
         return False
 
-    def barricade(self):
-        current_x, current_y = self.location
-        current_block = self.city.block(current_x, current_y)
-        properties = BLOCKS[current_block.type]
+    def barricade(self, building):
+        properties = BLOCKS[building.type]
         success_chances = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
         if properties.is_building and self.inside:
-            if current_block.barricade.level >= 7 and current_block.barricade.sublevel >= 4:
-                return "You can't add more barricades.", False
-            
-            success_chance = success_chances[current_block.barricade.level]
+            success_chance = success_chances[building.barricade.level]
             success = random.random() < success_chance
             if success:
-                add_barricade = current_block.barricade.adjust_barricade_sublevel(1)
-                if not add_barricade:
-                    return "You can't add more barricades.", False
-                elif current_block.barricade.level == 4 and current_block.barricade.sublevel == 2:
-                    return f"You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in.", False
-                elif current_block.barricade.sublevel == 0:
-                    return f"You reinforce the barricade. The building is now {current_block.barricade.get_barricade_description()}.", False
-                elif current_block.barricade.sublevel > 0:
-                    return f"You reinforce the barricade.", False
-            else:
-                return "You could not find anything to add to the barricade.", False
-        else:
-            return "You can't barricade here.", False
+                building.barricade.adjust_barricade_sublevel(1)
 
-    def repair_building(self):
-        current_x, current_y = self.location
-        current_block = self.city.block(current_x, current_y)
-        properties = BLOCKS[current_block.type]
+    def repair_building(self, building):
+        properties = BLOCKS[building.type]
         if properties.is_building and self.inside:
-            if current_block.is_ransacked:
-                current_block.is_ransacked = False
-                return "You repaired the interior of the building and cleaned up the mess.", False
+            building.is_ransacked = False
+
+    def enter(self, building):
+        properties = BLOCKS[building.type]
+        if properties.is_building and not self.inside:
+            if self.actor.is_human:
+                if building.barricade.level <= 4:
+                    self.inside = True
             else:
-                return "There's nothing to repair here.", False
+                if building.barricade.level == 0:
+                    self.inside = True             
 
-    def enter(self):
-        current_x, current_y = self.location
-        current_block = self.city.block(current_x, current_y)
-        properties = BLOCKS[current_block.type]
-        if properties.is_building:
-            if not self.inside:
-                if current_block.barricade.level == 0:
-                    self.inside = True
-                    return "You entered the building."
-                elif current_block.barricade.level <= 4:
-                    self.inside = True
-                    return "You climb through the barricades and are now inside."
-                else:
-                    return "You can't find a way through the barricades."
-            return "You are already inside."
-        return "This is not a building."
-
-    def leave(self):
-        current_x, current_y = self.location
-        current_block = self.city.block(current_x, current_y)
-        properties = BLOCKS[current_block.type]
-        if properties.is_building:
-            if self.inside:
-                if current_block.barricade.level == 0:
+    def leave(self, building):
+        properties = BLOCKS[building.type]
+        if properties.is_building and self.inside:
+            if self.actor.is_human:
+                if building.barricade.level <= 4:
                     self.inside = False
-                    return "You left the building."
-                elif current_block.barricade.level <= 4:
-                    self.inside = False
-                    return "You climb through the barricades and are now outside."
-                else:
-                    return "The building has been so heavily barricaded that you cannot leave through the main doors."                    
-            return "You are already outside."
-        return "You can't leave this place."
+            else:
+                if building.barricade.level == 0:
+                    self.inside = False                
 
-    def search(self):
-        items_held = len(self.inventory.sprites())
-        current_x, current_y = self.location
-        current_block = self.city.block(current_x, current_y)
-        block_properties = BLOCKS[current_block.type]
-        if block_properties.is_building:
+    def search(self, building):
+        items_held = len(self.inventory)
+        building_properties = BLOCKS[building.type]
+        if building_properties.is_building:
             if self.inside:
-                if current_block.lights_on:
+                if building.lights_on:
                     multiplier = LIGHTSON_MULTIPLIER
-                elif current_block.is_ransacked:
+                elif building.is_ransacked:
                     multiplier = RANSACKED_MULTIPLIER
                 else:
                     multiplier = SEARCH_MULTIPLIER
@@ -263,57 +214,47 @@ class ActionExecutor:
                 random.shuffle(items)
 
                 for item_type in items:
-                    search_chance = self.search_chances[item_type].get(current_block.type.name, 0.0) # Default to 0.0 if item not found
+                    search_chance = self.search_chances[item_type].get(building.type.name, 0.0) # Default to 0.0 if item not found
                     roll = random.random()
                     if roll < search_chance * multiplier:
                         item = self.create_item(item_type)
                         item_properties = ITEMS[item.type]
                         if item is not None:
                             if items_held >= MAX_ITEMS:
-                                return f"You found {item_properties.description}, but you are carrying too much and it falls under a pile of debris!", False
+                                return
                             elif item_type == 'PORTABLE_GENERATOR':
-                                for sprite in self.inventory:
-                                    if hasattr(sprite, 'type') and sprite.type == ItemType.PORTABLE_GENERATOR:
-                                        return 'You found Portable Generator, but you can only carry one at a time.', False
+                                for item in self.inventory:
+                                    if hasattr(item, 'type') and item.type == ItemType.PORTABLE_GENERATOR:
+                                        return False
                             self.inventory.add(item)
-                            return f"You found {item_properties.description}!", False
-                        else:
-                            return f"Tried to add {item_properties.description} to inventory!", False
-                return f"You found nothing.", False
-            
-            else:
-                return "You search around the building but there is nothing to be found.", False
-        else:
-            return "You search but there is nothing to be found.", False
 
     def equip(self, item):        
         properties = ITEMS[item.type]
         if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
-            player.weapon = item
+            self.actor.weapon = item
             self.game.chat_history.append(f"Equipped {properties.description}.")
         else:
             self.game.chat_history.append(f"You can't equip {properties.description}!")
 
     def unequip(self, item):
         properties = ITEMS[item.type]
-        player.weapon = None
-        self.game.chat_history.append(f"Unequipped {properties.description}.")
+        self.actor.weapon = None
 
     def use(self, item):
         properties = ITEMS[item.type]
 
         if item.type == ItemType.FIRST_AID_KIT:
-            if player.hp < player.max_hp:
-                player.heal(20)
-                player.inventory.remove(item)
+            if self.actor.hp < self.actor.max_hp:
+                self.actor.heal(20)
+                self.actor.inventory.remove(item)
                 self.game.chat_history.append("Used a first aid kit, feeling a bit better.")
             else:
                 self.game.chat_history.append("You already feel healthy.")
     
         elif item.type == ItemType.PORTABLE_GENERATOR:
-            if player.inside:
-                self.game.game_ui.action_progress.start('Installing generator', player.install_generator)
-                result, item_used = player.install_generator()
+            if self.actor.inside:
+                self.game.game_ui.action_progress.start('Installing generator', self.actor.install_generator)
+                result, item_used = self.actor.install_generator()
                 self.game.chat_history.append(result)
                 if item_used:
                     item.kill()
@@ -321,9 +262,9 @@ class ActionExecutor:
                 self.game.chat_history.append("Generators must be installed inside buildings.")
     
         elif item.type == ItemType.FUEL_CAN:
-            if player.inside:
+            if self.actor.inside:
                 self.game.game_ui.action_progress.start('Fuelling generator')
-                result, item_used = player.fuel_generator()
+                result, item_used = self.actor.fuel_generator()
                 self.game.chat_history.append(result)
                 if item_used:
                     item.kill()
@@ -331,9 +272,9 @@ class ActionExecutor:
                 self.game.chat_history.append("There is no generator here.")
 
         elif item.type == ItemType.TOOLBOX:
-            if player.inside:
+            if self.actor.inside:
                 self.game.game_ui.action_progress.start('Repairing building')
-                self.game.chat_history.append(player.repair_building())
+                self.game.chat_history.append(self.actor.repair_building())
             else:
                 self.game.chat_history.append("You have to be inside a building to use this.")
 
@@ -341,10 +282,10 @@ class ActionExecutor:
             self.game.reading_map = True
         
         elif item.type == ItemType.PISTOL_CLIP:
-            weapon = player.weapon.sprite
+            weapon = self.actor.weapon.sprite
             if weapon.type == ItemType.PISTOL:
                 if weapon.loaded_ammo < weapon.max_ammo:
-                    self.game.chat_history.append(player.reload())
+                    self.game.chat_history.append(self.actor.reload())
                     item.kill()
                 else:
                     self.game.chat_history.append("Your weapon is already fully loaded.")
@@ -352,10 +293,10 @@ class ActionExecutor:
                 self.game.chat_history.append(f"You can't reload {properties.description}.")
 
         elif item.type == ItemType.SHOTGUN_SHELL:
-            weapon = player.weapon.sprite
+            weapon = self.actor.weapon.sprite
             if weapon.type == ItemType.SHOTGUN:
                 if weapon.loaded_ammo < weapon.max_ammo:
-                    self.game.chat_history.append(player.reload())
+                    self.game.chat_history.append(self.actor.reload())
                     item.kill()
                 else:
                     self.game.chat_history.append("Your weapon is already fully loaded.")
@@ -368,8 +309,8 @@ class ActionExecutor:
         self.game.chat_history.append(f"Dropped {properties.description}.")        
 
     def install_generator(self):
-        current_x, current_y = self.location
-        current_block = self.city.block(current_x, current_y)
+        x, y = self.actor.location
+        current_block = self.city.block(x, y)
         if current_block.generator_installed:
             return "Generator is already installed.", False
         else:
@@ -377,25 +318,16 @@ class ActionExecutor:
             return "You install a generator. It needs fuel to operate.", True
         
     def fuel_generator(self):
-        current_x, current_y = self.location
-        current_block = self.city.block(current_x, current_y)
-        if current_block.lights_on:
-            return "Generator already has fuel.", False
-        elif not current_block.generator_installed:
-            return "You need to install a generator first.", False
-        else:
-            current_block.fuel_expiration = self.ticker + FUEL_DURATION
-            current_block.lights_on = True
-            return "You fuel the generator. The lights are now on.", True        
+        x, y = self.actor.location
+        current_block = self.city.block(x, y)
+        current_block.fuel_expiration = self.game.ticker + FUEL_DURATION
+        current_block.lights_on = True
         
     def stand(self):
         """Actor stands up at full health after collecting enough action points."""
-        if self.location == self.game.player.location and self.inside == self.game.player.inside:
-            self.game.chat_history.append("A zombie stirs, and gets to its feet, swaying.")
         self.is_dead = False
         self.hp = 50
-        self.action_points -= 50
-        self.action_points_lost += 50        
+        self.actor.action_points -= STAND_AP
 
     def close_map(self):
         self.game.reading_map = False
