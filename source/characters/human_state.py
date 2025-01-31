@@ -61,33 +61,33 @@ class Human:
         action, target = self.determine_behaviour(current_block)
 
         # Call action function
-        if action == HumanAction.RELOCATE:
+        if action == Action.RELOCATE:
             self.actions.relocate(current_block)
 
-        elif action == HumanAction.ATTACK:
+        elif action == Action.ATTACK:
             self.actions.attack(target)
         
-        elif action == HumanAction.FIND_TARGET:
+        elif action == Action.FIND_TARGET:
             self.actions.find_target()
         
-        elif action == HumanAction.PURSUE:
+        elif action == Action.PURSUE:
             self.actions.pursue(target, current_block)
 
-        elif action == HumanAction.BARRICADE:
+        elif action == Action.BARRICADE:
             self.actions.barricade(current_block)
 
-        elif action == HumanAction.MOVE:
+        elif action == Action.MOVE:
             target_dx, target_dy = self.actions.find_target_dxy(target)
             if target_dx is not None and self.action_points >= 1:
                 self.actions.move(target_dx, target_dy)
 
-        elif action == HumanAction.ENTER:
+        elif action == Action.ENTER:
             self.actions.enter()
         
-        elif action == HumanAction.WANDER:
+        elif action == Action.WANDER:
             self.actions.wander()
 
-        elif action == HumanAction.STAND:
+        elif action == Action.STAND:
             self.actions.stand()
 
     def determine_human_behaviour(self, current_block):
@@ -95,44 +95,44 @@ class Human:
         properties = BLOCKS[current_block.type]
         # Stand up if dead and have enough action points
         if self.is_dead:
-            return HumanAction.STAND if self.action_points >= STAND_AP else False
+            return Action.STAND if self.action_points >= STAND_AP else False
 
         # Relocate if the block is overcrowded
         if current_block.current_humans > HUMAN_CAPACITY:
-            return HumanAction.RELOCATE
+            return Action.RELOCATE
         
         elif self.type == NPCType.SURVIVOR:
             if current_block.current_zombies > 0:
-                return HumanAction.FIND_TARGET # Flee to another building
+                return Action.FIND_TARGET # Flee to another building
             elif self.location == self.game.player.location and self.inside == self.game.player.inside:
-                return HumanAction.GIVE_QUEST
+                return Action.GIVE_QUEST
             elif not self.inside and properties.is_building:
-                    return HumanAction.ENTER_BUILDING
+                    return Action.ENTER_BUILDING
             
         elif self.type == NPCType.PREPPER:
             if properties.is_building and not self.inside:
-                return HumanAction.ENTER_BUILDING
+                return Action.ENTER_BUILDING
             elif self.inside:
                 for zombie in self.game.zombies.list:
                     if self.location == zombie.location and zombie.inside:
-                        return HumanAction.ATTACK_NPC
+                        return Action.ATTACK_NPC
                 if current_block.is_ransacked:
-                    return HumanAction.REPAIR_BUILDING
+                    return Action.REPAIR_BUILDING
                 elif current_block.barricade.level <= 4:
-                    return HumanAction.HANDLE_BARRICADE
+                    return Action.HANDLE_BARRICADE
                 else:
-                    return HumanAction.FIND_TARGET
+                    return Action.FIND_TARGET
         
         elif self.type == NPCType.SCIENTIST:
             if current_block.current_zombies > 0:
-                return HumanAction.ATTACK_NPC
+                return Action.ATTACK_NPC
             else:
-                return HumanAction.FIND_TARGET
+                return Action.FIND_TARGET
             
         elif self.type == NPCType.PKER:
             if self.location == self.game.player.location and self.inside == self.game.player.inside:
                 self.pursuing_player = True
                 self.last_known_player_location = self.game.player.location
-                return HumanAction.ATTACK_PLAYER
+                return Action.ATTACK_PLAYER
 
         return None  # No behaviour determined

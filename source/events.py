@@ -198,6 +198,8 @@ class EventHandler:
 
     def act(self, action):
         """Execute the action based on action type."""
+        player = self.game.player
+
         if action == SystemAction.QUIT:
             self.game.quit_game()
 
@@ -233,44 +235,44 @@ class EventHandler:
         
         # Movement
         if action == PlayerAction.MOVE_UP:
-            self.game.player.action.move(0, -1)
+            player.action.move(0, -1)
         elif action == PlayerAction.MOVE_DOWN:
-            self.game.player.action.move(0, 1)
+            player.action.move(0, 1)
         elif action == PlayerAction.MOVE_LEFT:
-            self.game.player.action.move(-1, 0)
+            player.action.move(-1, 0)
         elif action == PlayerAction.MOVE_RIGHT:
-            self.game.player.action.move(1, 0)
+            player.action.move(1, 0)
         elif action == PlayerAction.MOVE_UPLEFT:
-            self.game.player.action.move(-1, -1)
+            player.action.move(-1, -1)
         elif action == PlayerAction.MOVE_UPRIGHT:
-            self.game.player.action.move(1, -1)
+            player.action.move(1, -1)
         elif action == PlayerAction.MOVE_DOWNLEFT:
-            self.game.player.action.move(-1, 1)
+            player.action.move(-1, 1)
         elif action == PlayerAction.MOVE_DOWNRIGHT:
-            self.game.player.action.move(1, 1)       
+            player.action.move(1, 1)       
         elif action == self.state.Action.MOVE:
             dx, dy = self.mouse_sprite.dx, self.mouse_sprite.dy
-            self.game.player.action.move(dx, dy)
+            player.action.move(dx, dy)
         
         # Combat
         elif action == self.state.Action.ATTACK:
-            self.game.chat_history.append(self.game.player.action.attack(self.mouse_sprite))
+            self.game.chat_history.append(player.action.attack(self.mouse_sprite))
 
         # Building actions
         elif action == PlayerAction.BARRICADE:
-            self.game.game_ui.action_progress.start('Barricading', self.game.player.action.barricade)
+            self.game.game_ui.action_progress.start('Barricading', player.action.barricade)
         elif action == PlayerAction.SEARCH:
-            self.game.game_ui.action_progress.start('Searching', self.game.player.action.search)
+            self.game.game_ui.action_progress.start('Searching', player.action.search)
         elif action == PlayerAction.ENTER:
-            current_block = self.game.player.city.block(self.game.player.location[0], self.game.player.location[1])
+            current_block = player.city.block(player.location[0], player.location[1])
             properties = BLOCKS[current_block.type]
             if properties.is_building:
-                result = self.game.game_ui.screen_transition.circle_wipe(self.game.player.action.enter, self.game.chat_history)
+                result = self.game.game_ui.screen_transition.circle_wipe(player.action.enter, self.game.chat_history)
                 self.game.chat_history.append(result)
             else:
-                self.game.chat_history.append(self.game.player.action.enter())
+                self.game.chat_history.append(player.action.enter())
         elif action == PlayerAction.LEAVE:
-            result = self.game.game_ui.screen_transition.circle_wipe(self.game.player.action.leave, self.game.chat_history)
+            result = self.game.game_ui.screen_transition.circle_wipe(player.action.leave, self.game.chat_history)
             self.game.chat_history.append(result)
 
         # Inventory actions
@@ -278,8 +280,7 @@ class EventHandler:
             item = self.mouse_sprite
             properties = ITEMS[item.type]
             if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
-                player.weapon.empty()
-                player.weapon.add(item)
+                player.weapon = item
                 self.game.chat_history.append(f"Equipped {properties.description}.")
             else:
                 self.game.chat_history.append(f"You can't equip {properties.description}!")
@@ -287,7 +288,7 @@ class EventHandler:
         elif action == PlayerAction.UNEQUIP:
             item = self.mouse_sprite
             properties = ITEMS[item.type]
-            player.weapon.empty()
+            player.weapon = None
             self.game.chat_history.append(f"Unequipped {properties.description}.")
 
         elif action == PlayerAction.USE:
@@ -297,7 +298,7 @@ class EventHandler:
             if item.type == ItemType.FIRST_AID_KIT:
                 if player.hp < player.max_hp:
                     player.heal(20)
-                    item.kill()
+                    player.inventory.remove(item)
                     self.game.chat_history.append("Used a first aid kit, feeling a bit better.")
                 else:
                     self.game.chat_history.append("You already feel healthy.")

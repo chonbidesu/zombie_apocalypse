@@ -42,40 +42,40 @@ class Zombie:
         action = self._determine_behaviour(current_block)
 
         # Call action function
-        if action == ZombieAction.RELOCATE:
+        if action == Action.RELOCATE:
             self.relocate_npc(current_block)
             return  # Skip action after relocation
 
-        elif action == ZombieAction.ATTACK:
+        elif action == Action.ATTACK:
             self.game.chat_history.append(self.attack())
             return
         
-        elif action == ZombieAction.PURSUE:
+        elif action == Action.PURSUE:
             self.follow(current_block)
 
-        elif action == ZombieAction.MOVE:
+        elif action == Action.MOVE:
             target_dx, target_dy = self.find_target_dxy()
             if target_dx is not None and self.action_points >= 2:
                 self.move_towards(target_dx, target_dy)
                 return
 
-        elif action == ZombieAction.ENTER:
+        elif action == Action.ENTER:
             self.enter()
             return
         
-        elif action == ZombieAction.LEAVE:
+        elif action == Action.LEAVE:
             self.leave()
             return
         
-        elif action == ZombieAction.RANSACK:
+        elif action == Action.RANSACK:
             self.ransack()
             return
 
-        elif action == ZombieAction.WANDER:
+        elif action == Action.WANDER:
             self.move()
             return
 
-        elif action == ZombieAction.STAND_UP:
+        elif action == Action.STAND_UP:
             self.stand_up()
             return
 
@@ -86,40 +86,40 @@ class Zombie:
         properties = BLOCKS[current_block.type]
         # Stand up if dead and have enough action points
         if self.is_dead:
-            return ZombieAction.STAND_UP if self.action_points >= STAND_UP_AP else False
+            return Action.STAND_UP if self.action_points >= STAND_AP else False
 
         # Relocate if the block is overcrowded
         if current_block.zombies > ZOMBIE_CAPACITY:
-            return ZombieAction.RELOCATE        
+            return Action.RELOCATE        
             
         elif current_block.humans > 0:
-            return ZombieAction.ATTACK
+            return Action.ATTACK
 
         elif self.is_enemy_adjacent():
             self.pursuing_enemy = True
             #self.last_known_enemy_location = self.game.player.location
-            return ZombieAction.PURSUE
+            return Action.PURSUE
 
         elif properties.is_building and current_block.barricade.level == 0 and not self.inside and self.action_points >= 1:
             roll = random.randint(1, 20)
             if roll < 5:
-                return ZombieAction.ENTER
+                return Action.ENTER
                     
         if self.inside:
             if not current_block.is_ransacked and self.action_points >= 1:
                 roll = random.randint(1, 20)
                 if roll < 5:
-                    return ZombieAction.RANSACK
+                    return Action.RANSACK
                 
         if self.find_target_dxy() and self.action_points >= 1:
             target_dx, target_dy = self.find_target_dxy()
             if (target_dx, target_dy) == (0, 0):
-                return ZombieAction.HANDLE_BARRICADE
+                return Action.HANDLE_BARRICADE
             else:
-                return ZombieAction.MOVE_TOWARDS
+                return Action.MOVE_TOWARDS
 
         # Random movement if no targets or barricades present
         if self.action_points >= 2:
-            return ZombieAction.WANDER
+            return Action.WANDER
 
         return None  # No behaviour determined
