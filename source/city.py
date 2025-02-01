@@ -1,17 +1,17 @@
 # city.py
 import csv
 import random
-import pygame
 from collections import defaultdict
 from pathlib import Path
 
 
 from blocks import CityBlock, BuildingBlock
 from settings import *
+from data import BLOCKS, BlockType, NEIGHBOURHOODS
 
 class City:
     def __init__(self):
-        self.descriptions = self._load_descriptions_from_csv(resource_path("assets/descriptions.csv"))
+        self.descriptions = self._load_descriptions_from_csv(ResourcePath("assets/descriptions.csv"))
         self.block_name_pool = {}
 
         self._load_block_names()
@@ -36,7 +36,7 @@ class City:
 
     def _load_block_names(self):
         """Load block names from assets/block_names.csv into a dictionary."""
-        csv_path = Path(resource_path("assets/block_names.csv"))
+        csv_path = Path(ResourcePath("assets/block_names.csv"))
         
         if not csv_path.exists():
             print(f"Error: {csv_path} does not exist!")

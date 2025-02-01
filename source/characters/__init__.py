@@ -14,7 +14,7 @@ class Character:
         self.occupation = occupation
         self.location = (x, y)
         self.hp = MAX_HP
-        self.action_points = 0
+        self.ap = 0
         self.is_dead = False
         self.is_human = is_human
         self.inside = inside
@@ -36,29 +36,35 @@ class Character:
         return state
 
     def take_damage(self, amount):
-        """Reduces the player's health by the given amount."""
+        """Reduces the character's health by the given amount."""
         self.hp -= amount
         if self.hp <= 0:
             self.hp = 0
             self.die()
 
     def heal(self, amount):
-        """Heals the player by the given amount up to max health."""
+        """Heals the character by the given amount up to max health."""
         self.hp = min(self.hp + amount, self.max_hp)
 
     def die(self):
-        """Handles the player's death."""
+        """Handles the character's death."""
         self.is_dead = True
-        return "The player has died."
+        self.is_human = False
+        self.state = Zombie()
+
+    def revivify(self):
+        """Revives the character to human state."""
+        self.is_dead = True
+        self.is_human = True
+        self.state = Human()
 
     def status(self):
-        """Returns the player's current status."""
+        """Returns the character's current status."""
         status = {
             "Name": self.name,
             "Occupation": self.occupation,
             "Location": self.location,
             "HP": f"{self.hp} / {self.max_hp}",
-            "Actions taken": self.ticker,
         }
         return status
     

@@ -6,3 +6,4 @@ from .item_data import ItemType, ItemFunction, ItemProperties, ITEMS
 from .neighbourhood_data import NEIGHBOURHOODS
 from .resource_path import ResourcePath
 from .action_data import Action
+from .character_data import Occupation, HUMAN_OCCUPATIONS

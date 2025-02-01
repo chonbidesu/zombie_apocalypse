@@ -20,47 +20,10 @@ class Zombie:
         current_block = self.game.city.block(self.character.location[0], self.character.location[1])
 
         # Determine behaviour
-        action = self._determine_behaviour(current_block)
+        action, target = self._determine_behaviour(current_block)
 
-        # Call action function
-        if action == Action.RELOCATE:
-            self.relocate_npc(current_block)
-            return  # Skip action after relocation
-
-        elif action == Action.ATTACK:
-            self.game.chat_history.append(self.attack())
-            return
-        
-        elif action == Action.PURSUE:
-            self.follow(current_block)
-
-        elif action == Action.MOVE:
-            target_dx, target_dy = self.find_target_dxy()
-            if target_dx is not None and self.action_points >= 2:
-                self.move_towards(target_dx, target_dy)
-                return
-
-        elif action == Action.ENTER:
-            self.enter()
-            return
-        
-        elif action == Action.LEAVE:
-            self.leave()
-            return
-        
-        elif action == Action.RANSACK:
-            self.ransack()
-            return
-
-        elif action == Action.WANDER:
-            self.move()
-            return
-
-        elif action == Action.STAND_UP:
-            self.stand_up()
-            return
-
-        return False  # No action taken        
+        # Execute action
+        self.character.action.execute(action, target)       
 
     def _determine_behaviour(self, current_block):
         """Determine the priority for the zombie."""

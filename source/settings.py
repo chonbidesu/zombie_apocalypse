@@ -1,7 +1,7 @@
 # settings.py
 
 import pygame
-from data.resource_path import ResourcePath
+from data import ResourcePath
 
 # Saved game file
 SAVE_FILE = "savegame.pkl"
@@ -27,8 +27,7 @@ FUEL_DURATION = 200
 MAX_ITEMS = 10
 ATTACK_DIFFICULTY = 10
 MAX_HP = 50
-ZOMBIE_CAPACITY = 6 # Limit of zombies per block
-HUMAN_CAPACITY = 2 # Limit of humans per block
+BLOCK_CAPACITY = 8 # Limit of characters per block
 STAND_AP = 50
 SEARCH_MULTIPLIER = 1.0
 LIGHTSON_MULTIPLIER = 2.5

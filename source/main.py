@@ -5,14 +5,14 @@ import sys
 from pygame.locals import *
 
 from settings import *
-from player import Player
 from city import City
-from npc import NPC
+from characters import Character
+from populate import GenerateNPCs
+from blocks import CityBlock, BuildingBlock
+from data import Occupation
 import ui
-import populate
 import menus
 import saveload
-import blocks
 import events as events
 
 # Initialize Pygame
@@ -28,7 +28,7 @@ class GameInitializer:
     def __init__(self):
         self.player = None
         self.city = None
-        self.cursor = ui.widgets.Cursor()
+        self.cursor = ui.Cursor()
         self.paused = False
         self.pause_menu = menus.PauseMenu()
         self.popup_menu = None
@@ -39,24 +39,24 @@ class GameInitializer:
             "Diagonally 'q', 'e', 'z', 'c'."
         ]
 
-        self.action_handler = events.ActionHandler(self)
         self.initialize_game()
 
     def initialize_game(self):
         """Initialize the game state by loading or creating a new game."""
         try:
             game_state = saveload.Gamestate.load_game("savegame.pkl")
-            self.player, self.city, self.zombies, self.humans = game_state.reconstruct_game(
-                self, Player, City, NPC, populate.GenerateNPCs, 
-                blocks.BuildingBlock, blocks.CityBlock,
+            self.player, self.city, self.npcs, = game_state.reconstruct_game(
+                self, Character, City, GenerateNPCs, 
+                BuildingBlock, CityBlock,
             )
             self.game_ui = ui.DrawUI(self, screen)
-            #self.game_ui.description_panel.update_npc_sprites()
 
         except (FileNotFoundError, EOFError, pickle.UnpicklingError):
             print("Save file not found or corrupted. Creating a new game.")
             # Generate a new game if save file doesn't exist
             self._create_new_game()
+
+        self.event_handler = events.EventHandler(self)       
 
     def _create_new_game(self):
         """Generate a new game state."""
@@ -65,13 +65,12 @@ class GameInitializer:
         self.city = City()
 
         # Create player
-        self.player = Player(
-            self.city, name="Joe", occupation="Doctor", x=50, y=50,
+        self.player = Character(
+            self.game, occupation=Occupation.DOCTOR, x=50, y=50, is_human=True
         )
 
         # Populate the city
-        self.zombies = populate.GenerateNPCs(self, total_npcs=1000, is_human=False)
-        self.humans = populate.GenerateNPCs(self, total_npcs=1000, is_human=True)
+        self.npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
 
         # Initialize UI
         self.game_ui = ui.DrawUI(self, screen)
@@ -108,7 +107,7 @@ def main():
 
         # Handle events
         events = pygame.event.get()
-        game.action_handler.handle_events(events, menus.ContextMenu)
+        game.event_handler.handle_events(events, menus.ContextMenu)
 
         # Handle pause menu
         if game.paused:

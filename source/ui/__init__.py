@@ -3,6 +3,8 @@ from ui.panels import StatusPanel, ChatPanel, ActionsPanel, InventoryPanel, Desc
 from ui.viewport import Viewport
 from ui.utils import ActionProgress, DeathScreen
 from ui.effects import ScreenTransition
+from ui.widgets import Cursor
+
 
 class DrawUI:
     """Manages all UI elements and delegates rendering to subcomponents."""

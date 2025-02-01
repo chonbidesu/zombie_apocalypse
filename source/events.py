@@ -3,7 +3,7 @@
 import pygame
 
 from settings import *
-from data import SystemAction, BLOCKS, ITEMS, ItemType, ItemFunction
+from data import Action, BLOCKS, ITEMS, ItemType, ItemFunction
 
 
 class EventHandler:
@@ -16,7 +16,7 @@ class EventHandler:
         """Handle all game events."""
         for event in events:
             if event.type == pygame.QUIT:
-                self.act(SystemAction.QUIT)
+                self.act(Action.QUIT)
 
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event)
@@ -41,21 +41,21 @@ class EventHandler:
         """Handle key press events."""
         if self.game.reading_map:
             key_to_action = {
-                pygame.K_ESCAPE: SystemAction.CLOSE_MAP,
-                pygame.K_PAGEDOWN: SystemAction.ZOOM_OUT,
-                pygame.K_PAGEUP: SystemAction.ZOOM_IN,
+                pygame.K_ESCAPE: Action.CLOSE_MAP,
+                pygame.K_PAGEDOWN: Action.ZOOM_OUT,
+                pygame.K_PAGEUP: Action.ZOOM_IN,
             }
         else:
             key_to_action = {
-                pygame.K_w: self.state.Action.MOVE_UP,
-                pygame.K_s: self.state.Action.MOVE_DOWN,
-                pygame.K_a: self.state.Action.MOVE_LEFT,
-                pygame.K_d: self.state.Action.MOVE_RIGHT,
-                pygame.K_q: self.state.Action.MOVE_UPLEFT,
-                pygame.K_e: self.state.Action.MOVE_UPRIGHT,
-                pygame.K_z: self.state.Action.MOVE_DOWNLEFT,
-                pygame.K_c: self.state.Action.MOVE_DOWNRIGHT,
-                pygame.K_ESCAPE: SystemAction.PAUSE,
+                pygame.K_w: Action.MOVE_UP,
+                pygame.K_s: Action.MOVE_DOWN,
+                pygame.K_a: Action.MOVE_LEFT,
+                pygame.K_d: Action.MOVE_RIGHT,
+                pygame.K_q: Action.MOVE_UPLEFT,
+                pygame.K_e: Action.MOVE_UPRIGHT,
+                pygame.K_z: Action.MOVE_DOWNLEFT,
+                pygame.K_c: Action.MOVE_DOWNRIGHT,
+                pygame.K_ESCAPE: Action.PAUSE,
             }
         action = key_to_action.get(event.key)
         if action:
@@ -67,10 +67,10 @@ class EventHandler:
             mouse_pos = pygame.mouse.get_pos()
             target = ClickTarget(self.game, mouse_pos)
             if target.type == 'npc':
-                action = self.state.Action.ATTACK
+                action = Action.ATTACK
                 self.act(action, target)
             elif target.type == 'block' and not self.game.popup_menu:
-                action = self.state.Action.MOVE
+                action = Action.MOVE
                 self.act(action, target)             
 
         # Handle graphical changes for button clicks
@@ -103,10 +103,10 @@ class EventHandler:
             action_name = button.handle_event(event)
             if action_name:
                 button_to_action = {
-                    'barricade': self.state.Action.BARRICADE,
-                    'search': self.state.Action.SEARCH,
-                    'enter': self.state.Action.ENTER,
-                    'leave': self.state.Action.LEAVE,
+                    'barricade': Action.BARRICADE,
+                    'search': Action.SEARCH,
+                    'enter': Action.ENTER,
+                    'leave': Action.LEAVE,
                 }
                 action = button_to_action.get(action_name)
                 if action:
@@ -116,9 +116,9 @@ class EventHandler:
             action_name = button.handle_event(event)
             if action_name:
                 button_to_action = {
-                    'play': SystemAction.PAUSE,
-                    'options': SystemAction.OPTIONS,
-                    'exit': SystemAction.QUIT,
+                    'play': Action.PAUSE,
+                    'options': Action.OPTIONS,
+                    'exit': Action.QUIT,
                 }
                 action = button_to_action.get(action_name)
                 if action:
@@ -131,16 +131,16 @@ class EventHandler:
     def handle_popup_menu(self, action):
         """Handle popup menu actions."""
         menu_to_action = {
-            'Equip': self.state.Action.EQUIP,
-            'Unequip': self.state.Action.UNEQUIP,
-            'Use': self.state.Action.USE,
-            'Install': self.state.Action.USE,
-            'Reload': self.state.Action.USE,
-            'Drop': self.state.Action.DROP,
-            'Barricade': self.state.Action.BARRICADE,
-            'Search': self.state.Action.SEARCH,
-            'Enter': self.state.Action.ENTER,
-            'Leave': self.state.Action.LEAVE,
+            'Equip': Action.EQUIP,
+            'Unequip': Action.UNEQUIP,
+            'Use': Action.USE,
+            'Install': Action.USE,
+            'Reload': Action.USE,
+            'Drop': Action.DROP,
+            'Barricade': Action.BARRICADE,
+            'Search': Action.SEARCH,
+            'Enter': Action.ENTER,
+            'Leave': Action.LEAVE,
         }
         action_type = menu_to_action.get(action)
         if action_type:
@@ -151,24 +151,7 @@ class EventHandler:
         """Evoke the Action Executor to handle actions."""
         player = self.game.player
         player.action.execute(action, target)
-
-
-
-        self.game.ticker += 1
-
-        # Check buildings for fuel expiry
-        for row in self.game.city.grid:
-            for block in row:
-                if hasattr(block, 'fuel_expiration') and block.fuel_expiration < self.game.ticker:
-                    if block.lights_on:
-                        block.lights_on = False
-
-        # Each character gains an action point
-        for character in self.game.characters.list:              
-            character.action_points += 1
-            character.state.act()
-        
-
+      
 
 class ClickTarget:
     """Get the target of a mouse click."""

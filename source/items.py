@@ -2,6 +2,7 @@
 import pygame
 
 from settings import *
+from data import ITEMS
 
 class Item(pygame.sprite.Sprite):
     """Base class for all items."""

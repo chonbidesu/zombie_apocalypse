@@ -18,39 +18,12 @@ class Human:
         current_block = self.game.city.block(self.character.location[0], self.character.location[1])
 
         # Determine behaviour
-        action, target = self.determine_behaviour(current_block)
+        action, target = self._determine_behaviour(current_block)
 
-        # Call action function
-        if action == Action.RELOCATE:
-            self.actions.relocate(current_block)
+        # Execute action
+        self.character.action.execute(action, target)
 
-        elif action == Action.ATTACK:
-            self.actions.attack(target)
-        
-        elif action == Action.FIND_TARGET:
-            self.actions.find_target()
-        
-        elif action == Action.PURSUE:
-            self.actions.pursue(target, current_block)
-
-        elif action == Action.BARRICADE:
-            self.actions.barricade(current_block)
-
-        elif action == Action.MOVE:
-            target_dx, target_dy = self.actions.find_target_dxy(target)
-            if target_dx is not None and self.action_points >= 1:
-                self.actions.move(target_dx, target_dy)
-
-        elif action == Action.ENTER:
-            self.actions.enter()
-        
-        elif action == Action.WANDER:
-            self.actions.wander()
-
-        elif action == Action.STAND:
-            self.actions.stand()
-
-    def determine_human_behaviour(self, current_block):
+    def _determine_human_behaviour(self, current_block):
         """Determine the priority for the NPC."""
         properties = BLOCKS[current_block.type]
         # Stand up if dead and have enough action points
