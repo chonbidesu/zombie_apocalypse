@@ -52,7 +52,7 @@ class Gamestate:
             "inventory": [
                 {
                     "type": item.type,
-                    "is_equipped": item in player.weapon,
+                    "is_equipped": item == player.weapon,
                     **item.get_attributes()
                 }
                 for item in player.inventory
@@ -75,7 +75,7 @@ class Gamestate:
             "inventory": [
                 {
                     "type": item.type,
-                    "is_equipped": item in npc.weapon,
+                    "is_equipped": item == npc.weapon,
                     **item.get_attributes()
                 }
                 for item in npc.inventory
@@ -154,9 +154,10 @@ class Gamestate:
             item = player.create_item(item_data["type"].name)
 
             # Restore additional attributes
-            if properties.item_function == ItemFunction.MELEE:  # For weapons, set weapon-specific attributes
+            item_properties = ITEMS[item.type]
+            if item_properties.item_function == ItemFunction.MELEE:  # For weapons, set weapon-specific attributes
                 item.durability = item_data.get("durability", item.durability)
-            if properties.item_function == ItemFunction.FIREARM:
+            if item_properties.item_function == ItemFunction.FIREARM:
                 item.loaded_ammo = item_data.get("loaded_ammo", item.loaded_ammo)
 
             # Add item to the player's inventory
