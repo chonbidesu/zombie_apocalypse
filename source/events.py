@@ -149,7 +149,9 @@ class EventHandler:
 
     def act(self, action, target=None):
         """Evoke the Action Executor to handle actions."""
-        self.action.execute(action, target)
+        result = self.action.execute(action, target)
+        if result:
+            self.game.chat_history.append(result.message)
 
 class ClickTarget:
     """Get the target of a mouse click."""
