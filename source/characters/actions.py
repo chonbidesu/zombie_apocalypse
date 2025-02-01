@@ -196,10 +196,25 @@ class ActionExecutor:
         properties = BLOCKS[building.type]
         success_chances = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
         if properties.is_building and self.actor.inside:
+            if building.barricade.level >= 7 and building.barricade.sublevel >= 4:
+                return ActionResult(False, "You can't add more barricades.")
+            
             success_chance = success_chances[building.barricade.level]
             success = random.random() < success_chance
             if success:
-                building.barricade.adjust_barricade_sublevel(1)
+                add_barricade = building.barricade.adjust_barricade_sublevel(1)
+                if not add_barricade:
+                    return ActionResult(False, "You can't add more barricades.")
+                elif building.barricade.level == 4 and building.barricade.sublevel == 2:
+                    return ActionResult(True, "You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in.")
+                elif building.barricade.sublevel == 0:
+                    barricade_description = building.barricade.get_barricade_description()
+                    return ActionResult(True, f"You reinforce the barricade. The building is now {barricade_description}.")
+                elif building.barricade.sublevel > 0:
+                    return ActionResult(True, "You reinforce the barricade.")
+                return ActionResult(True, "You ")
+        else:
+            return ActionResult(False, "You have to be inside a building to barricade.")
 
     def enter(self, building):
         properties = BLOCKS[building.type]

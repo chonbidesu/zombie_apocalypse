@@ -188,5 +188,4 @@ class ClickTarget:
                 self.type = 'human'
         if self.type == None:
             self.type = 'screen'
-        print(self.type)
 

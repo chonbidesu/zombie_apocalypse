@@ -1,1 +1,16 @@
 zombie state needs a weapon class
+
+This needs a home:
+        self.game.ticker += 1
+
+        # Check buildings for fuel expiry
+        for row in self.game.city.grid:
+            for block in row:
+                if hasattr(block, 'fuel_expiration') and block.fuel_expiration < self.game.ticker:
+                    if block.lights_on:
+                        block.lights_on = False
+
+        # Each character gains an action point
+        for character in self.game.characters.list:              
+            character.action_points += 1
+            character.state.act()
