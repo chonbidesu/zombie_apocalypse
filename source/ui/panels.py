@@ -4,6 +4,7 @@ import random
 from settings import *
 from ui.utils import WrapText, SpriteSheet
 from ui.widgets import Button
+from data import BLOCKS, BlockType, ITEMS, ItemFunction, NEIGHBOURHOODS
 
 class ActionsPanel:
     """Draw the actions panel and buttons."""
@@ -59,12 +60,12 @@ class StatusPanel:
         self.screen = screen
         self.width, self.height = SCREEN_WIDTH // 4 - 10, SCREEN_HEIGHT * 31 // 160
         self.portrait_size = self.height - 20
-        self.original_hp_bar = pygame.image.load(resource_path("assets/hp_bar.png")).convert_alpha()
+        self.original_hp_bar = pygame.image.load(ResourcePath("assets/hp_bar.png").path).convert_alpha()
         self.hp_bar = pygame.transform.scale(self.original_hp_bar, (self.portrait_size, 20))
-        self.original_portrait_frame = pygame.image.load(resource_path("assets/player_frame.png")).convert_alpha()
+        self.original_portrait_frame = pygame.image.load(ResourcePath("assets/player_frame.png").path).convert_alpha()
         self.portrait_frame = pygame.transform.scale(self.original_portrait_frame, (self.portrait_size, self.portrait_size))
-        self.player_sprite_sheet_image = pygame.image.load(resource_path("assets/male1_sprite_sheet.png")).convert_alpha()
-        self.original_player_info = pygame.image.load(resource_path("assets/player_info.png")).convert_alpha()
+        self.player_sprite_sheet_image = pygame.image.load(ResourcePath("assets/male1_sprite_sheet.png").path).convert_alpha()
+        self.original_player_info = pygame.image.load(ResourcePath("assets/player_info.png").path).convert_alpha()
         self.player_info = pygame.transform.scale(self.original_player_info, (self.width - self.height + 20, self.height))
 
         # Set up player portrait
@@ -117,7 +118,7 @@ class StatusPanel:
 class ChatPanel:
     def __init__(self, screen):
         self.screen = screen
-        self.original_image = pygame.image.load(resource_path("assets/chat_panel.png")).convert_alpha()
+        self.original_image = pygame.image.load(ResourcePath("assets/chat_panel.png").path).convert_alpha()
         self.width, self.height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT * 3 // 10
         self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
 
@@ -145,10 +146,11 @@ class InventoryPanel:
         self.screen = screen
         self.width, self.height = (SCREEN_WIDTH * 7 // 16) + (SCREEN_HEIGHT * -7 // 32) - 20, SCREEN_HEIGHT * 31 // 160
         self.weapon_size = self.height
-        self.original_image = pygame.image.load(resource_path("assets/inventory_panel.png")).convert_alpha()
+        self.original_image = pygame.image.load(ResourcePath("assets/inventory_panel.png").path).convert_alpha()
         self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
-        self.original_weapon_image = pygame.image.load(resource_path("assets/equipped_panel.png")).convert_alpha()
+        self.original_weapon_image = pygame.image.load(ResourcePath("assets/equipped_panel.png").path).convert_alpha()
         self.weapon_image = pygame.transform.scale(self.original_weapon_image, (self.weapon_size, self.weapon_size))
+        self.inventory_group = pygame.sprite.Group()
 
     def draw(self):
         """Draw the inventory panel."""
@@ -173,6 +175,9 @@ class InventoryPanel:
         first_row_y = y + int(self.height * 0.13)
         second_row_y = first_row_y + item_height + int(self.height * 0.11)
 
+        # Keep track of items to update
+        updated_sprites = []
+
         # Scale each inventory item image before drawing
         for index, item in enumerate(list(self.game.player.inventory)[:MAX_ITEMS]):
             row = index // MAX_ITEMS_PER_ROW
@@ -181,35 +186,41 @@ class InventoryPanel:
             item_x = start_x + col * (item_width + int(self.width * 0.05))
             item_y = first_row_y if row == 0 else second_row_y
 
-            # Update item rect position
-            item.rect.topleft = (item_x, item_y)
+            # Check if an InventorySprite for this item already exists
+            existing_sprite = next((sprite for sprite in self.inventory_group if sprite.item == item), None)
 
-            # Scale the item image to the desired size for consistent drawing
-            if item.image.get_size() != (item_width, item_height):
-                item.scale_image(item_width, item_height)
+            if existing_sprite:
+                existing_sprite.update_position(item_x, item_y)
+                updated_sprites.append(existing_sprite)
+                sprite = existing_sprite
+            else:
+                new_sprite = InventorySprite(item, item_x, item_y, item_width, item_height)
+                self.inventory_group.add(new_sprite)
+                updated_sprites.append(new_sprite)
+                sprite = new_sprite
 
             # Highlight the item's slot if the item is equipped
-            if item in self.game.player.weapon:
-                equipped_properties = ITEMS[item.type]
+            if item == self.game.player.weapon:
                 highlight.fill((TRANS_YELLOW))
-                self.screen.blit(highlight, item.rect.topleft)
+                self.screen.blit(highlight, sprite.rect.topleft)
 
                 # Draw enlarged equipped item
+                weapon_properties = ITEMS[item.type]
                 weapon_item_size = self.weapon_size * 3 // 5
-                enlarged_weapon_image = pygame.transform.scale(self.game.player.weapon.sprite.image, (weapon_item_size, weapon_item_size))
+                enlarged_weapon_image = pygame.transform.scale(sprite.image, (weapon_item_size, weapon_item_size))
                 weapon_item_x = x - (self.weapon_size // 2) - (weapon_item_size // 2)
                 weapon_item_y = y + (self.weapon_size // 2) - (weapon_item_size // 2)
                 self.screen.blit(enlarged_weapon_image, (weapon_item_x, weapon_item_y))
 
                 # Draw equipped item label
-                weapon_text = font_large.render(equipped_properties.item_type, True, ORANGE)
-                weapon_text_shadow = font_large.render(equipped_properties.item_type, True, BLACK)                
+                weapon_text = font_large.render(weapon_properties.item_type, True, ORANGE)
+                weapon_text_shadow = font_large.render(weapon_properties.item_type, True, BLACK)                
                 text_width = weapon_text.get_width()
                 self.screen.blit(weapon_text_shadow, (weapon_item_x + (weapon_item_size // 2) - (text_width // 2) + 1, weapon_item_y + weapon_item_size + 8))                
                 self.screen.blit(weapon_text, (weapon_item_x + (weapon_item_size // 2) - (text_width // 2), weapon_item_y + weapon_item_size + 7))
 
                 # Draw currently loaded ammo
-                if equipped_properties.item_function == ItemFunction.FIREARM:
+                if weapon_properties.item_function == ItemFunction.FIREARM:
                     label_x = weapon_item_x + weapon_item_size - 20
                     label_y = weapon_item_y + weapon_item_size - 20
                     pygame.draw.rect(self.screen, WHITE, (label_x, label_y, 20, 20))
@@ -219,8 +230,13 @@ class InventoryPanel:
             else:
                 highlight.fill((0, 0, 0, 0))
 
+        # Remove any sprites that are no longer in the inventory
+        for sprite in list(self.inventory_group):
+            if sprite not in updated_sprites:
+                sprite.kill()
+
         # Draw the inventory group to screen
-        self.game.player.inventory.draw(self.screen)
+        self.inventory_group.draw(self.screen)
 
 
 class DescriptionPanel:
@@ -232,7 +248,7 @@ class DescriptionPanel:
         self.height = SCREEN_HEIGHT * 25 // 32
         self.x = SCREEN_HEIGHT // 2 + 10
         
-        self.original_image = pygame.image.load(resource_path("assets/description_panel.png")).convert_alpha()
+        self.original_image = pygame.image.load(ResourcePath("assets/description_panel.png").path).convert_alpha()
         self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
 
         self.setting_width = self.width * 5 // 6
@@ -242,11 +258,11 @@ class DescriptionPanel:
 
         # Set up sprite elements
         self.zombie_sprite_group = pygame.sprite.Group()
-        self.zombie_sprite_sheet_image = pygame.image.load(resource_path("assets/zombie_spritesheet.png")).convert_alpha()
+        self.zombie_sprite_sheet_image = pygame.image.load(ResourcePath("assets/zombie_spritesheet.png").path).convert_alpha()
         self.zombie_sprite_sheet = SpriteSheet(self.zombie_sprite_sheet_image)
 
         self.human_sprite_group = pygame.sprite.Group()      
-        self.human_sprite_sheet_image = pygame.image.load(resource_path("assets/human_spritesheet.png")).convert_alpha()
+        self.human_sprite_sheet_image = pygame.image.load(ResourcePath("assets/human_spritesheet.png").path).convert_alpha()
         self.human_sprite_sheet = SpriteSheet(self.human_sprite_sheet_image)        
 
         # Store current description and setting image data
@@ -285,10 +301,10 @@ class DescriptionPanel:
 
     def _get_setting_image(self):
         """Determine the setting image."""
-        current_x, current_y = self.game.player.location
-        current_block = self.game.city.block(current_x, current_y)        
+        x, y = self.game.player.location
+        current_block = self.game.city.block(x, y)        
         image_suffix = "inside" if self.game.player.inside else "outside"
-        image_path = resource_path(f"assets/{current_block.type.name.lower()}_{image_suffix}.png")
+        image_path = ResourcePath(f"assets/{current_block.type.name.lower()}_{image_suffix}.png").path
 
         try:
             setting_image = pygame.image.load(image_path)
@@ -330,8 +346,8 @@ class DescriptionPanel:
 
     def _get_current_observations(self):
         """Get the current observations based on the player's surroundings."""
-        current_x, current_y = self.game.player.location
-        current_block = self.game.city.block(current_x, current_y)        
+        x, y = self.game.player.location
+        current_block = self.game.city.block(x, y)        
         current_observations = ""
 
         # Inside building observations
@@ -341,8 +357,10 @@ class DescriptionPanel:
                 current_observations += 'With the lights out, you can hardly see anything. '
             current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
 
-            # Check if the building has been ransacked
-            if current_block.is_ransacked:
+            # Check if the building has been ransacked or ruined:
+            if current_block.ruined:
+                current_observations += "The interior has been completely ruined and needs major repairs. "
+            elif current_block.ransack_level > 0:
                 current_observations += "The interior has been ransacked and needs repairs. "
 
             # Check if the building has a running generator
@@ -363,18 +381,8 @@ class DescriptionPanel:
             else:
                 current_observations += f'You are standing in {properties.description}. '
 
-        # Add observations for zombies and dead bodies
-        zombies_here = [
-            zombie for zombie in self.game.zombies.list
-            if zombie.location == self.game.player.location and zombie.inside == self.game.player.inside
-        ]
-        humans_here = [
-            human for human in self.game.humans.list
-            if human.location == self.game.player.location and human.inside == self.game.player.inside
-        ]
-        living_zombies = [zombie for zombie in zombies_here if not zombie.is_dead]
-        living_humans = [human for human in humans_here if not human.is_dead]
-        dead_bodies = [npc for npc in zombies_here + humans_here if npc.is_dead]
+        # Add observations for NPCs and dead bodies
+        living_zombies, living_humans, dead_bodies = self._filter_npcs_at_player_location()
 
         if living_zombies:
             if len(living_zombies) == 1:
@@ -398,8 +406,8 @@ class DescriptionPanel:
 
     def _update_observations(self):
         """Update the observations list based on the player's current state."""
-        current_x, current_y = self.game.player.location
-        current_block = self.game.city.block(current_x, current_y)        
+        x, y = self.game.player.location
+        current_block = self.game.city.block(x, y)        
         current_block.observations.clear()  # Clear existing observations
         if self.game.player.inside:
             current_block.observations.append(self._get_current_observations())
@@ -410,23 +418,32 @@ class DescriptionPanel:
 
     def _description(self):
         """Return the current list of observations as a list."""
-        current_x, current_y = self.game.player.location
-        current_block = self.game.city.block(current_x, current_y)        
+        x, y = self.game.player.location
+        current_block = self.game.city.block(x, y)        
         self._update_observations()  # Ensure observations are current
         return current_block.observations
+
+    def _filter_npcs_at_player_location(self):
+        """Retrieve NPCs currently at the player's location and categorize them."""
+        npcs_here = [
+            npc for npc in self.game.npcs.list
+            if npc.location == self.game.player.location and npc.inside == self.game.player.inside
+        ]
+
+        zombies_here = [npc for npc in npcs_here if not npc.is_human]
+        humans_here = [npc for npc in npcs_here if npc.is_human]
+
+        living_zombies = [z for z in zombies_here if not z.is_dead]
+        living_humans = [h for h in humans_here if not h.is_dead]
+        dead_bodies = [npc for npc in npcs_here if npc.is_dead]
+
+        return living_zombies, living_humans, dead_bodies
 
     def _update_npc_sprites(self):
         """Update NPC sprites' visibility."""
 
         # Keep track of NPCs currently at the player's location
-        zombies_here = [
-            zombie for zombie in self.game.zombies.list
-            if zombie.location == self.game.player.location and zombie.inside == self.game.player.inside
-        ]
-        humans_here = [
-            human for human in self.game.humans.list
-            if human.location == self.game.player.location and human.inside == self.game.player.inside
-        ]        
+        zombies_here, humans_here, dead_npcs = self._filter_npcs_at_player_location()
 
         # Update existing sprites or create new ones if necessary
         updated_sprites = []
@@ -438,7 +455,7 @@ class DescriptionPanel:
             )
             if existing_sprite:
                 updated_sprites.append(existing_sprite)
-            elif not zombie.is_dead:
+            else:
                 # Create a new sprite for the zombie
                 new_sprite = NPCSprite(
                     self.screen, zombie, self.zombie_sprite_sheet, 8, 44, 54, 2.5, (0, 0, 0)
@@ -448,7 +465,7 @@ class DescriptionPanel:
 
         # Remove sprites for zombies that are no longer here
         for sprite in list(self.zombie_sprite_group):
-            if sprite not in updated_sprites or sprite.npc.is_dead:
+            if sprite not in updated_sprites or sprite.npc in dead_npcs:
                 sprite.kill()
 
         for human in humans_here:
@@ -458,7 +475,7 @@ class DescriptionPanel:
             )
             if existing_sprite:
                 updated_sprites.append(existing_sprite)
-            elif not human.is_dead:
+            else:
                 # Create a new sprite for the human
                 new_sprite = NPCSprite(
                     self.screen, human, self.human_sprite_sheet, 8, 44, 64, 2.5, (0, 0, 0)
@@ -468,30 +485,71 @@ class DescriptionPanel:
 
         # Remove sprites for humans that are no longer here
         for sprite in list(self.human_sprite_group):
-            if sprite not in updated_sprites or sprite.npc.is_dead:
+            if sprite not in updated_sprites or sprite.npc in dead_npcs:
                 sprite.kill()
 
+class InventorySprite(pygame.sprite.Sprite):
+    """An item sprite for the inventory panel."""
+    def __init__(self, item, x, y, width, height):
+        super().__init__()
+        self.item = item  # Reference to the actual item object
+        self.image = pygame.image.load(item.image_file).convert_alpha()  # Load item image
+        self.image = pygame.transform.scale(self.image, (width, height))  # Scale to fit inventory
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def update_position(self, x, y):
+        """Update sprite position when inventory layout changes."""
+        self.rect.topleft = (x, y)    
 
 class PlayerSprite(pygame.sprite.Sprite):
-        """A player sprite for the status panel."""
-        def __init__(self, screen, player, sprite_sheet, frame_count, frame_width, frame_height, scale, colour):
-            super().__init__()
-            self.screen = screen
-            self.player = player
-            self.sprite_sheet = sprite_sheet
-            self.frame_count = frame_count
-            self.frame_height = frame_height
-            self.frame_width = frame_width
-            self.scale = scale
-            self.colour = colour
-            self.current_frame = 0
-            self.animation_speed = 0.35
-            self.last_update_time = pygame.time.get_ticks()
+    """A player sprite for the status panel."""
+    def __init__(self, screen, player, sprite_sheet, frame_count, frame_width, frame_height, scale, colour):
+        super().__init__()
+        self.screen = screen
+        self.player = player
+        self.sprite_sheet = sprite_sheet
+        self.frame_count = frame_count
+        self.frame_height = frame_height
+        self.frame_width = frame_width
+        self.scale = scale
+        self.colour = colour
+        self.current_frame = 0
+        self.animation_speed = 0.35
+        self.last_update_time = pygame.time.get_ticks()
 
-            self.start_frame = 0
-            self.current_frame = 0
+        self.start_frame = 0
+        self.current_frame = 0
 
-            self.update_animation_set()
+        self.update_animation_set()
+        self.image = self.sprite_sheet.get_image(
+            frame=self.current_frame,
+            width=self.frame_width,
+            height=self.frame_height,
+            scale=self.scale,
+            colour=self.colour,
+        )
+        self.rect = self.image.get_rect()
+
+    def update_animation_set(self):
+        """Update the animation frame range based on player's HP."""
+        previous_start_frame = self.start_frame
+
+        if self.player.hp > self.player.max_hp * 0.5:
+            self.start_frame = 0  # Normal animation
+        else:
+            self.start_frame = self.frame_count  # Use the second set of frames
+
+        if self.start_frame != previous_start_frame:
+            self.current_frame = self.start_frame
+
+    def update(self):
+        """Update the sprite's animation frame."""
+        now = pygame.time.get_ticks()
+        self.update_animation_set()
+
+        if now - self.last_update_time > self.animation_speed * 1000:
+            self.last_update_time = now
+            self.current_frame = self.start_frame + ((self.current_frame - self.start_frame - 1) % self.frame_count)
             self.image = self.sprite_sheet.get_image(
                 frame=self.current_frame,
                 width=self.frame_width,
@@ -499,35 +557,6 @@ class PlayerSprite(pygame.sprite.Sprite):
                 scale=self.scale,
                 colour=self.colour,
             )
-            self.rect = self.image.get_rect()
-
-        def update_animation_set(self):
-            """Update the animation frame range based on player's HP."""
-            previous_start_frame = self.start_frame
-
-            if self.player.hp > self.player.max_hp * 0.5:
-                self.start_frame = 0  # Normal animation
-            else:
-                self.start_frame = self.frame_count  # Use the second set of frames
-
-            if self.start_frame != previous_start_frame:
-                self.current_frame = self.start_frame
-
-        def update(self):
-            """Update the sprite's animation frame."""
-            now = pygame.time.get_ticks()
-            self.update_animation_set()
-
-            if now - self.last_update_time > self.animation_speed * 1000:
-                self.last_update_time = now
-                self.current_frame = self.start_frame + ((self.current_frame - self.start_frame - 1) % self.frame_count)
-                self.image = self.sprite_sheet.get_image(
-                    frame=self.current_frame,
-                    width=self.frame_width,
-                    height=self.frame_height,
-                    scale=self.scale,
-                    colour=self.colour,
-                )
 
 
 class NPCSprite(pygame.sprite.Sprite):
@@ -558,7 +587,7 @@ class NPCSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def draw_hp_bar(self):
-        max_hp = NPC_MAX_HP
+        max_hp = self.npc.max_hp
         current_hp = self.npc.hp
         bar_width = self.rect.width - 50
         hp_ratio = max(current_hp / max_hp, 0)

@@ -1,9 +1,11 @@
 # actions.py
 
 import random
+from collections import defaultdict
+import csv
 
 from settings import *
-from data import Action, ITEMS, ItemType, ItemFunction, BLOCKS
+from data import Action, ITEMS, ItemType, ItemFunction, BLOCKS, ResourcePath
 
 class ActionExecutor:
     """Handles executing actions for both player and AI characters."""
@@ -13,6 +15,10 @@ class ActionExecutor:
 
     def execute(self, action, target):
         """Execute AI and player actions."""
+
+        # Fetch block at the actor's location
+        x, y = self.actor.location
+        block = self.game.city.block(x, y)
 
         # System actions
         if action == Action.QUIT:
@@ -60,26 +66,26 @@ class ActionExecutor:
 
         # Building actions
         elif action == Action.BARRICADE:
-            self.barricade()
+            self.barricade(block)
         elif action == Action.SEARCH:
-            self.search()
+            self.search(block)
         elif action == Action.ENTER:
-            self.enter()
+            self.enter(block)
         elif action == Action.LEAVE:
-            self.leave()
+            self.leave(block)
 
         # Inventory actions
         elif action == Action.EQUIP:
-            self.equip(target)
+            self.equip(target.item)
 
         elif action == Action.UNEQUIP:
-            self.unequip(target)
+            self.unequip(target.item)
 
         elif action == Action.USE:
-            self.use(target)
+            self.use(target.item)
      
         elif action == Action.DROP:
-            self.drop(target)
+            self.drop(target.item)
 
         # Update sprites after taking action
         self.game.game_ui.update()
@@ -161,14 +167,14 @@ class ActionExecutor:
             current_block.current_zombies -= 1
             new_block.current_zombies += 1
             self.actor.location = (new_x, new_y)
-            self.inside = False
+            self.actor.inside = False
             return True
         return False
 
     def barricade(self, building):
         properties = BLOCKS[building.type]
         success_chances = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
-        if properties.is_building and self.inside:
+        if properties.is_building and self.actor.inside:
             success_chance = success_chances[building.barricade.level]
             success = random.random() < success_chance
             if success:
@@ -176,57 +182,70 @@ class ActionExecutor:
 
     def repair_building(self, building):
         properties = BLOCKS[building.type]
-        if properties.is_building and self.inside:
-            building.is_ransacked = False
+        if properties.is_building and self.actor.inside:
+            building.ransack_level = 0
 
     def enter(self, building):
         properties = BLOCKS[building.type]
-        if properties.is_building and not self.inside:
+        if properties.is_building and not self.actor.inside:
             if self.actor.is_human:
                 if building.barricade.level <= 4:
-                    self.inside = True
+                    self.actor.inside = True
             else:
                 if building.barricade.level == 0:
-                    self.inside = True             
+                    self.actor.inside = True             
 
     def leave(self, building):
         properties = BLOCKS[building.type]
-        if properties.is_building and self.inside:
+        if properties.is_building and self.actor.inside:
             if self.actor.is_human:
                 if building.barricade.level <= 4:
-                    self.inside = False
+                    self.actor.inside = False
             else:
                 if building.barricade.level == 0:
-                    self.inside = False                
+                    self.actor.inside = False                
 
     def search(self, building):
-        items_held = len(self.inventory)
+        search_path = ResourcePath('data/search.csv').path
+        search_chances = self._load_search_chances(search_path)
+        items_held = len(self.actor.inventory)
         building_properties = BLOCKS[building.type]
         if building_properties.is_building:
-            if self.inside:
+            if self.actor.inside:
                 if building.lights_on:
                     multiplier = LIGHTSON_MULTIPLIER
-                elif building.is_ransacked:
+                elif building.ransack_level > 0:
                     multiplier = RANSACKED_MULTIPLIER
                 else:
                     multiplier = SEARCH_MULTIPLIER
-                items = list(self.search_chances.keys())
+                items = list(search_chances.keys())
                 random.shuffle(items)
 
                 for item_type in items:
-                    search_chance = self.search_chances[item_type].get(building.type.name, 0.0) # Default to 0.0 if item not found
+                    search_chance = search_chances[item_type].get(building.type.name, 0.0) # Default to 0.0 if item not found
                     roll = random.random()
                     if roll < search_chance * multiplier:
-                        item = self.create_item(item_type)
-                        item_properties = ITEMS[item.type]
+                        item = self.actor.create_item(item_type)
                         if item is not None:
                             if items_held >= MAX_ITEMS:
                                 return
-                            elif item_type == 'PORTABLE_GENERATOR':
-                                for item in self.inventory:
+                            elif item_type == ItemType.PORTABLE_GENERATOR:
+                                for item in self.actor.inventory:
                                     if hasattr(item, 'type') and item.type == ItemType.PORTABLE_GENERATOR:
                                         return False
-                            self.inventory.add(item)
+                            self.actor.inventory.append(item)
+
+    def _load_search_chances(self, file_path):
+        """Load search chances from a CSV file."""
+        search_chances = defaultdict(dict)
+        with open(file_path, "r", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                item = row['Item']
+                for building_type, chance in row.items():
+                    if building_type != 'Item':  # Skip the 'Item' column
+                        search_chances[item][building_type] = float(chance)
+        return search_chances
 
     def equip(self, item):        
         properties = ITEMS[item.type]
@@ -238,8 +257,6 @@ class ActionExecutor:
         self.actor.weapon = None
 
     def use(self, item):
-        properties = ITEMS[item.type]
-
         if item.type == ItemType.FIRST_AID_KIT:
             if self.actor.hp < self.actor.max_hp:
                 self.actor.heal(20)

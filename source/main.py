@@ -66,7 +66,7 @@ class GameInitializer:
 
         # Create player
         self.player = Character(
-            self.game, occupation=Occupation.DOCTOR, x=50, y=50, is_human=True
+            self, occupation=Occupation.DOCTOR, x=50, y=50, is_human=True
         )
 
         # Populate the city

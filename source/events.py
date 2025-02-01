@@ -9,8 +9,7 @@ from data import Action, BLOCKS, ITEMS, ItemType, ItemFunction
 class EventHandler:
     def __init__(self, game):
         self.game = game
-        self.state = self.game.player.state
-        self.actions = self.game.player.actions
+        self.action = self.game.player.action
 
     def handle_events(self, events, ContextMenu):
         """Handle all game events."""
@@ -34,7 +33,8 @@ class EventHandler:
                 if event.name is None:
                     self.game.popup_menu = None # Close menu if no option selected
                 else:
-                    self.handle_popup_menu(event.text)
+                    target = self.context_menu.sprite
+                    self.handle_popup_menu(event.text, target)
                     self.game.popup_menu = None # Close menu after selection
 
     def handle_keydown(self, event):
@@ -68,10 +68,10 @@ class EventHandler:
             target = ClickTarget(self.game, mouse_pos)
             if target.type == 'npc':
                 action = Action.ATTACK
-                self.act(action, target)
+                self.act(action, target.sprite.npc)
             elif target.type == 'block' and not self.game.popup_menu:
                 action = Action.MOVE
-                self.act(action, target)             
+                self.act(action, target.sprite)             
 
         # Handle graphical changes for button clicks
         for button in self.game.game_ui.actions_panel.button_group:
@@ -128,7 +128,7 @@ class EventHandler:
         """Update cursor position on mouse motion."""
         self.game.cursor.rect.center = event.pos
 
-    def handle_popup_menu(self, action):
+    def handle_popup_menu(self, action_type, target=None):
         """Handle popup menu actions."""
         menu_to_action = {
             'Equip': Action.EQUIP,
@@ -142,26 +142,24 @@ class EventHandler:
             'Enter': Action.ENTER,
             'Leave': Action.LEAVE,
         }
-        action_type = menu_to_action.get(action)
-        if action_type:
-            self.act(action_type)
+        action = menu_to_action.get(action_type)
+        if action:
+            self.act(action, target)
 
 
     def act(self, action, target=None):
         """Evoke the Action Executor to handle actions."""
-        player = self.game.player
-        player.action.execute(action, target)
-      
+        self.action.execute(action, target)
 
 class ClickTarget:
     """Get the target of a mouse click."""
     def __init__(self, game, mouse_pos):
         self.type = None
         self.sprite = None
-        self.player = game.player
         self.human_sprite_group = game.game_ui.description_panel.human_sprite_group
         self.zombie_sprite_group = game.game_ui.description_panel.zombie_sprite_group
         self.viewport_group = game.game_ui.viewport.viewport_group
+        self.inventory_group = game.game_ui.inventory_panel.inventory_group
         
         self.get(mouse_pos)
 
@@ -174,7 +172,7 @@ class ClickTarget:
             elif sprite.rect.collidepoint(mouse_pos):
                 self.sprite = sprite                
                 self.type = 'block'
-        for sprite in self.player.inventory:
+        for sprite in self.inventory_group:
             if sprite.rect.collidepoint(mouse_pos):
                 self.sprite = sprite  
                 self.type = 'item'
@@ -186,4 +184,7 @@ class ClickTarget:
             if sprite.rect.collidepoint(mouse_pos):
                 self.sprite = sprite                
                 self.type = 'human'
-        self.type = 'screen'
+        if self.type == None:
+            self.type = 'screen'
+        print(self.type)
+

@@ -5,13 +5,13 @@ from pygame import Color, Rect, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, USE
 
 from settings import *
 from ui.widgets import Button
-from data import ITEMS, ItemType, ItemFunction, BLOCKS, resource_path
+from data import ITEMS, ItemType, ItemFunction, BLOCKS, ResourcePath
 
 # pygame must be initialized before we can create a Font.
 pygame.init()
 
 try:
-    font = pygame.font.Font(resource_path('data/Vera.ttf'), 14)
+    font = pygame.font.Font(ResourcePath('data/Vera.ttf'), 14)
 except:
     print('warning: cannot load font Vera.ttf: using system default')
     font = pygame.font.SysFont(None, 20)
@@ -65,15 +65,16 @@ class ContextMenu:
 
     def get_menu_data(self, menu_type):
         if menu_type == 'item':
-            properties = ITEMS[self.sprite.type]
+            item = self.sprite.item
+            properties = ITEMS[item.type]
             if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
-                if self.sprite in self.player.weapon:
+                if item == self.player.weapon:
                     menu_data = [properties.item_type, 'Unequip', 'Drop']
                 else:
                     menu_data = [properties.item_type, 'Equip', 'Drop']
-            elif self.sprite.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX,]:
+            elif item.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX,]:
                 menu_data = [properties.item_type, 'Use', 'Drop']
-            elif self.sprite.type == ItemType.PORTABLE_GENERATOR:
+            elif item.type == ItemType.PORTABLE_GENERATOR:
                 menu_data = [properties.item_type, 'Install', 'Drop']
             elif properties.item_function == ItemFunction.AMMO:
                 menu_data = [properties.item_type, 'Reload', 'Drop']

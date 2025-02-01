@@ -31,7 +31,7 @@ class Gamestate:
                         "lights_on": block.lights_on,
                         "generator_installed": block.generator_installed,
                         "ransack_level": block.ransack_level,
-                        "is_ruined": block.is_ruined,
+                        "ruined": block.ruined,
                         "fuel_expiration": block.fuel_expiration,
                         "barricade_level": block.barricade.level,
                         "barricade_sublevel": block.barricade.sublevel,
@@ -47,7 +47,8 @@ class Gamestate:
             "is_human": player.is_human,
             "inside": player.inside,
             "hp": player.hp,
-            "skills": player.skills,
+            "human_skills": player.human_skills,
+            "zombie_skills": player.zombie_skills,
             "inventory": [
                 {
                     "type": item.type,
@@ -69,7 +70,8 @@ class Gamestate:
             "is_human": npc.is_human,
             "inside": npc.inside,
             "hp": npc.hp,
-            "skills": npc.skills,
+            "human_skills": npc.human_skills,
+            "zombie_skills": npc.zombie_skills,
             "inventory": [
                 {
                     "type": item.type,
@@ -120,7 +122,7 @@ class Gamestate:
                 block.barricade.set_barricade_level(block_data["barricade_level"])
                 block.barricade.sublevel = block_data["barricade_sublevel"]
                 block.ransack_level = block_data["ransack_level"]
-                block.is_ruined = block_data["is_ruined"]
+                block.ruined = block_data["ruined"]
             else:
                 block = outdoor_class()
 

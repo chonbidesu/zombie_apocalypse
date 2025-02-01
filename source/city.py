@@ -11,7 +11,7 @@ from data import BLOCKS, BlockType, NEIGHBOURHOODS
 
 class City:
     def __init__(self):
-        self.descriptions = self._load_descriptions_from_csv(ResourcePath("assets/descriptions.csv"))
+        self.descriptions = self._load_descriptions_from_csv(ResourcePath("data/descriptions.csv").path)
         self.block_name_pool = {}
 
         self._load_block_names()
@@ -35,8 +35,8 @@ class City:
         return descriptions
 
     def _load_block_names(self):
-        """Load block names from assets/block_names.csv into a dictionary."""
-        csv_path = Path(ResourcePath("assets/block_names.csv"))
+        """Load block names from data/block_names.csv into a dictionary."""
+        csv_path = Path(ResourcePath("data/block_names.csv").path)
         
         if not csv_path.exists():
             print(f"Error: {csv_path} does not exist!")

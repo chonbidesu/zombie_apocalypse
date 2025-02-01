@@ -13,7 +13,8 @@ class Character:
         self.game = game
         self.occupation = occupation
         self.location = (x, y)
-        self.hp = MAX_HP
+        self.max_hp = MAX_HP
+        self.hp = self.max_hp
         self.ap = 0
         self.is_dead = False
         self.is_human = is_human
@@ -25,14 +26,12 @@ class Character:
         self.zombie_skills = set()
         self.action = ActionExecutor(game, self)
 
-        self._assign_occupational_skill()
-
     # Set initial state
     def _get_state(self):
         if self.is_human:
-            state = Human()
+            state = Human(self.game, self)
         else:
-            state = Zombie()
+            state = Zombie(self.game, self)
         return state
 
     def take_damage(self, amount):
@@ -61,7 +60,6 @@ class Character:
     def status(self):
         """Returns the character's current status."""
         status = {
-            "Name": self.name,
             "Occupation": self.occupation,
             "Location": self.location,
             "HP": f"{self.hp} / {self.max_hp}",

@@ -3,6 +3,7 @@ import random
 from collections import defaultdict
 
 from settings import *
+from data import BarricadeState, BARRICADE_DESCRIPTIONS
 
 class CityBlock:
     """Base class for a city block."""
