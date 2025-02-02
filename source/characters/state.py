@@ -38,7 +38,13 @@ class State:
 
         # Execute action
         if result:
-            self.character.action.execute(result.action, result.target)
+            action_result = self.character.action.execute(result.action, result.target)
+            if action_result:
+                if action_result.attacked and result.target == self.game.player:
+                    self.game.chat_history.append(action_result.attacked)
+                elif action_result.witness and self.character.location == self.game.player.location and self.character.inside == self.game.player.inside:
+                    self.game.chat_history.append(action_result.witness)
+                
 
     def _filter_npcs_at_npc_location(self):
         """Retrieve other NPCs currently at the NPC's location and categorize them."""

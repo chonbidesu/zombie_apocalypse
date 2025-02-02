@@ -13,6 +13,8 @@ from data import Action, ITEMS, ItemType, ItemFunction, BLOCKS, ResourcePath
 class ActionResult:
     success: bool
     message: str = ""
+    witness: str = ""
+    attacked: str = ""
 
 
 @dataclass
@@ -36,6 +38,7 @@ class ActionExecutor:
 
     def execute(self, action, target):
         """Execute AI and player actions."""
+        
 
         # Fetch block at the actor's location
         x, y = self.actor.location
@@ -115,6 +118,8 @@ class ActionExecutor:
         elif action == Action.DROP:
             return self.drop(target.item)
 
+        else:
+            return ActionResult(False, "No action available.")
 
     def attack(self, target, weapon=None):
         """Execute an attack depending on the attacker's state."""
@@ -137,10 +142,14 @@ class ActionExecutor:
                 target.take_damage(properties.damage)
                 if self.actor.weapon:
                     self.actor.ap -= 1
-                    return ActionResult(True, f"Your attack hits for {properties.damage} damage.")
+                    message = f"Your attack hits for {properties.damage} damage."
+                    witness = f"{self.actor.name} attacks {target.name} with {properties.description}."
+                    return ActionResult(True, message, witness)
                 else:
                     self.actor.ap -= 1
-                    return ActionResult(True, f"Your attack hits for {properties.damage} damage. Your weapon breaks!")
+                    message = f"Your attack hits for {properties.damage} damage. Your weapon breaks!"
+                    witness = f"{self.actor.name} attacks {target.name} with {properties.description}."
+                    return ActionResult(True, message, witness)
             else:
                 self.actor.ap -= 1
                 return ActionResult(False, "Your attack misses.")
@@ -165,6 +174,13 @@ class ActionExecutor:
 
         if attack_success:
             target.take_damage(weapon.damage)
+            message = f"You attack {target.name} with {weapon.name} for {weapon.damage} damage."
+            witness = f"{self.actor.name} attacks {target.name} with {weapon.name}."
+            attacked = f"{self.actor.name} attacks you with {weapon.name} for {weapon.damage} damage!"
+            return ActionResult(True, message, witness, attacked)
+        else:
+            message = "Your attack misses."
+            return ActionResult(False, message)
 
     def _deplete_weapon(self, weapon, properties):
         """Reduce loaded ammo or durability, depending on weapon type."""
@@ -222,8 +238,8 @@ class ActionExecutor:
                 self.actor.ap -= 2
             self.actor.location = (new_x, new_y)
             self.actor.inside = False
-            return True
-        return False
+            return ActionResult(True)
+        return ActionResult(False)
 
     def barricade(self, building):
         properties = BLOCKS[building.type]
@@ -261,7 +277,9 @@ class ActionExecutor:
             else:
                 building.barricade.adjust_barricade_sublevel(-1)
                 self.actor.ap -= 1
-                return ActionResult(True, "You break a barricade.")
+                message = "You smash at the barricades."
+                witness = "Something smashes at the barricades."
+                return ActionResult(True, message, witness)
 
         else:
             return ActionResult(False, "Only buildings have barricades.")

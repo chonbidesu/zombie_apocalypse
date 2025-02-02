@@ -168,6 +168,7 @@ class Gamestate:
             if item_data.get("is_equipped", False):
                 player.weapon = item
 
+        player.name = "Player"
         player.hp = self.player_data.get("hp", player.max_hp)
 
         # Create NPC list
@@ -184,6 +185,7 @@ class Gamestate:
             npc = character_class(
                 game=game, occupation=occupation, x=x, y=y, is_human=is_human, inside=inside,
             )
+            npc.name = npc.occupation.name.title()
             npc.hp = npc_data.get("hp", MAX_HP)
             npc.is_dead = npc_data.get("is_dead", False)
             npc.state = npc.get_state()

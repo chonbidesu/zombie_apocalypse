@@ -61,6 +61,7 @@ class GameInitializer:
         self.player = Character(
             self, occupation=Occupation.DOCTOR, x=50, y=50, is_human=True
         )
+        self.player.name = "Player"
 
         # Populate the city
         self.npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)

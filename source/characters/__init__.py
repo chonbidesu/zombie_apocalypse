@@ -12,6 +12,7 @@ class Character:
     def __init__(self, game, occupation, x, y, is_human, inside=False):
         self.game = game
         self.occupation = occupation
+        self.name = occupation.name.title()
         self.location = (x, y)
         self.max_hp = MAX_HP
         self.hp = self.max_hp
