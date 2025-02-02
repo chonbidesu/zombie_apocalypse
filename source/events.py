@@ -66,7 +66,7 @@ class EventHandler:
         if event.button == 1:
             mouse_pos = pygame.mouse.get_pos()
             target = ClickTarget(self.game, mouse_pos)
-            if target.type == 'npc':
+            if self.game.player.is_human and target.type == 'zombie':
                 action = Action.ATTACK
                 self.act(action, target.sprite.npc)
             elif target.type == 'block' and not self.game.popup_menu:
@@ -149,6 +149,9 @@ class EventHandler:
 
     def act(self, action, target=None):
         """Evoke the Action Executor to handle actions."""
+        self.game.npcs.gain_ap()
+        self.game.npcs.take_action()
+
         result = self.action.execute(action, target)
         if result:
             self.game.chat_history.append(result.message)
@@ -188,4 +191,3 @@ class ClickTarget:
                 self.type = 'human'
         if self.type == None:
             self.type = 'screen'
-

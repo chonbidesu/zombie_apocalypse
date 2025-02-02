@@ -1,65 +1,114 @@
 # human_state.py
 
+from dataclasses import dataclass
+
 from settings import *
-from data import Action, BLOCKS
+from data import Action, BLOCKS, Occupation, ItemType, MILITARY_OCCUPATIONS, SCIENCE_OCCUPATIONS, CIVILIAN_OCCUPATIONS
+
+
+@dataclass
+class Result:
+    action: Action
+    target: object = None
+
 
 class Human:
     """Represents the human state."""
     def __init__(self, game, character):
+        self.game = game
         self.character = character # Reference the parent character
 
-    def act(self, action_points):
+    def act(self):
         """Execute AI behaviour."""
         # Only act if action points are available
-        if action_points < 1:
+        if self.character.ap < 1:
             return False
         
         # Get block object at current location
-        current_block = self.game.city.block(self.character.location[0], self.character.location[1])
+        block = self.game.city.block(self.character.location[0], self.character.location[1])
 
         # Determine behaviour
-        action, target = self._determine_behaviour(current_block)
+        result = self._determine_behaviour(block)
 
         # Execute action
-        self.character.action.execute(action, target)
+        if result:
+            self.character.action.execute(result.action, result.target)
 
-    def _determine_human_behaviour(self, current_block):
+    def _determine_behaviour(self, block):
         """Determine the priority for the NPC."""
-        properties = BLOCKS[current_block.type]
+        properties = BLOCKS[block.type]
+        occupation = self.character.occupation
+        inventory = self.character.inventory
+        living_zombies, living_humans, dead_bodies = self._filter_npcs_at_player_location()
+
         # Stand up if dead and have enough action points
-        if self.is_dead:
-            return Action.STAND if self.action_points >= STAND_AP else False
+        if self.character.is_dead:
+            return Result(Action.STAND) if self.character.ap >= STAND_AP else False
 
         # Relocate if the block is overcrowded
-        if current_block.current_humans > HUMAN_CAPACITY:
-            return Action.RELOCATE
+        if len(living_zombies + living_humans) > BLOCK_CAPACITY:
+            return Result(Action.RELOCATE)
         
-        elif self.type == NPCType.SURVIVOR:
-            if current_block.current_zombies > 0:
-                return Action.FIND_TARGET # Flee to another building
-            elif self.location == self.game.player.location and self.inside == self.game.player.inside:
-                return Action.GIVE_QUEST
-            elif not self.inside and properties.is_building:
-                    return Action.ENTER_BUILDING
+        elif occupation == Occupation.CONSUMER:
+            if len(living_zombies) > 0:
+                return Result(Action.FIND_TARGET) # Flee to another building
+            elif self.character.location == self.game.player.location and self.character.inside == self.game.player.inside:
+                return Result(Action.GIVE_QUEST)
+            elif not self.character.inside and properties.is_building:
+                return Result(Action.ENTER)
+            elif not self.character.inside and not properties.is_building:
+                return Result(Action.WANDER)
             
-        elif self.type == NPCType.PREPPER:
-            if properties.is_building and not self.inside:
-                return Action.ENTER_BUILDING
-            elif self.inside:
-                for zombie in self.game.zombies.list:
-                    if self.location == zombie.location and zombie.inside:
-                        return Action.ATTACK_NPC
-                if current_block.is_ransacked:
-                    return Action.REPAIR_BUILDING
-                elif current_block.barricade.level <= 4:
-                    return Action.HANDLE_BARRICADE
+        elif occupation in CIVILIAN_OCCUPATIONS:
+            if properties.is_building and not self.character.inside:
+                return Result(Action.ENTER)
+            elif self.character.inside:
+                if living_zombies:
+                    return Result(Action.ATTACK, living_zombies[0])
+                elif block.ransack_level > 0:
+                    for item in inventory:
+                        if item.type == ItemType.TOOLBOX:
+                            return Result(Action.USE, item)
+                elif block.barricade.level <= 4:
+                    return Result(Action.BARRICADE)
                 else:
-                    return Action.FIND_TARGET
+                    return Result(Action.SEARCH)
         
-        elif self.type == NPCType.SCIENTIST:
-            if current_block.current_zombies > 0:
-                return Action.ATTACK_NPC
+        elif occupation in SCIENCE_OCCUPATIONS:
+            if properties.is_building and not self.character.inside:
+                return Result(Action.ENTER)
+            elif self.character.inside:
+                if living_zombies:
+                    return Result(Action.ATTACK, living_zombies[0])
+                elif block.ransack_level > 0:
+                    for item in inventory:
+                        if item.type == ItemType.TOOLBOX:
+                            return Result(Action.USE, item)
+                elif block.barricade.level <= 4:
+                    return Result(Action.BARRICADE)
+                else:
+                    return Result(Action.SEARCH)
+                
+        elif occupation in MILITARY_OCCUPATIONS:
+            if living_zombies:
+                return Result(Action.ATTACK, living_zombies[0])
             else:
-                return Action.FIND_TARGET
-            
-        return None  # No behaviour determined
+                return Result(Action.WANDER)
+
+        return None # No behaviour determined
+    
+    def _filter_npcs_at_player_location(self):
+        """Retrieve NPCs currently at the player's location and categorize them."""
+        npcs_here = [
+            npc for npc in self.game.npcs.list
+            if npc.location == self.game.player.location and npc.inside == self.game.player.inside
+        ]
+
+        zombies_here = [npc for npc in npcs_here if not npc.is_human]
+        humans_here = [npc for npc in npcs_here if npc.is_human]
+
+        living_zombies = [z for z in zombies_here if not z.is_dead]
+        living_humans = [h for h in humans_here if not h.is_dead]
+        dead_bodies = [npc for npc in npcs_here if npc.is_dead]
+
+        return living_zombies, living_humans, dead_bodies    

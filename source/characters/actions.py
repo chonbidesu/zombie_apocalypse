@@ -15,6 +15,19 @@ class ActionResult:
     message: str = ""
 
 
+@dataclass
+class ZombieWeapon:
+    name: str
+    attack: int
+    damage: int
+
+    @classmethod
+    def choose(cls):
+        """Randomly select hands or teeth and return a ZombieWeapon instance."""
+        attack_type, stats = random.choice(list(ZOMBIE_ATTACKS.items()))
+        return cls(name=attack_type, attack=stats["attack"], damage=stats["damage"])
+
+
 class ActionExecutor:
     """Handles executing actions for both player and AI characters."""
     def __init__(self, game, actor):
@@ -27,6 +40,7 @@ class ActionExecutor:
         # Fetch block at the actor's location
         x, y = self.actor.location
         block = self.game.city.block(x, y)
+        weapon = self.actor.weapon
 
         # System actions
         if action == Action.QUIT:
@@ -70,7 +84,7 @@ class ActionExecutor:
         
         # Combat
         elif action == Action.ATTACK:
-            return self.attack(target)            
+            return self.attack(target, weapon)            
 
         # Building actions
         elif action == Action.BARRICADE:
@@ -81,6 +95,8 @@ class ActionExecutor:
             return self.enter(block)
         elif action == Action.LEAVE:
             return self.leave(block)
+        elif action == Action.REPAIR_BUILDING:
+            return self.use()
 
         # Inventory actions
         elif action == Action.EQUIP:
@@ -101,7 +117,7 @@ class ActionExecutor:
         if self.actor.is_human:
             return self._human_attack(target, weapon)
         else:
-            return self._zombie_attack(target, weapon)
+            return self._zombie_attack(target)
 
     def _human_attack(self, target, weapon):
         if weapon:
@@ -132,7 +148,8 @@ class ActionExecutor:
             else:
                 return ActionResult(False, "Your attack misses.")
 
-    def _zombie_attack(self, target, weapon):
+    def _zombie_attack(self, target):
+        weapon = ZombieWeapon.choose()  # Get attack choice
         roll = random.randint(1, 20)
         attack_success = (roll + weapon.attack) >= ATTACK_DIFFICULTY
 

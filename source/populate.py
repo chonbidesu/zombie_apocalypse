@@ -46,6 +46,10 @@ class GenerateNPCs:
         """Get all NPCs at a specific location."""
         return [npc for npc in self.list if npc.x == x and npc.y == y]
 
+    def gain_ap(self):
+        for npc in self.list:
+            npc.ap += 1
+
     def take_action(self):
         """Allow all NPCs to take an action, such as moving or attacking."""
         for npc in self.list:

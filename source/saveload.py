@@ -68,6 +68,7 @@ class Gamestate:
             "x": npc.location[0],
             "y": npc.location[1],
             "is_human": npc.is_human,
+            "is_dead": npc.is_dead,
             "inside": npc.inside,
             "hp": npc.hp,
             "human_skills": npc.human_skills,
@@ -174,18 +175,19 @@ class Gamestate:
 
         # Reconstruct NPCs
         for npc_data in self.npc_data:
-            occupation=npc_data["occupation"],
-            x=npc_data["x"],
-            y=npc_data["y"],
-            is_human=npc_data["is_human"],
-            inside=npc_data["inside"],
+            occupation=npc_data["occupation"]
+            x=npc_data["x"]
+            y=npc_data["y"]
+            is_human=npc_data["is_human"]
+            inside=npc_data["inside"]
 
             npc = character_class(
                 game=game, occupation=occupation, x=x, y=y, is_human=is_human, inside=inside,
             )
             npc.hp = npc_data.get("hp", MAX_HP)
             npc.is_dead = npc_data.get("is_dead", False)
-            
+            npc.state = npc.get_state()
+
             npcs.list.append(npc)
 
         return player, city, npcs

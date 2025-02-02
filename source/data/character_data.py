@@ -31,3 +31,20 @@ HUMAN_OCCUPATIONS = [
     Occupation.FIREFIGHTER,
     Occupation.CONSUMER,
 ]
+
+MILITARY_OCCUPATIONS = [
+    Occupation.PRIVATE,
+    Occupation.MEDIC,
+    Occupation.SCOUT,
+]
+
+SCIENCE_OCCUPATIONS = [
+    Occupation.NECROTECH_ASSISTANT,
+    Occupation.DOCTOR,
+]
+
+CIVILIAN_OCCUPATIONS = [
+    Occupation.POLICE_OFFICER,
+    Occupation.FIREFIGHTER,
+    Occupation.CONSUMER,
+]

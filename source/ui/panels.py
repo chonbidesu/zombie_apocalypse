@@ -276,7 +276,9 @@ class DescriptionPanel:
         # Blit the setting image at the top of the panel
         self.screen.blit(self.setting_image, (self.setting_image_x, self.setting_image_y)) 
 
-        # Draw NPC sprites  
+        # Draw NPC sprites
+        self.zombie_sprite_group.update()
+        self.human_sprite_group.update()
         self.zombie_sprite_group.draw(self.screen)
         self.human_sprite_group.draw(self.screen) 
 
@@ -594,7 +596,7 @@ class NPCSprite(pygame.sprite.Sprite):
 
         bar_x = self.rect.x + 25
         bar_y = self.rect.y + self.rect.height + 5
-
+    
         pygame.draw.rect(self.screen, (255, 0, 0), (bar_x, bar_y, bar_width, self.hp_bar_height))
         pygame.draw.rect(self.screen, (0, 255, 0), (bar_x, bar_y, bar_width * hp_ratio, self.hp_bar_height))
 

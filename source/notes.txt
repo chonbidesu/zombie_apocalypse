@@ -1,5 +1,3 @@
-zombie state needs a weapon class
-
 This needs a home:
         self.game.ticker += 1
 

@@ -21,13 +21,13 @@ class Character:
         self.inside = inside
         self.inventory = []
         self.weapon = None
-        self.state = self._get_state()
+        self.state = self.get_state()
         self.human_skills = set()
         self.zombie_skills = set()
         self.action = ActionExecutor(game, self)
 
     # Set initial state
-    def _get_state(self):
+    def get_state(self):
         if self.is_human:
             state = Human(self.game, self)
         else:
@@ -49,13 +49,13 @@ class Character:
         """Handles the character's death."""
         self.is_dead = True
         self.is_human = False
-        self.state = Zombie()
+        self.state = Zombie(self.game, self)
 
     def revivify(self):
         """Revives the character to human state."""
         self.is_dead = True
         self.is_human = True
-        self.state = Human()
+        self.state = Human(self.game, self)
 
     def status(self):
         """Returns the character's current status."""

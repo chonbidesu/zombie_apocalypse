@@ -19,8 +19,8 @@ class Action(Enum):
     BARRICADE = auto()              # Reinforce the barricades
     DECADE = auto()                 # Tear down the barricades
     SEARCH = auto()                 # Search for an item
-    REPAIR = auto()                 # Repair damaged buildings
-    RANSACK = auto()
+    REPAIR_BUILDING = auto()       # Repair a building    
+    RANSACK = auto()                # Ransack a building
     ENTER = auto()                  # Enter a building
     LEAVE = auto()                  # Leave a building
     STAND = auto()                  # Stand up after death or revivification
