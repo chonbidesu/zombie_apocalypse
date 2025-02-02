@@ -11,7 +11,7 @@ from data import ITEMS, ItemType, ItemFunction, BLOCKS, ResourcePath
 pygame.init()
 
 try:
-    font = pygame.font.Font(ResourcePath('data/Vera.ttf'), 14)
+    font = pygame.font.Font(ResourcePath('data/Vera.ttf').path, 14)
 except:
     print('warning: cannot load font Vera.ttf: using system default')
     font = pygame.font.SysFont(None, 20)

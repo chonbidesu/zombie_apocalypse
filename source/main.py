@@ -1,107 +1,26 @@
 # main.py
-import pickle
+
 import pygame
-import sys
-from pygame.locals import *
 
 from settings import *
-from city import City
-from characters import Character
-from populate import GenerateNPCs
-from blocks import CityBlock, BuildingBlock
-from data import Occupation
-import ui
-import menus
-import saveload
-import events as events
-
-# Initialize Pygame
-pygame.init()
-
-# Create screen and clock
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Zombie Apocalypse")
-clock = pygame.time.Clock()
-
-class GameInitializer:
-    """Initialize the game, centralizing resources."""
-    def __init__(self):
-        self.player = None
-        self.city = None
-        self.cursor = ui.Cursor()
-        self.paused = False
-        self.pause_menu = menus.PauseMenu()
-        self.popup_menu = None
-        self.reading_map = False
-        self.chat_history = [
-            "The city is in ruins. Can you make it through the night?", 
-            "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
-            "Diagonally 'q', 'e', 'z', 'c'."
-        ]
-
-        self.initialize_game()
-
-    def initialize_game(self):
-        """Initialize the game state by loading or creating a new game."""
-        try:
-            game_state = saveload.Gamestate.load_game("savegame.pkl")
-            self.player, self.city, self.npcs, = game_state.reconstruct_game(
-                self, Character, City, GenerateNPCs, 
-                BuildingBlock, CityBlock,
-            )
-            self.game_ui = ui.DrawUI(self, screen)
-
-        except (FileNotFoundError, EOFError, pickle.UnpicklingError):
-            print("Save file not found or corrupted. Creating a new game.")
-            # Generate a new game if save file doesn't exist
-            self._create_new_game()
-
-        self.event_handler = events.EventHandler(self)       
-
-    def _create_new_game(self):
-        """Generate a new game state."""
-
-        # Initialize city
-        self.city = City()
-
-        # Create player
-        self.player = Character(
-            self, occupation=Occupation.DOCTOR, x=50, y=50, is_human=True
-        )
-
-        # Populate the city
-        self.npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
-
-        # Initialize UI
-        self.game_ui = ui.DrawUI(self, screen)
-        self.game_ui.update()
-
-        print("New game created.")
-
-    def save_game(self):
-        """Save the game state to a file."""
-        saveload.Gamestate.save_game("savegame.pkl", self)
-
-    def pause_game(self):
-        """Toggle game pause state."""
-        if not self.paused:
-            self.paused = True
-        elif self.paused:
-            self.paused = False
-
-    def quit_game(self):
-        """Handle cleanup and save the game on exit."""
-        self.save_game()
-        pygame.quit()
-        sys.exit()
-
+from game import GameInitializer
 
 # Main game loop
 def main():
     running = True
 
+    # Initialize Pygame
+    pygame.init()
+
+    # Create screen and clock
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Zombie Apocalypse")
+    clock = pygame.time.Clock()
+    action_interval = ACTION_INTERVAL
+    action_timer = 0
+
     # Initialize game
-    game = GameInitializer()
+    game = GameInitializer(screen)
 
     while running:
 
@@ -137,6 +56,12 @@ def main():
             if game.game_ui.death_screen.restart:
                 game = GameInitializer()  # Reinitialize the game
 
+        # Update NPC actions every half-second
+        action_timer += clock.get_time()
+        if action_timer >= action_interval:
+            game.npcs.gain_ap()
+            game.npcs.take_action()
+            action_timer = 0
 
         pygame.display.flip()
         clock.tick(FPS)

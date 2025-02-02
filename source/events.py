@@ -146,12 +146,8 @@ class EventHandler:
         if action:
             self.act(action, target)
 
-
     def act(self, action, target=None):
         """Evoke the Action Executor to handle actions."""
-        self.game.npcs.gain_ap()
-        self.game.npcs.take_action()
-
         result = self.action.execute(action, target)
         if result:
             self.game.chat_history.append(result.message)

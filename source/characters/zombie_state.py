@@ -5,41 +5,13 @@ from dataclasses import dataclass
 
 from settings import *
 from data import Action, BLOCKS
+from characters.state import State, MoveTarget, Result
 
 
-@dataclass
-class MoveTarget:
-    dx: int = 0
-    dy: int = 0
-
-
-@dataclass
-class Result:
-    action: Action
-    target: object = None
-
-
-class Zombie:
+class Zombie(State):
     """Represents the zombie state."""
     def __init__(self, game, character):
-        self.game = game
-        self.character = character # Reference the parent character
-
-    def act(self):
-        """Execute AI behaviour."""
-        # Only act if action points are available
-        if self.character.ap < 1:
-            return False
-        
-        # Get block object at current location
-        block = self.game.city.block(self.character.location[0], self.character.location[1])
-
-        # Determine behaviour
-        result = self._determine_behaviour(block)
-
-        # Execute action
-        if result:
-            self.character.action.execute(result.action, result.target)       
+        super().__init__(game, character)     
 
     def _determine_behaviour(self, block):
         """Determine the priority for the zombie."""
@@ -57,7 +29,10 @@ class Zombie:
             return Result(Action.RELOCATE)
             
         elif len(living_humans) > 0:
-            return Result(Action.ATTACK, living_humans[0])
+            if self.current_target not in living_humans:
+                random.shuffle(living_humans)
+                self.current_target = living_humans[0] # Choose a new target
+            return Result(Action.ATTACK, self.current_target)
 
         elif nearby_target.dx is not None and nearby_target.dy is not None:
             return Result(Action.MOVE, nearby_target)
@@ -82,6 +57,7 @@ class Zombie:
     def _find_target_dxy(self, block):
         """Finds a nearby player or lit building."""
         properties = BLOCKS[block.type]
+        player = self.game.player
 
         # Otherwise, move    
         for dx in range(-1, 2):
@@ -98,6 +74,9 @@ class Zombie:
                         if (npc.location == (adjacent_x, adjacent_y)) and npc.is_human and not npc.is_dead and not npc.inside
                     ]
 
+                    if player.location == (adjacent_x, adjacent_y) and player.is_human:
+                        adjacent_humans.append(player)
+
                     if adjacent_humans: # Check if humans are nearby
                         return (dx, dy) # Shamble towards brains
                     else:
@@ -110,19 +89,3 @@ class Zombie:
                                 return (dx, dy) 
 
         return (None, None)
-
-    def _filter_npcs_at_npc_location(self):
-        """Retrieve NPCs currently at the player's location and categorize them."""
-        npcs_here = [
-            npc for npc in self.game.npcs.list
-            if npc.location == self.character.location and npc.inside == self.character.inside
-        ]
-
-        zombies_here = [npc for npc in npcs_here if not npc.is_human]
-        humans_here = [npc for npc in npcs_here if npc.is_human]
-
-        living_zombies = [z for z in zombies_here if not z.is_dead]
-        living_humans = [h for h in humans_here if not h.is_dead]
-        dead_bodies = [npc for npc in npcs_here if npc.is_dead]
-
-        return living_zombies, living_humans, dead_bodies    

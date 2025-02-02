@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from settings import *
 from data import Action, BLOCKS, Occupation, ItemType, MILITARY_OCCUPATIONS, SCIENCE_OCCUPATIONS, CIVILIAN_OCCUPATIONS
+from characters.state import State
 
 
 @dataclass
@@ -15,24 +16,7 @@ class Result:
 class Human:
     """Represents the human state."""
     def __init__(self, game, character):
-        self.game = game
-        self.character = character # Reference the parent character
-
-    def act(self):
-        """Execute AI behaviour."""
-        # Only act if action points are available
-        if self.character.ap < 1:
-            return False
-        
-        # Get block object at current location
-        block = self.game.city.block(self.character.location[0], self.character.location[1])
-
-        # Determine behaviour
-        result = self._determine_behaviour(block)
-
-        # Execute action
-        if result:
-            self.character.action.execute(result.action, result.target)
+        super().__init__(game, character)
 
     def _determine_behaviour(self, block):
         """Determine the priority for the NPC."""

@@ -2,7 +2,10 @@
 # utils.py
 
 import pygame
+import sys
+
 from settings import *
+
 
 class WrapText:
     """Wrap the text to fit inside a given width."""
