@@ -39,14 +39,14 @@ class Zombie:
 
         # Execute action
         if result:
-            print(result)
             self.character.action.execute(result.action, result.target)       
 
     def _determine_behaviour(self, block):
         """Determine the priority for the zombie."""
         properties = BLOCKS[block.type]
-        living_zombies, living_humans, dead_bodies = self._filter_npcs_at_npc_location()       
-        nearby_target = MoveTarget((self._find_target_dxy(block)))
+        living_zombies, living_humans, _ = self._filter_npcs_at_npc_location()       
+        dx, dy = self._find_target_dxy(block)
+        nearby_target = MoveTarget(dx, dy)
 
         # Stand up if dead and have enough action points
         if self.character.is_dead:
@@ -57,10 +57,9 @@ class Zombie:
             return Result(Action.RELOCATE)
             
         elif len(living_humans) > 0:
-            print(f"{self.character} at {self.character.location} is attacking {living_humans[0]} at {living_humans[0].location}.")
             return Result(Action.ATTACK, living_humans[0])
 
-        elif nearby_target.dx and nearby_target.dy:
+        elif nearby_target.dx is not None and nearby_target.dy is not None:
             return Result(Action.MOVE, nearby_target)
 
         elif properties.is_building and block.barricade.level == 0 and not self.character.inside and self.character.ap >= 1:
@@ -83,33 +82,34 @@ class Zombie:
     def _find_target_dxy(self, block):
         """Finds a nearby player or lit building."""
         properties = BLOCKS[block.type]
-        lit_buildings_dxy = []
-
-        # Check if a lit building is nearby
-        if properties.is_building:
-            if block.lights_on:
-                return (0, 0) # Stay put
 
         # Otherwise, move    
         for dx in range(-1, 2):
             for dy in range(-1, 2):
                 if dx == 0 and dy == 0:
-                    continue # Don't stay put
+                    continue # Don't return the current block
 
                 adjacent_x = self.character.location[0] + dx
                 adjacent_y = self.character.location[1] + dy
 
-                if self.game.player.location == (adjacent_x, adjacent_y) and not self.game.player.inside: # Check if the player is next door
-                    return (dx, dy) # Shamble towards player
-
                 if 0 < adjacent_x < CITY_SIZE and 0 < adjacent_y < CITY_SIZE:
-                    adjacent_block = self.game.city.block(adjacent_x, adjacent_y)
-                    adjacent_block_properties = BLOCKS[adjacent_block.type]
-                    if adjacent_block_properties.is_building:
-                        if adjacent_block.lights_on:
-                            lit_buildings_dxy.append((dx, dy)) 
+                    adjacent_humans = [
+                        npc for npc in self.game.npcs.list
+                        if (npc.location == (adjacent_x, adjacent_y)) and npc.is_human and not npc.is_dead and not npc.inside
+                    ]
 
-        return random.choice(lit_buildings_dxy) if lit_buildings_dxy else (0, 0)  # Shamble towards lit building
+                    if adjacent_humans: # Check if humans are nearby
+                        return (dx, dy) # Shamble towards brains
+                    else:
+                        if properties.is_building and block.lights_on:
+                            return (0, 0) # Stay put if current block is lit     
+                        else:                 
+                            adjacent_block = self.game.city.block(adjacent_x, adjacent_y)
+                            adjacent_block_properties = BLOCKS[adjacent_block.type]
+                            if adjacent_block_properties.is_building and adjacent_block.lights_on:
+                                return (dx, dy) 
+
+        return (None, None)
 
     def _filter_npcs_at_npc_location(self):
         """Retrieve NPCs currently at the player's location and categorize them."""
