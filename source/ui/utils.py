@@ -46,12 +46,15 @@ class ActionProgress:
         self.target_function = None
         self.clock = pygame.time.Clock()
 
-    def start(self, message, target_function, duration=1.5):
+    def start(self, message, target_function, *args, **kwargs):
         """Start displaying an action progress message for a set duration."""
         self.active_message = message
         self.start_ticks = pygame.time.get_ticks()
-        self.duration = duration * 1000
+        self.duration = 1500
         self.target_function = target_function
+        self.args = args
+        self.kwargs = kwargs
+        self.result = None
 
     def draw(self):
         """Draw the action progress message if it's active."""
@@ -67,10 +70,7 @@ class ActionProgress:
             if elapsed > self.duration:
                 self.active_message = None
                 if self.target_function:
-                    result, item_used = self.target_function()
-                    self.game.chat_history.append(result)
-                    if item_used:
-                        item_used.kill()
+                    self.result = self.target_function(*self.args, **self.kwargs)
                     self.target_function = None
 
 

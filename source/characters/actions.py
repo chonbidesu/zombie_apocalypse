@@ -44,6 +44,9 @@ class ActionExecutor:
         x, y = self.actor.location
         block = self.game.city.block(x, y)
         weapon = self.actor.weapon
+        player = self.game.player 
+        screen_transition = self.game.game_ui.screen_transition
+        action_progress = self.game.game_ui.action_progress
 
         # System actions
         if action == Action.QUIT:
@@ -93,27 +96,45 @@ class ActionExecutor:
 
         # Building actions
         elif action == Action.BARRICADE:
-            return self.barricade(block)
+            if self.actor == player:
+                action_progress.start("Barricading", self.barricade, block)
+                action_result = action_progress.result
+            else:
+                action_result = self.barricade(block)
+            return action_result
         elif action == Action.SEARCH:
-            return self.search(block)
+            if self.actor == player:
+                action_progress.start("Searching", self.search, block)
+                action_result = action_progress.result
+            else:
+                action_result = self.search(block)
+            return action_result
         elif action == Action.ENTER:
-            if self.actor == self.game.player:
-                screen_transition = self.game.game_ui.screen_transition
+            if self.actor == player:
                 action_result = screen_transition.circle_wipe(self.enter, self.game.chat_history, block)
             else:
                 action_result = self.enter(block)
             return action_result
         elif action == Action.LEAVE:
-            if self.actor == self.game.player:
-                screen_transition = self.game.game_ui.screen_transition
+            if self.actor == player:
                 action_result = screen_transition.circle_wipe(self.leave, self.game.chat_history, block)
             else:
                 action_result = self.leave(block)
             return action_result
         elif action == Action.REPAIR_BUILDING:
-            return self.use()
+            if self.actor == player:
+                action_progress.start("Repairing", self.repair_building, block)
+                action_result = action_progress.result
+            else:
+                action_result = self.repair_building(block)
+            return action_result
         elif action == Action.DECADE:
-            return self.break_barricades(block)
+            if self.actor == player:
+                action_progress.start("Smashing", self.break_barricades, block)
+                action_result = action_progress.result
+            else:
+                action_result = self.break_barricades(block)
+            return action_result
 
         # Inventory actions
         elif action == Action.EQUIP:
