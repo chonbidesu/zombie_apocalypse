@@ -97,9 +97,19 @@ class ActionExecutor:
         elif action == Action.SEARCH:
             return self.search(block)
         elif action == Action.ENTER:
-            return self.enter(block)
+            if self.actor == self.game.player:
+                screen_transition = self.game.game_ui.screen_transition
+                action_result = screen_transition.circle_wipe(self.enter, self.game.chat_history, block)
+            else:
+                action_result = self.enter(block)
+            return action_result
         elif action == Action.LEAVE:
-            return self.leave(block)
+            if self.actor == self.game.player:
+                screen_transition = self.game.game_ui.screen_transition
+                action_result = screen_transition.circle_wipe(self.leave, self.game.chat_history, block)
+            else:
+                action_result = self.leave(block)
+            return action_result
         elif action == Action.REPAIR_BUILDING:
             return self.use()
         elif action == Action.DECADE:

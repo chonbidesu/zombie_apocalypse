@@ -12,9 +12,10 @@ class ScreenTransition:
 
         self.clock = pygame.time.Clock()
 
-    def circle_wipe(self, target_function, chat_history, duration=1.0):
+    def circle_wipe(self, target_function, chat_history, *args, **kwargs):
         """Perform a circle wipe transition effect and call the target_function to change game state."""
         max_radius = int((SCREEN_WIDTH ** 2 + SCREEN_HEIGHT ** 2) ** 0.5) # Cover the screen
+        duration = 1.0
         steps = int(duration * 30)
         increment = max_radius // steps
 
@@ -31,7 +32,7 @@ class ScreenTransition:
             self.clock.tick(30)
 
         # Execute the target function
-        result = target_function()
+        result = target_function(*args, **kwargs)
         self.update_ui()
 
 
