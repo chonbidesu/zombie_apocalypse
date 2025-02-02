@@ -66,6 +66,14 @@ def main():
             game.npcs.gain_ap()
             game.npcs.take_action()
             action_timer = 0
+            game.ticker += 1
+            
+            # Check buildings for fuel expiry
+            for row in game.city.grid:
+                for block in row:
+                    if hasattr(block, 'fuel_expiration') and block.fuel_expiration < game.ticker:
+                        if block.lights_on:
+                            block.lights_on = False
 
         pygame.display.flip()
         clock.tick(FPS)

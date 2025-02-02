@@ -80,7 +80,7 @@ class BuildingBlock(CityBlock):
             self.level = level
             self.set_barricade_level(level)
             self.sublevel = 0
-
+            self.successful_hits = 0
 
         def set_barricade_level(self, level):
             """
@@ -97,23 +97,30 @@ class BuildingBlock(CityBlock):
             new_sublevel = self.sublevel + delta
             if new_sublevel < 0:        # If last sublevel is reduced,
                 if self.level == 0:     # and the current barricade level is already zero,
+                    self.successful_hits = 0    # reset the successful hits counter,
                     return False        # return False.
                 elif self.level <= 2:   # Otherwise, if the current barricade level is Loosely or Lightly,
                     new_level = self.level - 1     # reduce the level by one
                     self.sublevel = 1   # and reset the sublevel to one.
+                    self.successful_hits = 0    # Also reset the successful hits counter.
                 else:                   # For higher barricade levels,
                     new_level = self.level - 1     # reduce the level by one
                     self.sublevel = 3   # and reset the sublevel to three.
+                    self.successful_hits = 0    # Also reset the successful hits counter.
             elif new_sublevel == 1 and self.level <= 1: # If barricades are added to an unbarricaded or loosely barricaded building,
                 new_level = self.level + 1         # increase barricade level by one.
+                self.successful_hits = 0    # Reset the successful hits counter.
             elif 0 < new_sublevel <= 2:
                 self.sublevel = new_sublevel
+                self.successful_hits = 0    # Reset the successful hits counter.
                 return True
             elif new_sublevel > 2 and self.level < 7:
                 new_level = self.level + 1
                 self.sublevel = 0
+                self.successful_hits = 0    # Reset the successful hits counter.
             elif new_sublevel <= 4 and self.level == 7:
                 self.sublevel = new_sublevel
+                self.successful_hits = 0    # Reset the successful hits counter.
                 return True
             else:
                 return False
@@ -121,6 +128,13 @@ class BuildingBlock(CityBlock):
             if 'new_level' in locals():
                 self.set_barricade_level(new_level)  # Automatically handles out-of-bound levels
                 return True
+
+        def register_hit(self):
+            """Register a successful hit on the barricade."""
+            self.successful_hits += 1
+            if self.successful_hits == 3:
+                self.adjust_barricade_sublevel(-1)
+                self.successful_hits = 0
 
         def get_barricade_description(self):
             """

@@ -24,6 +24,7 @@ class GameInitializer:
         self.paused = False
         self.pause_menu = menus.PauseMenu()
         self.popup_menu = None
+        self.ticker = 0
         self.reading_map = False
         self.chat_history = [
             "The city is in ruins. Can you make it through the night?", 

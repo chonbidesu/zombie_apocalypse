@@ -40,6 +40,8 @@ class Zombie(State):
                     return Result(Action.LEAVE)
                 elif not self.character.inside and block.barricade.level == 0:
                     return Result(Action.ENTER)
+                else:
+                    return Result(Action.DECADE)
 
         elif nearby_target.dx is not None and nearby_target.dy is not None:
             return Result(Action.MOVE, nearby_target)

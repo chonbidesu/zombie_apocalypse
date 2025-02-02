@@ -99,6 +99,8 @@ class ActionExecutor:
             return self.leave(block)
         elif action == Action.REPAIR_BUILDING:
             return self.use()
+        elif action == Action.DECADE:
+            return self.break_barricades(block)
 
         # Inventory actions
         elif action == Action.EQUIP:
@@ -250,6 +252,19 @@ class ActionExecutor:
                 return ActionResult(False, "You can't find anything to reinforce the barricade.")
         else:
             return ActionResult(False, "You have to be inside a building to barricade.")
+
+    def break_barricades(self, building):
+        properties = BLOCKS[building.type]
+        if properties.is_building:
+            if building.barricade.level == 0:
+                return ActionResult(False, "There are no barricades to break.")
+            else:
+                building.barricade.adjust_barricade_sublevel(-1)
+                self.actor.ap -= 1
+                return ActionResult(True, "You break a barricade.")
+
+        else:
+            return ActionResult(False, "Only buildings have barricades.")
 
     def enter(self, building):
         properties = BLOCKS[building.type]
