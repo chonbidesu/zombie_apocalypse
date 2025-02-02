@@ -81,6 +81,8 @@ class ActionExecutor:
         elif action == Action.MOVE:
             dx, dy = target.dx, target.dy
             return self.move(dx, dy)
+        elif action == Action.WANDER:
+            return self.wander()
         
         # Combat
         elif action == Action.ATTACK:
@@ -199,11 +201,10 @@ class ActionExecutor:
         current_block = self.game.city.block(x, y)
 
         if 0 <= new_x < CITY_SIZE and 0 <= new_y < CITY_SIZE:  # Ensure within city bounds
-            new_block = self.game.city.block(new_x, new_y)
-            self.action_points -= 2
-            self.action_points_lost += 2
-            current_block.current_zombies -= 1
-            new_block.current_zombies += 1
+#            if self.actor.is_human:
+#                self.actor.ap -= 1
+#            else:
+#                self.actor.ap -= 2
             self.actor.location = (new_x, new_y)
             self.actor.inside = False
             return True

@@ -39,6 +39,7 @@ class Zombie:
 
         # Execute action
         if result:
+            print(result)
             self.character.action.execute(result.action, result.target)       
 
     def _determine_behaviour(self, block):
@@ -56,6 +57,7 @@ class Zombie:
             return Result(Action.RELOCATE)
             
         elif len(living_humans) > 0:
+            print(f"{self.character} at {self.character.location} is attacking {living_humans[0]} at {living_humans[0].location}.")
             return Result(Action.ATTACK, living_humans[0])
 
         elif nearby_target.dx and nearby_target.dy:
@@ -107,7 +109,7 @@ class Zombie:
                         if adjacent_block.lights_on:
                             lit_buildings_dxy.append((dx, dy)) 
 
-        return random.choice(lit_buildings_dxy) if lit_buildings_dxy else None  # Shamble towards lit building
+        return random.choice(lit_buildings_dxy) if lit_buildings_dxy else (0, 0)  # Shamble towards lit building
 
     def _filter_npcs_at_npc_location(self):
         """Retrieve NPCs currently at the player's location and categorize them."""

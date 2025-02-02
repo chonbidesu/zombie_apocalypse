@@ -39,7 +39,7 @@ class Human:
         properties = BLOCKS[block.type]
         occupation = self.character.occupation
         inventory = self.character.inventory
-        living_zombies, living_humans, dead_bodies = self._filter_npcs_at_player_location()
+        living_zombies, living_humans, dead_bodies = self._filter_npcs_at_npc_location()
 
         # Stand up if dead and have enough action points
         if self.character.is_dead:
@@ -97,11 +97,11 @@ class Human:
 
         return None # No behaviour determined
     
-    def _filter_npcs_at_player_location(self):
-        """Retrieve NPCs currently at the player's location and categorize them."""
+    def _filter_npcs_at_npc_location(self):
+        """Retrieve other NPCs currently at the NPC's location and categorize them."""
         npcs_here = [
             npc for npc in self.game.npcs.list
-            if npc.location == self.game.player.location and npc.inside == self.game.player.inside
+            if npc.location == self.character.location and npc.inside == self.character.inside
         ]
 
         zombies_here = [npc for npc in npcs_here if not npc.is_human]
