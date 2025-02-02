@@ -1,9 +1,11 @@
 # main.py
 
 import pygame
+import sys
 
 from settings import *
 from game import GameInitializer
+import menus
 
 # Main game loop
 def main():
@@ -52,9 +54,11 @@ def main():
 
         # Handle player death
         if game.player.is_dead:
+            game.game_ui.death_screen.handle_events(events)
             game.game_ui.death_screen.draw()
             if game.game_ui.death_screen.restart:
-                game = GameInitializer()  # Reinitialize the game
+                game = GameInitializer(screen)  # Reinitialize the game
+                game.game_ui.death_screen.restart = False
 
         # Update NPC actions every half-second
         action_timer += clock.get_time()

@@ -113,16 +113,16 @@ class DeathScreen():
 
         pygame.display.flip()  # Update display
 
-        # Handle restart or quit actions
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+    def handle_events(self, events):
+        """Handle restart or quit actions"""
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_y:  # Restart game logic
+                    self.restart = True
+                elif event.key == pygame.K_n:  # Quit game
                     pygame.quit()
                     sys.exit()
-
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_y:  # Restart game logic
-                        self.restart = True
-                    elif event.key == pygame.K_n:  # Quit game
-                        pygame.quit()
-                        sys.exit()

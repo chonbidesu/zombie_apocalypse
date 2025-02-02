@@ -134,10 +134,13 @@ class ActionExecutor:
                 self._deplete_weapon(weapon, properties)
                 target.take_damage(properties.damage)
                 if self.actor.weapon:
+                    self.actor.ap -= 1
                     return ActionResult(True, f"Your attack hits for {properties.damage} damage.")
                 else:
+                    self.actor.ap -= 1
                     return ActionResult(True, f"Your attack hits for {properties.damage} damage. Your weapon breaks!")
             else:
+                self.actor.ap -= 1
                 return ActionResult(False, "Your attack misses.")
 
         else: # If no weapon equipped, punch the enemy.
@@ -146,14 +149,17 @@ class ActionExecutor:
 
             if attack_success:
                 target.take_damage(1)
+                self.actor.ap -= 1
                 return ActionResult(True, "You punch the enemy for 1 damage.")
             else:
+                self.actor.ap -= 1
                 return ActionResult(False, "Your attack misses.")
 
     def _zombie_attack(self, target):
         weapon = ZombieWeapon.choose()  # Get attack choice
         roll = random.randint(1, 20)
         attack_success = (roll + weapon.attack) >= ATTACK_DIFFICULTY
+        self.actor.ap -= 1
 
         if attack_success:
             target.take_damage(weapon.damage)
@@ -177,14 +183,17 @@ class ActionExecutor:
             return ActionResult(False, "You need to equip a firearm to reload.")
 
         if weapon.type == ItemType.PISTOL:
+            self.actor.ap -= 1
             return ActionResult(True, "You slap a new pistol clip into your gun.")
         elif weapon.type == ItemType.SHOTGUN:
+            self.actor.ap -= 1
             return ActionResult(True, "You load a shell into your shotgun.")
  
     def move(self, dx, dy):
         """Moves the actor to a new location."""
         x, y = self.actor.location
         new_x, new_y = x + dx, y + dy
+        is_human = self.actor.is_human
 
         # Check if the new coordinates are valid within the grid
         if 0 <= new_x < 100 and 0 <= new_y < 100:
@@ -192,19 +201,23 @@ class ActionExecutor:
             if self.actor.inside:
                 self.actor.inside = False
             self.actor.location = (new_x, new_y)
+            if is_human:
+                self.actor.ap -= 1
+            else:
+                self.actor.ap -= 2
 
     def wander(self):
         """Randomly moves the actor to an adjacent block."""
         x, y = self.actor.location[0], self.actor.location[1]
         dx, dy = random.choice([(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)])
         new_x, new_y = x + dx, y + dy
-        current_block = self.game.city.block(x, y)
+        is_human = self.actor.is_human
 
         if 0 <= new_x < CITY_SIZE and 0 <= new_y < CITY_SIZE:  # Ensure within city bounds
-#            if self.actor.is_human:
-#                self.actor.ap -= 1
-#            else:
-#                self.actor.ap -= 2
+            if is_human:
+                self.actor.ap -= 1
+            else:
+                self.actor.ap -= 2
             self.actor.location = (new_x, new_y)
             self.actor.inside = False
             return True
@@ -224,13 +237,17 @@ class ActionExecutor:
                 if not add_barricade:
                     return ActionResult(False, "You can't add more barricades.")
                 elif building.barricade.level == 4 and building.barricade.sublevel == 2:
+                    self.actor.ap -= 1
                     return ActionResult(True, "You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in.")
                 elif building.barricade.sublevel == 0:
                     barricade_description = building.barricade.get_barricade_description()
+                    self.actor.ap -= 1            
                     return ActionResult(True, f"You reinforce the barricade. The building is now {barricade_description}.")
                 elif building.barricade.sublevel > 0:
+                    self.actor.ap -= 1
                     return ActionResult(True, "You reinforce the barricade.")
-                return ActionResult(True, "You ")
+            else:
+                return ActionResult(False, "You can't find anything to reinforce the barricade.")
         else:
             return ActionResult(False, "You have to be inside a building to barricade.")
 
@@ -241,9 +258,11 @@ class ActionExecutor:
                 if self.actor.is_human:
                     if building.barricade.level == 0:
                         self.actor.inside = True
+                        self.actor.ap -= 1
                         return ActionResult(True, "You entered the building.")
                     elif building.barricade.level <= 4:
                         self.actor.inside = True
+                        self.actor.ap -= 1
                         return ActionResult(True, "You climb through the barricades and are now inside.")
                     else:
                         return ActionResult(False, "You can't find a way through the barricades.")
@@ -263,15 +282,18 @@ class ActionExecutor:
             if self.actor.is_human:
                 if building.barricade.level == 0:
                     self.actor.inside = False
+                    self.actor.ap -= 1
                     return ActionResult(True, "You left the building.")
                 if building.barricade.level <= 4:
                     self.actor.inside = False
+                    self.actor.ap -= 1
                     return ActionResult(True, "You climb through the barricades and are now outside.")
                 else:
                     return ActionResult(False, "The building has been so heavily barricaded that you cannot leave through the main doors.")
             else:
                 if building.barricade.level == 0:
                     self.actor.inside = False
+                    self.actor.ap -= 1
                     return ActionResult(True, "You left the building.")
                 else:
                     return ActionResult(False, "You have to break through the barricades first.")
@@ -303,12 +325,15 @@ class ActionExecutor:
                     item_properties = ITEMS[item.type]
                     if item is not None:
                         if items_held >= MAX_ITEMS:
+                            self.actor.ap -= 1
                             return ActionResult(False, f"You found {item_properties.description}, but you are carrying too much!")
                         elif item_type == ItemType.PORTABLE_GENERATOR:
                             for item in self.actor.inventory:
                                 if hasattr(item, 'type') and item.type == ItemType.PORTABLE_GENERATOR:
+                                    self.actor.ap -= 1
                                     return ActionResult(False, "You found Portable Generator, but you can only carry one at a time.")
                         self.actor.inventory.append(item)
+                        self.actor.ap -= 1
                         return ActionResult(True, f"You found {item_properties.description}!")
         else:
             return ActionResult(False, "You have to be inside a building to search.")
@@ -345,6 +370,7 @@ class ActionExecutor:
             if self.actor.hp < self.actor.max_hp:
                 self.actor.heal(20)
                 self.actor.inventory.remove(item)
+                self.actor.ap -= 1
                 return ActionResult(True, "You use a first aid kit, and feel a bit better.")
             else:
                 return ActionResult(False, "You already feel healthy.")
@@ -353,6 +379,7 @@ class ActionExecutor:
             
             result = self.install_generator(block)
             if result.success:
+                self.actor.ap -= 1
                 block.generator_installed = True
                 self.actor.inventory.remove(item)
             return result
@@ -360,6 +387,7 @@ class ActionExecutor:
         elif item.type == ItemType.FUEL_CAN:
             result = self.fuel_generator()
             if result.success:
+                self.actor.ap -= 1
                 block.fuel_expiration = self.game.ticker + FUEL_DURATION
                 block.lights_on = True
                 self.actor.inventory.remove(item)
@@ -368,6 +396,7 @@ class ActionExecutor:
         elif item.type == ItemType.TOOLBOX:
             result = self.repair_building(block)
             if result.success:
+                self.actor.ap -= 1
                 block.ransack_level = 0
                 block.ruined = False
             return result
@@ -378,6 +407,7 @@ class ActionExecutor:
         elif item.type == ItemType.PISTOL_CLIP:
             result = self.reload(weapon)
             if result.success:
+                self.actor.ap -= 1
                 weapon.loaded_ammo = weapon.max_ammo
                 self.actor.inventory.remove(item)
             return result
@@ -385,6 +415,7 @@ class ActionExecutor:
         elif item.type == ItemType.SHOTGUN_SHELL:
             result = self.reload(weapon)
             if result.sucess:       
+                self.actor.ap -= 1
                 weapon.loaded_ammo += 1                
                 self.actor.inventory.remove(item)          
             return result

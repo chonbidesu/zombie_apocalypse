@@ -1,19 +1,11 @@
 # human_state.py
 
-from dataclasses import dataclass
-
 from settings import *
 from data import Action, BLOCKS, Occupation, ItemType, MILITARY_OCCUPATIONS, SCIENCE_OCCUPATIONS, CIVILIAN_OCCUPATIONS
-from characters.state import State
+from characters.state import State, Result
 
 
-@dataclass
-class Result:
-    action: Action
-    target: object = None
-
-
-class Human:
+class Human(State):
     """Represents the human state."""
     def __init__(self, game, character):
         super().__init__(game, character)
@@ -80,19 +72,3 @@ class Human:
                 return Result(Action.WANDER)
 
         return None # No behaviour determined
-    
-    def _filter_npcs_at_npc_location(self):
-        """Retrieve other NPCs currently at the NPC's location and categorize them."""
-        npcs_here = [
-            npc for npc in self.game.npcs.list
-            if npc.location == self.character.location and npc.inside == self.character.inside
-        ]
-
-        zombies_here = [npc for npc in npcs_here if not npc.is_human]
-        humans_here = [npc for npc in npcs_here if npc.is_human]
-
-        living_zombies = [z for z in zombies_here if not z.is_dead]
-        living_humans = [h for h in humans_here if not h.is_dead]
-        dead_bodies = [npc for npc in npcs_here if npc.is_dead]
-
-        return living_zombies, living_humans, dead_bodies    

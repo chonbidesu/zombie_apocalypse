@@ -27,12 +27,19 @@ class Zombie(State):
         # Relocate if the block is overcrowded
         if len(living_zombies + living_humans) > BLOCK_CAPACITY:
             return Result(Action.RELOCATE)
-            
+
         elif len(living_humans) > 0:
             if self.current_target not in living_humans:
                 random.shuffle(living_humans)
                 self.current_target = living_humans[0] # Choose a new target
             return Result(Action.ATTACK, self.current_target)
+
+        elif self.current_target:
+            if self.current_target.location == self.character.location and self.current_target.inside != self.character.inside:
+                if self.character.inside and block.barricade.level == 0:
+                    return Result(Action.LEAVE)
+                elif not self.character.inside and block.barricade.level == 0:
+                    return Result(Action.ENTER)
 
         elif nearby_target.dx is not None and nearby_target.dy is not None:
             return Result(Action.MOVE, nearby_target)

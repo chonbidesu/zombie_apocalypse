@@ -21,7 +21,7 @@ FPS = 60
 FONT_SIZE = 16
 CHAT_HEIGHT = SCREEN_HEIGHT * 1 // 4
 CHAT_LINES = 10
-ACTION_INTERVAL = 500 # Time between actions in milliseconds
+ACTION_INTERVAL = 1500 # Time between actions in milliseconds
 
 # Gameplay
 FUEL_DURATION = 200

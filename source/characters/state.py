@@ -51,7 +51,7 @@ class State:
         zombies_here = [npc for npc in npcs_here if not npc.is_human]
         humans_here = [npc for npc in npcs_here if npc.is_human]
 
-        if player.location == self.character.location:
+        if player.location == self.character.location and player.inside == self.character.inside:
             if player.is_human:
                 humans_here.append(player)
             else:
