@@ -98,17 +98,13 @@ class ActionExecutor:
         elif action == Action.BARRICADE:
             if self.actor == player:
                 action_progress.start("Barricading", self.barricade, block)
-                action_result = action_progress.result
             else:
-                action_result = self.barricade(block)
-            return action_result
+                return self.barricade(block)
         elif action == Action.SEARCH:
             if self.actor == player:
                 action_progress.start("Searching", self.search, block)
-                action_result = action_progress.result
             else:
-                action_result = self.search(block)
-            return action_result
+                return self.search(block)
         elif action == Action.ENTER:
             if self.actor == player:
                 action_result = screen_transition.circle_wipe(self.enter, self.game.chat_history, block)
@@ -124,17 +120,13 @@ class ActionExecutor:
         elif action == Action.REPAIR_BUILDING:
             if self.actor == player:
                 action_progress.start("Repairing", self.repair_building, block)
-                action_result = action_progress.result
             else:
-                action_result = self.repair_building(block)
-            return action_result
+                return self.repair_building(block)
         elif action == Action.DECADE:
             if self.actor == player:
                 action_progress.start("Smashing", self.break_barricades, block)
-                action_result = action_progress.result
             else:
-                action_result = self.break_barricades(block)
-            return action_result
+                return self.break_barricades(block)
 
         # Inventory actions
         elif action == Action.EQUIP:
@@ -303,15 +295,18 @@ class ActionExecutor:
     def break_barricades(self, building):
         properties = BLOCKS[building.type]
         if properties.is_building:
-            if building.barricade.level == 0:
-                return ActionResult(False, "There are no barricades to break.")
-            else:
-                building.barricade.adjust_barricade_sublevel(-1)
+            if building.barricade.level > 0:
+                building.barricade.register_hit()
                 self.actor.ap -= 1
-                message = "You smash at the barricades."
-                witness = "Something smashes at the barricades."
+                if building.barricade.level == 0:
+                    message = "You smash at the barricades. The last piece of it falls away."
+                    witness = "Something smashes through the last of the barricades."
+                else:
+                    message = "You smash at the barricades."
+                    witness = "Something smashes at the barricades."
                 return ActionResult(True, message, witness)
-
+            else:
+                return ActionResult(False, "There are no barricades to break.")                
         else:
             return ActionResult(False, "Only buildings have barricades.")
 
@@ -399,6 +394,7 @@ class ActionExecutor:
                         self.actor.inventory.append(item)
                         self.actor.ap -= 1
                         return ActionResult(True, f"You found {item_properties.description}!")
+            return ActionResult(False, "You didn't find anything.")
         else:
             return ActionResult(False, "You have to be inside a building to search.")
 

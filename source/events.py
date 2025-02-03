@@ -107,6 +107,9 @@ class EventHandler:
                     'search': Action.SEARCH,
                     'enter': Action.ENTER,
                     'leave': Action.LEAVE,
+                    'ransack': Action.RANSACK,
+                    'break_cades': Action.DECADE,
+                    'stand': Action.STAND,
                 }
                 action = button_to_action.get(action_name)
                 if action:
@@ -150,7 +153,11 @@ class EventHandler:
         """Evoke the Action Executor to handle actions."""
         result = self.action.execute(action, target)
         if result:
-            self.game.chat_history.append(result.message)
+            self.handle_feedback(result.message)
+
+    def handle_feedback(self, message):
+        """Handle feedback messages from actions."""
+        self.game.chat_history.append(message)
 
 class ClickTarget:
     """Get the target of a mouse click."""

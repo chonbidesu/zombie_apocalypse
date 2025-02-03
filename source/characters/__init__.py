@@ -2,7 +2,7 @@
 
 from settings import *
 from data import ITEMS, ItemType, ItemFunction
-from items import Item, Weapon
+from characters.items import Item, Weapon
 from characters.human_state import Human
 from characters.zombie_state import Zombie
 from characters.actions import ActionExecutor
@@ -61,7 +61,7 @@ class Character:
     def status(self):
         """Returns the character's current status."""
         status = {
-            "Occupation": self.occupation,
+            "Occupation": self.occupation.name.title(),
             "Location": self.location,
             "HP": f"{self.hp} / {self.max_hp}",
         }

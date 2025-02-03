@@ -50,17 +50,16 @@ class ActionProgress:
         """Start displaying an action progress message for a set duration."""
         self.active_message = message
         self.start_ticks = pygame.time.get_ticks()
-        self.duration = 1500
+        self.duration = 750
         self.target_function = target_function
         self.args = args
         self.kwargs = kwargs
-        self.result = None
 
     def draw(self):
         """Draw the action progress message if it's active."""
         if self.active_message:
             elapsed = pygame.time.get_ticks() - self.start_ticks # Time elapsed in ms
-            dots = "." * ((elapsed // 500) % 4) # Animated "..." effect every 500ms
+            dots = "." * ((elapsed // 250) % 4) # Animated "..." effect every 500ms
             text = font_xl.render(f"{self.active_message}{dots}", True, WHITE)
 
             text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
@@ -70,7 +69,9 @@ class ActionProgress:
             if elapsed > self.duration:
                 self.active_message = None
                 if self.target_function:
-                    self.result = self.target_function(*self.args, **self.kwargs)
+                    result = self.target_function(*self.args, **self.kwargs)
+                    if result:
+                        self.game.event_handler.handle_feedback(result.message)
                     self.target_function = None
 
 

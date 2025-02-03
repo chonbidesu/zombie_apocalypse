@@ -27,16 +27,23 @@ margin = 2
 class PauseMenu:
     """Create a pause menu."""
     def __init__(self):
-        self.play_button = Button('play', SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 - 100)
-        self.options_button = Button('options', SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2)
-        self.exit_button = Button('exit',  SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 100)
         self.button_group = self.create_menu_button_group()
 
     def create_menu_button_group(self):
         button_group = pygame.sprite.Group()
+
+        self.play_button = Button('play')
+        self.play_button.update(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 - 100)
         button_group.add(self.play_button)
+
+        self.options_button = Button('options')
+        self.options_button.update(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2)
         button_group.add(self.options_button)
+
+        self.exit_button = Button('exit')
+        self.exit_button.update(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 100)
         button_group.add(self.exit_button)
+
         return button_group
     
     def create_skill_list(self):

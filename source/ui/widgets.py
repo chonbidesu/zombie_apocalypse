@@ -6,14 +6,13 @@ from settings import *
 
 class Button(pygame.sprite.Sprite):
     """A button that changes images on mouse events."""
-    def __init__(self, name, x, y):
+    def __init__(self, name):
         super().__init__()
         self.name = name
-        self.x, self.y = x, y
         self.is_pressed = False
         self._image_up = None  # Private attributes for lazy-loaded images
         self._image_down = None
-        self.rect = pygame.Rect(x, y, 100, 49)  # Initial rect size (scale later when image is loaded)
+        self.rect = pygame.Rect(0, 0, 100, 49)  # Initial rect size (scale later when image is loaded)
 
     @property
     def image_up(self):
@@ -39,12 +38,6 @@ class Button(pygame.sprite.Sprite):
         else:
             return self.image_up
 
-    @image.setter
-    def image(self, value):
-        """Setter for image, in case the image needs to be manually set."""
-        # This can be used if you want to manually change the image
-        pass
-
     def handle_event(self, event):
         """Handle mouse events to change button state."""
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -58,10 +51,11 @@ class Button(pygame.sprite.Sprite):
                 
         return None
     
-    def update(self):
+    def update(self, x, y):
         """Update the button's visual state."""
         # Update image based on button press state
-        self.image = self.image  # This just triggers the lazy loading based on current state
+        #self.image = self.image  # This just triggers the lazy loading based on current state
+        self.rect.topleft = (x, y)  # Update the button's position
 
 
 class Cursor(object):
