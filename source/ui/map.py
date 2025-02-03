@@ -111,8 +111,8 @@ class Map:
 
     def _draw_block_label(self, block_image, label_name):
         """Render the block label onto the block's surface."""
-        label_text = WrapText(label_name, font_xs, self.block_size - 2)
-        text_height = sum(font_xs.size(line)[1] for line in label_text.lines)
+        label_text = WrapText(label_name, font_xs, self.block_size - 2).lines
+        text_height = sum(font_xs.size(line)[1] for line in label_text)
 
         image_copy = block_image.copy()
         label_rect = pygame.Rect(
