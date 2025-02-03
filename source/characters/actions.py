@@ -386,11 +386,11 @@ class ActionExecutor:
                         if items_held >= MAX_ITEMS:
                             self.actor.ap -= 1
                             return ActionResult(False, f"You found {item_properties.description}, but you are carrying too much!")
-                        elif item_type == ItemType.PORTABLE_GENERATOR:
-                            for item in self.actor.inventory:
-                                if hasattr(item, 'type') and item.type == ItemType.PORTABLE_GENERATOR:
+                        elif item.type == ItemType.PORTABLE_GENERATOR:
+                            for inventory_item in self.actor.inventory:
+                                if hasattr(inventory_item, 'type') and inventory_item.type == ItemType.PORTABLE_GENERATOR:
                                     self.actor.ap -= 1
-                                    return ActionResult(False, "You found Portable Generator, but you can only carry one at a time.")
+                                    return ActionResult(False, "You found a portable generator, but you can only carry one at a time.")
                         self.actor.inventory.append(item)
                         self.actor.ap -= 1
                         return ActionResult(True, f"You found {item_properties.description}!")
@@ -445,7 +445,7 @@ class ActionExecutor:
             return result
     
         elif item.type == ItemType.FUEL_CAN:
-            result = self.fuel_generator()
+            result = self.fuel_generator(block)
             if result.success:
                 self.actor.ap -= 1
                 block.fuel_expiration = self.game.ticker + FUEL_DURATION
