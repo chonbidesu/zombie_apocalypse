@@ -1,0 +1,86 @@
+# actions_panel.py
+
+import pygame
+
+from settings import *
+from ui.widgets import Button
+from data import BLOCKS
+
+
+class ActionsPanel:
+    """Draw the actions panel and buttons."""
+    def __init__(self, game, screen):
+        self.screen = screen
+        self.game = game
+        self.width = SCREEN_HEIGHT // 2
+        self.height = SCREEN_HEIGHT * 3 // 20 - 10
+        self.button_group = self._create_button_group()
+
+    def draw(self):
+        x, y = 10, (SCREEN_HEIGHT // 2) + 40     
+        # Draw the panel background and border
+        pygame.draw.rect(self.screen, WHITE, (x, y, self.width, self.height))
+        pygame.draw.rect(self.screen, BLACK, (x, y, self.width, self.height), 2)
+
+        # Render the title
+        title_text = font_large.render("Available Actions", True, BLACK)
+        title_rect = title_text.get_rect(center=(x + self.width // 2, y + 15))
+        self.screen.blit(title_text, title_rect)
+        self.button_group.draw(self.screen)        
+
+    # Set up action button group
+    def _create_button_group(self):
+        button_group = pygame.sprite.Group()
+
+        self.barricade_button = Button('barricade')
+        self.search_button = Button('search')
+        self.enter_button = Button('enter')
+        self.leave_button = Button('leave')
+        self.ransack_button = Button('ransack')
+        self.break_cades_button = Button('break_cades')
+        self.stand_button = Button('stand') 
+
+        return button_group        
+
+    # Update action buttons according to player status
+    def update(self):
+        self.button_group.empty() # Clear existing buttons
+
+        player = self.game.player
+        block = self.game.city.block(player.location[0], player.location[1])
+        properties = BLOCKS[block.type]
+        buttons = []
+
+        if player.is_dead:
+            buttons.append(self.stand_button)
+        else:
+            if player.inside:
+                buttons.append(self.barricade_button)
+                buttons.append(self.search_button)
+                buttons.append(self.leave_button)
+                if not player.is_human:
+                    buttons.append(self.ransack_button)
+            else:
+                if properties.is_building:
+                    buttons.append(self.enter_button)
+
+            if properties.is_building and block.barricade.level > 0:
+                buttons.append(self.break_cades_button)
+
+        # Calculate button positions
+        max_buttons_per_row = 3
+        width = 120
+        height = 40
+        start_x = 40
+        start_y = SCREEN_HEIGHT // 2 + 60
+
+        for row in range((len(buttons) + max_buttons_per_row - 1) // max_buttons_per_row):
+            row_buttons = buttons[row * max_buttons_per_row:(row + 1) * max_buttons_per_row]
+            total_row_width = len(row_buttons) * width
+            start_x = (self.width - total_row_width) // 2 + 10  # Center the row
+
+            for col, button in enumerate(row_buttons):
+                x = start_x + col * width
+                y = start_y + row * height
+                button.update(x, y)
+                self.button_group.add(button)

@@ -1,9 +1,14 @@
 from settings import *
-from ui.panels import StatusPanel, ChatPanel, ActionsPanel, InventoryPanel, DescriptionPanel
+from ui.status_panel import StatusPanel
+from ui.chat_panel import ChatPanel
+from ui.actions_panel import ActionsPanel 
+from ui.inventory_panel import InventoryPanel
+from ui.description_panel import DescriptionPanel
 from ui.viewport import Viewport
-from ui.utils import ActionProgress, DeathScreen, WrapText, SpriteSheet
+from ui.utils import ActionProgress, DeathScreen
 from ui.effects import ScreenTransition
 from ui.widgets import Cursor, Button
+from ui.map import Map
 
 
 class DrawUI:
@@ -18,6 +23,7 @@ class DrawUI:
         self.description_panel = DescriptionPanel(game, screen)
         self.action_progress = ActionProgress(game, screen)
         self.screen_transition = ScreenTransition(screen, self.draw, self.update)
+        self.map = Map(game, screen)
         self.death_screen = DeathScreen(game, screen)
 
     def draw(self, chat_history):
