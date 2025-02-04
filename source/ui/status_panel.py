@@ -98,10 +98,12 @@ class PlayerSprite(pygame.sprite.Sprite):
         """Update the animation frame range based on player's HP."""
         previous_start_frame = self.start_frame
 
-        if self.player.hp > self.player.max_hp * 0.5:
+        if self.player.hp > self.player.max_hp * 0.7:
             self.start_frame = 0  # Normal animation
-        else:
+        elif self.player.hp > self.player.max_hp * 0.3:
             self.start_frame = self.frame_count  # Use the second set of frames
+        else:
+            self.start_frame = self.frame_count * 2  # Use the third set of frames
 
         if self.start_frame != previous_start_frame:
             self.current_frame = self.start_frame
