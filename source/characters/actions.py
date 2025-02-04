@@ -67,6 +67,10 @@ class ActionExecutor:
         elif action == Action.ZOOM_OUT:
             return self.zoom_out()
 
+        # Stand up
+        elif action == Action.STAND:
+            return self.stand()
+
         # Movement
         elif action == Action.MOVE_UP:
             return self.move(0, -1)
@@ -106,13 +110,13 @@ class ActionExecutor:
             else:
                 return self.search(block)
         elif action == Action.ENTER:
-            if self.actor == player:
+            if self.actor == player and block.barricade.can_pass(self.actor):
                 action_result = screen_transition.circle_wipe(self.enter, self.game.chat_history, block)
             else:
                 action_result = self.enter(block)
             return action_result
         elif action == Action.LEAVE:
-            if self.actor == player:
+            if self.actor == player and block.barricade.can_pass(self.actor):
                 action_result = screen_transition.circle_wipe(self.leave, self.game.chat_history, block)
             else:
                 action_result = self.leave(block)
@@ -530,7 +534,7 @@ class ActionExecutor:
         """Actor stands up at full health after collecting enough action points."""
         self.is_dead = False
         self.hp = 50
-        self.actor.action_points -= STAND_AP
+        self.actor.ap -= STAND_AP
 
     def close_map(self):
         self.game.reading_map = False

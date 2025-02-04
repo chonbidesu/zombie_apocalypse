@@ -1,12 +1,13 @@
 # simulate.py
 
+
 import logging
+import pygame
+
 from main import GameInitializer  # Import the game setup
-from saveload import Gamestate  # Import save/load system
-from characters import Character
-from city import City
-from populate import GenerateNPCs
-from blocks import CityBlock, BuildingBlock
+from settings import *
+
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Configure logging
 logging.basicConfig(filename="balance_test.log", level=logging.INFO, format="%(message)s")
@@ -15,7 +16,7 @@ def run_simulation(rounds=500):
     """Runs the AI balance test without opening the game window."""
     
     # Initialize game (without rendering)
-    game = GameInitializer()
+    game = GameInitializer(screen)
     
     # If you want to load a save file, do this:
     # game_state = Gamestate.load_game("savegame.pkl")

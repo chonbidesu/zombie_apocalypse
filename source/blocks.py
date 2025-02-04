@@ -153,3 +153,12 @@ class BuildingBlock(CityBlock):
             """
             barricade_state = list(BarricadeState)[self.level]
             return BARRICADE_DESCRIPTIONS[barricade_state]
+        
+        def can_pass(self, actor):
+            """Returns true if the actor can pass the barricade."""
+            if actor.is_human and self.level <= 4:
+                return True
+            elif not actor.is_human and self.level == 0:
+                return True
+            else:
+                return False
