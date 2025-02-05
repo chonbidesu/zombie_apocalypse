@@ -171,6 +171,8 @@ class DescriptionPanel:
                 current_observations += "You see a dead body. "
             else:
                 current_observations += f"You see {len(dead_bodies)} dead bodies. "
+            for body in dead_bodies:
+                print(f"{body.current_name} has {body.ap} AP.")
 
         return current_observations
 

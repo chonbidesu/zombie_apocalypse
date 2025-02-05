@@ -32,13 +32,16 @@ class ActionsPanel:
     def _create_button_group(self):
         button_group = pygame.sprite.Group()
 
-        self.barricade_button = Button('barricade')
-        self.search_button = Button('search')
-        self.enter_button = Button('enter')
-        self.leave_button = Button('leave')
-        self.ransack_button = Button('ransack')
-        self.break_cades_button = Button('break_cades')
-        self.stand_button = Button('stand') 
+        width = 100
+        height = 49
+
+        self.barricade_button = Button('barricade', width, height, is_pressable=True)
+        self.search_button = Button('search', width, height, is_pressable=True)
+        self.enter_button = Button('enter', width, height, is_pressable=True)
+        self.leave_button = Button('leave', width, height, is_pressable=True)
+        self.ransack_button = Button('ransack', width, height, is_pressable=True)
+        self.break_cades_button = Button('break_cades', width, height, is_pressable=True)
+        self.stand_button = Button('stand', width, height, is_pressable=True) 
 
         return button_group        
 

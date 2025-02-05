@@ -1,43 +1,49 @@
 # button.py
 
 import pygame
-import threading
 
 from settings import *
 
 class Button(pygame.sprite.Sprite):
     """A button that changes images on mouse events."""
-    def __init__(self, name):
+    def __init__(self, name, width, height, is_pressable=False):
         super().__init__()
         self.name = name
+        self.width = width
+        self.height = height
+        self.is_pressable = is_pressable
         self.is_pressed = False
         self._image_up = None  # Private attributes for lazy-loaded images
         self._image_down = None
-        self.rect = pygame.Rect(0, 0, 100, 49)  # Initial rect size (scale later when image is loaded)
+        self.rect = pygame.Rect(0, 0, width, height)  # Initial rect size (scale later when image is loaded)
+
+        if not is_pressable:
+            self._image = pygame.image.load(ResourcePath(f"assets/buttons/{self.name}.png").path).convert_alpha()
+            self._image = pygame.transform.scale(self._image, (width, height))  # Scale when loading
 
     @property
     def image_up(self):
         """Lazy load the 'up' image when first accessed."""
         if self._image_up is None:
-            self._image_up = pygame.image.load(ResourcePath(f"assets/{self.name}_up.png").path).convert_alpha()
-            self._image_up = pygame.transform.scale(self._image_up, (100, 49))  # Scale when loading
+            self._image_up = pygame.image.load(ResourcePath(f"assets/buttons/{self.name}_up.png").path).convert_alpha()
+            self._image_up = pygame.transform.scale(self._image_up, (self.width, self.height))  # Scale when loading
         return self._image_up
 
     @property
     def image_down(self):
         """Lazy load the 'down' image when first accessed."""
         if self._image_down is None:
-            self._image_down = pygame.image.load(ResourcePath(f"assets/{self.name}_down.png").path).convert_alpha()
-            self._image_down = pygame.transform.scale(self._image_down, (100, 49))  # Scale when loading
+            self._image_down = pygame.image.load(ResourcePath(f"assets/buttons/{self.name}_down.png").path).convert_alpha()
+            self._image_down = pygame.transform.scale(self._image_down, (self.width, self.height))  # Scale when loading
         return self._image_down
 
     @property
     def image(self):
         """Return the current image based on button state."""
-        if self.is_pressed:
-            return self.image_down
+        if self.is_pressable:
+            return self.image_down if self.is_pressed else self.image_up
         else:
-            return self.image_up
+            return self._image
 
     def handle_event(self, event):
         """Handle mouse events to change button state."""
