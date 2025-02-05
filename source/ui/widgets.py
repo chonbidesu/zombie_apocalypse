@@ -61,35 +61,27 @@ class Button(pygame.sprite.Sprite):
 
 class Cursor(object):
     def __init__(self):
-        self.default_image = pygame.image.load(ResourcePath('assets/zombie_hand.png').path).convert_alpha()
-        self.attack_image = pygame.image.load(ResourcePath('assets/crosshair.png').path).convert_alpha()
-        self.image = self.default_image
-        self.rect = self.image.get_rect(center=(0,0))
-        pygame.mouse.set_visible(False)
-        self.lock = threading.Lock()
-        self.running = True
-        self.thread = threading.Thread(target=self.update_position)
-        self.thread.start()
-    
+        # Create the cursors
+        self.default_cursor = self._create_cursor(ResourcePath("assets/zombie_hand.png").path)
+        self.attack_cursor = self._create_cursor(ResourcePath("assets/crosshair.png").path)
+
+        pygame.mouse.set_cursor(self.default_cursor)
+
+    def _create_cursor(self, image_path):
+        image = pygame.image.load(image_path).convert_alpha()
+        cursor = pygame.cursors.Cursor((0, 0), image)
+        return cursor
+
     def update(self, game_ui):
-        with self.lock:      
-            self.image = self.default_image
-            for zombie in game_ui.description_panel.zombie_sprite_group:
-                if zombie.rect.collidepoint(self.rect.topleft):
-                    self.image = self.attack_image
-                    break
+        mouse_x, mouse_y = pygame.mouse.get_pos()
 
-    def update_position(self):
-        while self.running:
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            with self.lock:
-                self.rect.topleft = (mouse_x, mouse_y)
-            pygame.time.wait(10)
+        # Check collisions with zombie sprites
+        cursor_changed = False    
+        for zombie in game_ui.description_panel.zombie_sprite_group:
+            if zombie.rect.collidepoint((mouse_x, mouse_y)):
+                pygame.mouse.set_cursor(self.attack_cursor)
+                cursor_changed = True
+                break
 
-    def draw(self):
-        with self.lock:
-            pygame.display.get_surface().blit(self.image, self.rect)
-
-    def stop(self):
-        self.running = False
-        self.thread.join()
+        if not cursor_changed:
+            pygame.mouse.set_cursor(self.default_cursor)

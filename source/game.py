@@ -85,6 +85,5 @@ class GameInitializer:
     def quit_game(self):
         """Handle cleanup and save the game on exit."""
         self.save_game()
-        self.cursor.stop()
         pygame.quit()
         sys.exit()

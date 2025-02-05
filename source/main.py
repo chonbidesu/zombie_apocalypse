@@ -2,6 +2,8 @@
 
 import pygame
 import sys
+import cProfile
+import pstats
 
 from settings import *
 from game import GameInitializer
@@ -50,7 +52,6 @@ def main():
 
         # Draw the cursor
         game.cursor.update(game.game_ui)
-        game.cursor.draw()
 
         # Handle player death
         if game.player.is_dead:
@@ -78,7 +79,6 @@ def main():
         pygame.display.flip()
         clock.tick(FPS)
 
-    game.cursor.stop()
     pygame.quit()
     sys.exit()
 

@@ -26,9 +26,6 @@ class EventHandler:
             elif event.type == pygame.MOUSEBUTTONUP:
                 self.handle_mousebuttonup(event, ContextMenu)
 
-            elif event.type == pygame.MOUSEMOTION:
-                self.handle_mousemotion(event)
-
             elif event.type == pygame.USEREVENT and event.code == 'MENU':
                 if event.name is None:
                     self.game.popup_menu = None # Close menu if no option selected
@@ -126,10 +123,6 @@ class EventHandler:
                 action = button_to_action.get(action_name)
                 if action:
                     self.act(action)
-
-    def handle_mousemotion(self, event):
-        """Update cursor position on mouse motion."""
-        self.game.cursor.rect.center = event.pos
 
     def handle_popup_menu(self, action_type, target=None):
         """Handle popup menu actions."""
