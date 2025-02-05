@@ -1,5 +1,9 @@
 # __init__.py
 
+from dataclasses import dataclass
+import csv
+import random
+
 from settings import *
 from data import ITEMS, ItemType, ItemFunction
 from characters.items import Item, Weapon
@@ -7,12 +11,21 @@ from characters.human_state import Human
 from characters.zombie_state import Zombie
 from characters.actions import ActionExecutor
 
+
+@dataclass
+class CharacterName:
+    first_name: str
+    last_name: str
+    zombie_adjective: str
+
+
 class Character:
     """Base class for Player and NPC Characters."""
     def __init__(self, game, occupation, x, y, is_human, inside=False):
         self.game = game
+        self.name = self._assign_name()
+        self.current_name = ""
         self.occupation = occupation
-        self.name = occupation.name.title()
         self.location = (x, y)
         self.max_hp = MAX_HP
         self.hp = self.max_hp
@@ -27,12 +40,26 @@ class Character:
         self.zombie_skills = set()
         self.action = ActionExecutor(game, self)
 
+    # Assign a random name to the character
+    def _assign_name(self):
+        name_generator = NameGenerator('data/character_names.csv')
+        return name_generator.generate_name()
+
+    def update_name(self):
+        """Updates the character's name based on their current state."""
+        if self.is_human:
+            self.current_name = f"{self.name.first_name} {self.name.last_name}"
+        else:
+            self.current_name = f"{self.name.zombie_adjective} {self.name.first_name}"
+
     # Set initial state
     def get_state(self):
         if self.is_human:
             state = Human(self.game, self)
+            self.update_name()
         else:
             state = Zombie(self.game, self)
+            self.update_name()
         return state
 
     def take_damage(self, amount):
@@ -51,12 +78,14 @@ class Character:
         self.is_dead = True
         self.is_human = False
         self.state = Zombie(self.game, self)
+        self.update_name()
 
     def revivify(self):
         """Revives the character to human state."""
         self.is_dead = True
         self.is_human = True
         self.state = Human(self.game, self)
+        self.update_name()
 
     def status(self):
         """Returns the character's current status."""
@@ -85,3 +114,31 @@ class Character:
             item = Item(type=item_type)
             return item
     
+
+class NameGenerator:
+    def __init__(self, csv_file):
+        self.first_names = {}
+        self.last_names = []
+        self.zombie_adjectives = {}
+        self.load_names(csv_file)
+
+    def load_names(self, csv_file):
+        with open(csv_file, newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                first_name_letter = row['first_name'][0].upper()
+                zombie_adjective_letter = row['zombie_adjective'][0].upper()
+                if first_name_letter not in self.first_names:
+                    self.first_names[first_name_letter] = []
+                if zombie_adjective_letter not in self.zombie_adjectives:
+                    self.zombie_adjectives[zombie_adjective_letter] = []
+                self.first_names[first_name_letter].append(row['first_name'])
+                self.last_names.append(row['last_name'])
+                self.zombie_adjectives[zombie_adjective_letter].append(row['zombie_adjective'])
+    
+    def generate_name(self):
+        first_letter = random.choice(list(self.first_names.keys()))
+        first_name = random.choice(self.first_names[first_letter])
+        last_name = random.choice(self.last_names)
+        zombie_adjective = random.choice(self.zombie_adjectives[first_letter])
+        return CharacterName(first_name, last_name, zombie_adjective)

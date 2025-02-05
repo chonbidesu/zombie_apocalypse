@@ -1,6 +1,7 @@
 # button.py
 
 import pygame
+import threading
 
 from settings import *
 
@@ -65,15 +66,30 @@ class Cursor(object):
         self.image = self.default_image
         self.rect = self.image.get_rect(center=(0,0))
         pygame.mouse.set_visible(False)
+        self.lock = threading.Lock()
+        self.running = True
+        self.thread = threading.Thread(target=self.update_position)
+        self.thread.start()
     
     def update(self, game_ui):
-        self.image = self.default_image
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        self.rect.topleft = (mouse_x, mouse_y)        
-        for zombie in game_ui.description_panel.zombie_sprite_group:
-            if zombie.rect.collidepoint((mouse_x, mouse_y)):
-                self.image = self.attack_image
-                self.rect.center = (mouse_x, mouse_y)
+        with self.lock:      
+            self.image = self.default_image
+            for zombie in game_ui.description_panel.zombie_sprite_group:
+                if zombie.rect.collidepoint(self.rect.topleft):
+                    self.image = self.attack_image
+                    break
+
+    def update_position(self):
+        while self.running:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            with self.lock:
+                self.rect.topleft = (mouse_x, mouse_y)
+            pygame.time.wait(10)
 
     def draw(self):
-        pygame.display.get_surface().blit(self.image, self.rect)
+        with self.lock:
+            pygame.display.get_surface().blit(self.image, self.rect)
+
+    def stop(self):
+        self.running = False
+        self.thread.join()

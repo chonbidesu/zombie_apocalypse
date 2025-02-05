@@ -288,6 +288,14 @@ class NPCSprite(pygame.sprite.Sprite):
         )
         self.rect = self.image.get_rect()
 
+    def draw_name(self):
+        """Draw the NPC's name above the sprite."""
+        name = self.npc.current_name
+        name_text = font_xs.render(name, True, BLACK)
+        name_y = self.rect.y + self.rect.height
+        name_rect = name_text.get_rect(centerx=self.rect.centerx, y=name_y)
+        self.screen.blit(name_text, name_rect)
+
     def draw_hp_bar(self):
         max_hp = self.npc.max_hp
         current_hp = self.npc.hp
@@ -295,7 +303,7 @@ class NPCSprite(pygame.sprite.Sprite):
         hp_ratio = max(current_hp / max_hp, 0)
 
         bar_x = self.rect.x + 25
-        bar_y = self.rect.y + self.rect.height + 5
+        bar_y = self.rect.y + self.rect.height + 15
     
         pygame.draw.rect(self.screen, (255, 0, 0), (bar_x, bar_y, bar_width, self.hp_bar_height))
         pygame.draw.rect(self.screen, (0, 255, 0), (bar_x, bar_y, bar_width * hp_ratio, self.hp_bar_height))
@@ -313,4 +321,5 @@ class NPCSprite(pygame.sprite.Sprite):
                 scale=self.scale,
                 colour=self.colour,
             )
+        self.draw_name()
         self.draw_hp_bar()

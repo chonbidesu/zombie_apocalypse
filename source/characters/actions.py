@@ -170,12 +170,12 @@ class ActionExecutor:
                 if self.actor.weapon:
                     self.actor.ap -= 1
                     message = f"Your attack hits for {properties.damage} damage."
-                    witness = f"{self.actor.name} attacks {target.name} with {properties.description}."
+                    witness = f"{self.actor.current_name} attacks {target.current_name} with {properties.description}."
                     return ActionResult(True, message, witness)
                 else:
                     self.actor.ap -= 1
                     message = f"Your attack hits for {properties.damage} damage. Your weapon breaks!"
-                    witness = f"{self.actor.name} attacks {target.name} with {properties.description}."
+                    witness = f"{self.actor.current_name} attacks {target.current_name} with {properties.description}."
                     return ActionResult(True, message, witness)
             else:
                 self.actor.ap -= 1
@@ -201,9 +201,9 @@ class ActionExecutor:
 
         if attack_success:
             target.take_damage(weapon.damage)
-            message = f"You attack {target.name} with {weapon.name} for {weapon.damage} damage."
-            witness = f"{self.actor.name} attacks {target.name} with {weapon.name}."
-            attacked = f"{self.actor.name} attacks you with {weapon.name} for {weapon.damage} damage!"
+            message = f"You attack {target.current_name} with {weapon.name} for {weapon.damage} damage."
+            witness = f"{self.actor.current_name} attacks {target.current_name} with {weapon.name}."
+            attacked = f"{self.actor.current_name} attacks you with {weapon.name} for {weapon.damage} damage!"
             return ActionResult(True, message, witness, attacked)
         else:
             message = "Your attack misses."

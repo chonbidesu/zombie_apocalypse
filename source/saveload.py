@@ -41,6 +41,9 @@ class Gamestate:
 
     def _serialize_player(self, player):
         return {
+            "first_name": player.name.first_name,
+            "last_name": player.name.last_name,
+            "zombie_adjective": player.name.zombie_adjective,
             "occupation": player.occupation,
             "x": player.location[0],
             "y": player.location[1],
@@ -64,6 +67,9 @@ class Gamestate:
 
         for npc in npcs.list:
             npc_data.append({
+            "first_name": npc.name.first_name,
+            "last_name": npc.name.last_name,
+            "zombie_adjective": npc.name.zombie_adjective,
             "occupation": npc.occupation,
             "x": npc.location[0],
             "y": npc.location[1],
@@ -168,7 +174,9 @@ class Gamestate:
             if item_data.get("is_equipped", False):
                 player.weapon = item
 
-        player.name = "Player"
+        player.name.first_name = self.player_data["first_name"]
+        player.name.last_name = self.player_data["last_name"]
+        player.name.zombie_adjective = self.player_data["zombie_adjective"]
         player.hp = self.player_data.get("hp", player.max_hp)
 
         # Create NPC list
@@ -185,7 +193,9 @@ class Gamestate:
             npc = character_class(
                 game=game, occupation=occupation, x=x, y=y, is_human=is_human, inside=inside,
             )
-            npc.name = npc.occupation.name.title()
+            npc.name.first_name = npc_data["first_name"]
+            npc.name.last_name = npc_data["last_name"]
+            npc.name.zombie_adjective = npc_data["zombie_adjective"]
             npc.hp = npc_data.get("hp", MAX_HP)
             npc.is_dead = npc_data.get("is_dead", False)
             npc.state = npc.get_state()
