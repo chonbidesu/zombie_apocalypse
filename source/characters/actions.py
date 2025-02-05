@@ -36,7 +36,7 @@ class ActionExecutor:
         self.game = game
         self.actor = actor  # Define the acting character
 
-    def execute(self, action, target):
+    def execute(self, action, target=None):
         """Execute AI and player actions."""
         
 

@@ -22,7 +22,7 @@ class GameInitializer:
         self.city = None
         self.cursor = ui.Cursor()
         self.paused = False
-        self.pause_menu = menus.PauseMenu()
+        self.menu = menus.GameMenu()
         self.popup_menu = None
         self.ticker = 0
         self.reading_map = False
@@ -49,7 +49,9 @@ class GameInitializer:
             # Generate a new game if save file doesn't exist
             self._create_new_game(screen)
 
-        self.event_handler = events.EventHandler(self)       
+        self.event_handler = events.EventHandler(self) 
+        self.map_event_handler = events.MapEventHandler(self)
+        self.menu_event_handler = events.MenuEventHandler(self)      
 
     def _create_new_game(self, screen):
         """Generate a new game state."""

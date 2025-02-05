@@ -40,4 +40,3 @@ class DrawUI:
         self.viewport.update()
         self.actions_panel.update()
         self.description_panel.update()
-

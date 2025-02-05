@@ -4,6 +4,7 @@ import pygame
 
 from settings import *
 from data import Action, BLOCKS, ITEMS, ItemType, ItemFunction
+from menus import ContextMenu
 
 
 class EventHandler:
@@ -11,7 +12,7 @@ class EventHandler:
         self.game = game
         self.action = self.game.player.action
 
-    def handle_events(self, events, ContextMenu):
+    def handle_events(self, events):
         """Handle all game events."""
         for event in events:
             if event.type == pygame.QUIT:
@@ -24,7 +25,7 @@ class EventHandler:
                 self.handle_mousebuttondown(event)
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                self.handle_mousebuttonup(event, ContextMenu)
+                self.handle_mousebuttonup(event)
 
             elif event.type == pygame.USEREVENT and event.code == 'MENU':
                 if event.name is None:
@@ -36,24 +37,17 @@ class EventHandler:
 
     def handle_keydown(self, event):
         """Handle key press events."""
-        if self.game.reading_map:
-            key_to_action = {
-                pygame.K_ESCAPE: Action.CLOSE_MAP,
-                pygame.K_PAGEDOWN: Action.ZOOM_OUT,
-                pygame.K_PAGEUP: Action.ZOOM_IN,
-            }
-        else:
-            key_to_action = {
-                pygame.K_w: Action.MOVE_UP,
-                pygame.K_s: Action.MOVE_DOWN,
-                pygame.K_a: Action.MOVE_LEFT,
-                pygame.K_d: Action.MOVE_RIGHT,
-                pygame.K_q: Action.MOVE_UPLEFT,
-                pygame.K_e: Action.MOVE_UPRIGHT,
-                pygame.K_z: Action.MOVE_DOWNLEFT,
-                pygame.K_c: Action.MOVE_DOWNRIGHT,
-                pygame.K_ESCAPE: Action.PAUSE,
-            }
+        key_to_action = {
+            pygame.K_w: Action.MOVE_UP,
+            pygame.K_s: Action.MOVE_DOWN,
+            pygame.K_a: Action.MOVE_LEFT,
+            pygame.K_d: Action.MOVE_RIGHT,
+            pygame.K_q: Action.MOVE_UPLEFT,
+            pygame.K_e: Action.MOVE_UPRIGHT,
+            pygame.K_z: Action.MOVE_DOWNLEFT,
+            pygame.K_c: Action.MOVE_DOWNRIGHT,
+            pygame.K_ESCAPE: Action.PAUSE,
+        }
         action = key_to_action.get(event.key)
         if action:
             self.act(action)
@@ -74,10 +68,10 @@ class EventHandler:
         for button in self.game.game_ui.actions_panel.button_group:
             button.handle_event(event)
 
-        for button in self.game.pause_menu.button_group:
+        for button in self.game.menu.pause_menu.button_group:
             button.handle_event(event)
 
-    def handle_mousebuttonup(self, event, ContextMenu):
+    def handle_mousebuttonup(self, event):
         """Handle mouse button up events."""
         if event.button == 3:  # Right-click for popup menu
             mouse_pos = pygame.mouse.get_pos()
@@ -112,7 +106,7 @@ class EventHandler:
                 if action:
                     self.act(action)
 
-        for button in self.game.pause_menu.button_group:
+        for button in self.game.menu.pause_menu.button_group:
             action_name = button.handle_event(event)
             if action_name:
                 button_to_action = {
@@ -187,3 +181,91 @@ class ClickTarget:
                 self.type = 'human'
         if self.type == None:
             self.type = 'screen'
+
+class MapEventHandler:
+    def __init__(self, game):
+        self.action = game.player.action
+
+    def handle_events(self, events):
+        """Handle all game events."""
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.act(Action.QUIT)
+
+            elif event.type == pygame.KEYDOWN:
+                self.handle_keydown(event)
+
+    def handle_keydown(self, event):
+        """Handle key press events."""
+        key_to_action = {
+            pygame.K_PAGEDOWN: Action.ZOOM_OUT,
+            pygame.K_PAGEUP: Action.ZOOM_IN,
+            pygame.K_ESCAPE: Action.CLOSE_MAP,
+        }
+        action = key_to_action.get(event.key)
+        if action:
+            self.act(action)    
+
+    def act(self, action):
+        """Evoke the Action Executor to handle actions."""
+        self.action.execute(action)            
+
+
+class MenuEventHandler:
+    def __init__(self, game):
+        self.game = game
+        self.action = game.player.action
+
+    def handle_events(self, events):
+        """Handle all game events."""
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.act(Action.QUIT)
+
+            elif event.type == pygame.KEYDOWN:
+                self.handle_keydown(event)
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                self.handle_mousebuttondown(event)
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self.handle_mousebuttonup(event)                
+
+    def handle_keydown(self, event):
+        """Handle key press events."""
+        key_to_action = {
+            pygame.K_ESCAPE: Action.PAUSE,
+        }
+        action = key_to_action.get(event.key)
+        if action:
+            self.act(action)
+
+    def handle_mousebuttondown(self, event):
+        """Handle mouse button down events."""
+
+        # Handle graphical changes for button clicks
+        for button in self.game.game_ui.actions_panel.button_group:
+            button.handle_event(event)
+
+        for button in self.game.menu.pause_menu.button_group:
+            button.handle_event(event)
+
+    def handle_mousebuttonup(self, event):
+        """Handle mouse button up events."""
+
+        # Handle actions for button clicks
+        for button in self.game.menu.pause_menu.button_group:
+            action_name = button.handle_event(event)
+            if action_name:
+                button_to_action = {
+                    'play': Action.PAUSE,
+                    'options': Action.OPTIONS,
+                    'exit': Action.QUIT,
+                }
+                action = button_to_action.get(action_name)
+                if action:
+                    self.act(action)                
+
+    def act(self, action):
+        """Evoke the Action Executor to handle actions."""
+        self.action.execute(action)                   
