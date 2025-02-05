@@ -52,6 +52,9 @@ class ActionExecutor:
         if action == Action.QUIT:
             return self.game.quit_game()
 
+        elif action == Action.NEW_GAME:
+            self.game.start_new_game = True
+
         elif action == Action.PAUSE:
             return self.game.pause_game()
 

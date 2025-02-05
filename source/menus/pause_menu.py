@@ -12,23 +12,37 @@ class PauseMenu:
     def create_menu_button_group(self):
         button_group = pygame.sprite.Group()
 
-        width = 116
-        height = 51
+        col_1 = SCREEN_WIDTH // 4 - 58
+        col_2 = SCREEN_WIDTH // 2 - 58
+        col_3 = SCREEN_WIDTH * 3 // 4 - 58
+        row_1 = SCREEN_HEIGHT // 3
+        row_2 = SCREEN_HEIGHT // 3 + 100
 
-        self.play_button = Button('menu_save', width, height, is_pressable=False)
-        self.play_button.update(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 - 100)
-        button_group.add(self.play_button)
+        newgame_button = self._create_button('menu_newgame', col_1, row_1)
+        button_group.add(newgame_button)
 
-        self.options_button = Button('menu_load', width, height, is_pressable=False)
-        self.options_button.update(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2)
-        button_group.add(self.options_button)
+        save_button = self._create_button('menu_save', col_2, row_1)
+        button_group.add(save_button)
 
-        self.exit_button = Button('menu_exit', width, height, is_pressable=False)
-        self.exit_button.update(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 100)
-        button_group.add(self.exit_button)
+        load_button = self._create_button('menu_load', col_2, row_2)
+        button_group.add(load_button)
+
+        play_button = self._create_button('menu_play', col_3, row_1)
+        button_group.add(play_button)
+
+        exit_button = self._create_button('menu_exit', col_3, row_2)
+        button_group.add(exit_button)
 
         return button_group   
     
+    def _create_button(self, name, x, y):
+        """Create a button."""
+        width = 116
+        height = 51
+        button = Button(name, width, height, is_pressable=False)
+        button.update(x, y)
+        return button
+
     def draw(self, screen):
         # Create a dark green background
         screen.fill(DARK_GREEN)

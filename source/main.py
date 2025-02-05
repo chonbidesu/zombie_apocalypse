@@ -28,6 +28,10 @@ def main():
         # Get events
         events = pygame.event.get()
 
+        # Handle start new game action
+        if game.start_new_game:
+            game = GameInitializer(screen, new_game=True)
+
         # Handle pause menu
         if game.paused:
             game.menu_event_handler.handle_events(events)

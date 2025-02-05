@@ -17,7 +17,7 @@ from data import Occupation
 
 class GameInitializer:
     """Initialize the game, centralizing resources."""
-    def __init__(self, screen):
+    def __init__(self, screen, new_game=False):
         self.player = None
         self.city = None
         self.cursor = ui.Cursor()
@@ -26,28 +26,32 @@ class GameInitializer:
         self.popup_menu = None
         self.ticker = 0
         self.reading_map = False
+        self.start_new_game = False
         self.chat_history = [
             "The city is in ruins. Can you make it through the night?", 
             "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
             "Diagonally 'q', 'e', 'z', 'c'."
         ]
 
-        self.initialize_game(screen)
+        self.initialize_game(screen, new_game)
 
-    def initialize_game(self, screen):
+    def initialize_game(self, screen, new_game):
         """Initialize the game state by loading or creating a new game."""
-        try:
-            game_state = saveload.Gamestate.load_game("savegame.pkl")
-            self.player, self.city, self.npcs, = game_state.reconstruct_game(
-                self, Character, City, GenerateNPCs, 
-                BuildingBlock, CityBlock,
-            )
-            self.game_ui = ui.DrawUI(self, screen)
-
-        except (FileNotFoundError, EOFError, pickle.UnpicklingError):
-            print("Save file not found or corrupted. Creating a new game.")
-            # Generate a new game if save file doesn't exist
+        if new_game:
             self._create_new_game(screen)
+        else:
+            try:
+                game_state = saveload.Gamestate.load_game("savegame.pkl")
+                self.player, self.city, self.npcs, = game_state.reconstruct_game(
+                    self, Character, City, GenerateNPCs, 
+                    BuildingBlock, CityBlock,
+                )
+                self.game_ui = ui.DrawUI(self, screen)
+
+            except (FileNotFoundError, EOFError, pickle.UnpicklingError):
+                print("Save file not found or corrupted. Creating a new game.")
+                # Generate a new game if save file doesn't exist
+                self._create_new_game(screen)
 
         self.event_handler = events.EventHandler(self) 
         self.map_event_handler = events.MapEventHandler(self)

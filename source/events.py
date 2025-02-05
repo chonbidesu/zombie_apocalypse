@@ -258,9 +258,11 @@ class MenuEventHandler:
             action_name = button.handle_event(event)
             if action_name:
                 button_to_action = {
-                    'play': Action.PAUSE,
-                    'options': Action.OPTIONS,
-                    'exit': Action.QUIT,
+                    'menu_newgame': Action.NEW_GAME,
+                    'menu_save': Action.SAVE,
+                    'menu_load': Action.LOAD,
+                    'menu_play': Action.PAUSE,
+                    'menu_exit': Action.QUIT,
                 }
                 action = button_to_action.get(action_name)
                 if action:
