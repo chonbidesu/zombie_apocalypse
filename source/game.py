@@ -35,18 +35,18 @@ class GameInitializer:
             "Diagonally 'q', 'e', 'z', 'c'."
         ]
 
-        self.initialize_game(screen, new_game)
+        self.initialize_game()
         self.game_ui = ui.DrawUI(self, screen)
 
-    def initialize_game(self, screen, new_game):
+    def initialize_game(self):
         """Initialize the game state by loading or creating a new game."""
-        self._create_new_game(screen)
+        self._create_new_game()
 
         self.event_handler = events.EventHandler(self) 
         self.map_event_handler = events.MapEventHandler(self)
         self.menu_event_handler = events.MenuEventHandler(self)      
 
-    def _create_new_game(self, screen):
+    def _create_new_game(self):
         """Generate a new game state."""
 
         # Initialize city
@@ -68,20 +68,25 @@ class GameInitializer:
 
     def load_game(self, index):
         """Load the game state from a file."""
+        self.pause_game()
         game_state = saveload.Gamestate.load_game(index)
         self.player, self.city, self.npcs, = game_state.reconstruct_game(
             self, Character, City, GenerateNPCs, 
             BuildingBlock, CityBlock,
         )
 
+        self.event_handler = events.EventHandler(self) 
+        self.map_event_handler = events.MapEventHandler(self)
+        self.menu_event_handler = events.MenuEventHandler(self) 
+
     def pause_game(self):
         """Toggle game pause state."""
         if not self.paused:
             self.paused = True
         elif self.paused:
+            self.paused = False
             self.save_menu = False
             self.load_menu = False
-            self.paused = False
 
     def quit_game(self):
         """Handle cleanup and save the game on exit."""

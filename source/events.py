@@ -247,7 +247,6 @@ class MenuEventHandler:
             for slot in self.game.menu.load_menu.slots:
                 if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
                     self.game.load_game(slot.index)
-                    slot.update_image()
 
             back_button = self.game.menu.load_menu.back_button
             if back_button.sprite.rect.collidepoint(event.pos):
