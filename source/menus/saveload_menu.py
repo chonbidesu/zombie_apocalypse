@@ -32,8 +32,8 @@ class SaveLoadMenu:
     
     def create_saves_folder(self):
         """Create a folder to store save files."""
-        if not os.path.exists("saves"):
-            os.makedirs("saves")
+        if not os.path.exists(ResourcePath("saves").path):
+            os.makedirs(ResourcePath("saves").path)
 
     def _create_back_button(self):
         button = Button("menu_back", 116, 51)
