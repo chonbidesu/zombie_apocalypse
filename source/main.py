@@ -30,7 +30,7 @@ def main():
 
         # Handle start new game action
         if game.start_new_game:
-            game = GameInitializer(screen, new_game=True)
+            game = GameInitializer(screen)
 
         # Handle pause menu
         if game.paused:

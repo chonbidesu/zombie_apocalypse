@@ -1,9 +1,10 @@
 # saveload.py
 
 import pickle
+import os
 
 from settings import *
-from data import BLOCKS, ITEMS, ItemType, ItemFunction
+from data import BLOCKS, ITEMS, ItemFunction, SaveLoadPath
 
 class Gamestate:
     def __init__(self, game):
@@ -95,7 +96,11 @@ class Gamestate:
     def save_game(cls, index, game):
         """Save the game state to a file."""
         game_state = cls(game)
-        file_path = ResourcePath(f"saves/save_{index}.pkl").path
+
+        # Get the correct save directory path
+        file_path = SaveLoadPath(f"save_{index}.pkl").path
+
+        # Save the game state
         with open(file_path, "wb") as file:
             pickle.dump(game_state, file)
         print("Game saved successfully.")
@@ -103,11 +108,16 @@ class Gamestate:
     @classmethod
     def load_game(cls, index):
         """Load the game state from a file."""
-        file_path = ResourcePath(f"saves/save_{index}.pkl").path
-        with open(file_path, "rb") as file:
-            game_state = pickle.load(file)
-        print("Game loaded successfully.")
-        return game_state
+        file_path = SaveLoadPath(f"save_{index}.pkl").path
+
+        try:
+            with open(file_path, "rb") as file:
+                game_state = pickle.load(file)
+            print("Game loaded successfully.")
+            return game_state
+        except FileNotFoundError:
+            print("Error: Save file not found.")
+            return None
 
     def reconstruct_game(
         self, game, character_class, city_class, populate_class, 
@@ -181,6 +191,11 @@ class Gamestate:
         player.name.zombie_adjective = self.player_data["zombie_adjective"]
         player.hp = self.player_data.get("hp", player.max_hp)
 
+        if player.is_human:
+            player.current_name = f"{player.name.first_name} {player.name.last_name}"
+        else:
+            player.current_name = f"{player.name.zombie_adjective} {player.name.first_name}"        
+
         # Create NPC list
         npcs = populate_class(game, total_humans=0, total_zombies=0)
 
@@ -201,6 +216,11 @@ class Gamestate:
             npc.hp = npc_data.get("hp", MAX_HP)
             npc.is_dead = npc_data.get("is_dead", False)
             npc.state = npc.get_state()
+
+            if npc.is_human:
+                npc.current_name = f"{npc.name.first_name} {npc.name.last_name}"
+            else:
+                npc.current_name = f"{npc.name.zombie_adjective} {npc.name.first_name}"
 
             npcs.list.append(npc)
 

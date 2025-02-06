@@ -6,6 +6,7 @@ import pygame
 
 from settings import *
 from ui import Button
+from data import SaveLoadPath
 
 class SaveLoadMenu:
     """Create a save/load menu for the game."""
@@ -14,7 +15,6 @@ class SaveLoadMenu:
         self.header = self.create_header()
         self.slots = self.create_slots()
         self.back_button = self._create_back_button()
-        self.create_saves_folder()
 
     def create_header(self):
         """Create the header for the save/load menu."""
@@ -30,11 +30,6 @@ class SaveLoadMenu:
             group.add(slot)
         return group
     
-    def create_saves_folder(self):
-        """Create a folder to store save files."""
-        if not os.path.exists(ResourcePath("saves").path):
-            os.makedirs(ResourcePath("saves").path)
-
     def _create_back_button(self):
         button = Button("menu_back", 116, 51)
         x = SCREEN_WIDTH // 2 - 58
@@ -85,7 +80,7 @@ class SaveSlot(pygame.sprite.Sprite):
 
         # Determine the slot label and player name
         slot_label = f"SLOT {chr(65 + self.index)}"
-        save_path = f"saves/save_{self.index}.pkl"
+        save_path = SaveLoadPath(f"save_{self.index}.pkl").path
         if os.path.exists(save_path):
             with open(save_path, 'rb') as f:
                 game_state = pickle.load(f)

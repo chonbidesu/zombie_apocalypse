@@ -3,7 +3,7 @@
 from enum import Enum, auto
 from collections import namedtuple
 
-from data.resource_path import ResourcePath
+from data.path import ResourcePath
 
 
 class BlockType(Enum):

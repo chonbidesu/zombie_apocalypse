@@ -17,7 +17,8 @@ from data import Occupation
 
 class GameInitializer:
     """Initialize the game, centralizing resources."""
-    def __init__(self, screen, new_game=False):
+    def __init__(self, screen):
+        self.screen = screen
         self.player = None
         self.city = None
         self.cursor = ui.Cursor()
@@ -36,17 +37,8 @@ class GameInitializer:
         ]
 
         self.initialize_game()
-        self.game_ui = ui.DrawUI(self, screen)
 
     def initialize_game(self):
-        """Initialize the game state by loading or creating a new game."""
-        self._create_new_game()
-
-        self.event_handler = events.EventHandler(self) 
-        self.map_event_handler = events.MapEventHandler(self)
-        self.menu_event_handler = events.MenuEventHandler(self)      
-
-    def _create_new_game(self):
         """Generate a new game state."""
 
         # Initialize city
@@ -61,6 +53,13 @@ class GameInitializer:
         self.npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
 
         print("New game created.")
+
+        self.event_handler = events.EventHandler(self) 
+        self.map_event_handler = events.MapEventHandler(self)
+        self.menu_event_handler = events.MenuEventHandler(self)  
+
+        self.game_ui = ui.DrawUI(self, self.screen)
+
 
     def save_game(self, index):
         """Save the game state to a file."""
@@ -78,6 +77,8 @@ class GameInitializer:
         self.event_handler = events.EventHandler(self) 
         self.map_event_handler = events.MapEventHandler(self)
         self.menu_event_handler = events.MenuEventHandler(self) 
+
+        self.game_ui = ui.DrawUI(self, self.screen)
 
     def pause_game(self):
         """Toggle game pause state."""
