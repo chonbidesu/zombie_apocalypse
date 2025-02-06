@@ -42,7 +42,8 @@ class Character:
 
     # Assign a random name to the character
     def _assign_name(self):
-        name_generator = NameGenerator('data/character_names.csv')
+        file_path = ResourcePath('data/character_names.csv').path
+        name_generator = NameGenerator(file_path)
         return name_generator.generate_name()
 
     def update_name(self):
