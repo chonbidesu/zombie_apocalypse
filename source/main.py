@@ -35,7 +35,12 @@ def main():
         # Handle pause menu
         if game.paused:
             game.menu_event_handler.handle_events(events)
-            game.menu.pause_menu.draw(screen)
+            if game.save_menu:
+                game.menu.save_menu.draw(screen)
+            elif game.load_menu:             
+                game.menu.load_menu.draw(screen)
+            else:
+                game.menu.pause_menu.draw(screen)
 
         # Handle opening the map
         elif game.reading_map:

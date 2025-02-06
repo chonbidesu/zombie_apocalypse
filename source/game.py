@@ -6,7 +6,7 @@ import sys
 from pygame.locals import *
 
 import menus
-import events as events
+import events
 import saveload
 import ui
 from city import City
@@ -23,6 +23,8 @@ class GameInitializer:
         self.cursor = ui.Cursor()
         self.paused = False
         self.menu = menus.GameMenu()
+        self.save_menu = False
+        self.load_menu = False
         self.popup_menu = None
         self.ticker = 0
         self.reading_map = False
@@ -34,24 +36,11 @@ class GameInitializer:
         ]
 
         self.initialize_game(screen, new_game)
+        self.game_ui = ui.DrawUI(self, screen)
 
     def initialize_game(self, screen, new_game):
         """Initialize the game state by loading or creating a new game."""
-        if new_game:
-            self._create_new_game(screen)
-        else:
-            try:
-                game_state = saveload.Gamestate.load_game("savegame.pkl")
-                self.player, self.city, self.npcs, = game_state.reconstruct_game(
-                    self, Character, City, GenerateNPCs, 
-                    BuildingBlock, CityBlock,
-                )
-                self.game_ui = ui.DrawUI(self, screen)
-
-            except (FileNotFoundError, EOFError, pickle.UnpicklingError):
-                print("Save file not found or corrupted. Creating a new game.")
-                # Generate a new game if save file doesn't exist
-                self._create_new_game(screen)
+        self._create_new_game(screen)
 
         self.event_handler = events.EventHandler(self) 
         self.map_event_handler = events.MapEventHandler(self)
@@ -71,25 +60,30 @@ class GameInitializer:
         # Populate the city
         self.npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
 
-        # Initialize UI
-        self.game_ui = ui.DrawUI(self, screen)
-        self.game_ui.update()
-
         print("New game created.")
 
-    def save_game(self):
+    def save_game(self, index):
         """Save the game state to a file."""
-        saveload.Gamestate.save_game("savegame.pkl", self)
+        saveload.Gamestate.save_game(index, self)
+
+    def load_game(self, index):
+        """Load the game state from a file."""
+        game_state = saveload.Gamestate.load_game(index)
+        self.player, self.city, self.npcs, = game_state.reconstruct_game(
+            self, Character, City, GenerateNPCs, 
+            BuildingBlock, CityBlock,
+        )
 
     def pause_game(self):
         """Toggle game pause state."""
         if not self.paused:
             self.paused = True
         elif self.paused:
+            self.save_menu = False
+            self.load_menu = False
             self.paused = False
 
     def quit_game(self):
         """Handle cleanup and save the game on exit."""
-        self.save_game()
         pygame.quit()
         sys.exit()

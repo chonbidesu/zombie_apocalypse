@@ -38,11 +38,10 @@ class ActionExecutor:
 
     def execute(self, action, target=None):
         """Execute AI and player actions."""
-        
-
         # Fetch block at the actor's location
         x, y = self.actor.location
         block = self.game.city.block(x, y)
+
         weapon = self.actor.weapon
         player = self.game.player 
         screen_transition = self.game.game_ui.screen_transition
@@ -54,6 +53,16 @@ class ActionExecutor:
 
         elif action == Action.NEW_GAME:
             self.game.start_new_game = True
+
+        elif action == Action.SAVE_MENU:
+            self.game.save_menu = True
+
+        elif action == Action.LOAD_MENU:
+            self.game.load_menu = True
+
+        elif action == Action.BACK:
+            self.game.save_menu = False
+            self.game.load_menu = False
 
         elif action == Action.PAUSE:
             return self.game.pause_game()

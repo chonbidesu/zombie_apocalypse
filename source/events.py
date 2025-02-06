@@ -68,9 +68,6 @@ class EventHandler:
         for button in self.game.game_ui.actions_panel.button_group:
             button.handle_event(event)
 
-        for button in self.game.menu.pause_menu.button_group:
-            button.handle_event(event)
-
     def handle_mousebuttonup(self, event):
         """Handle mouse button up events."""
         if event.button == 3:  # Right-click for popup menu
@@ -101,18 +98,6 @@ class EventHandler:
                     'ransack': Action.RANSACK,
                     'break_cades': Action.DECADE,
                     'stand': Action.STAND,
-                }
-                action = button_to_action.get(action_name)
-                if action:
-                    self.act(action)
-
-        for button in self.game.menu.pause_menu.button_group:
-            action_name = button.handle_event(event)
-            if action_name:
-                button_to_action = {
-                    'play': Action.PAUSE,
-                    'options': Action.OPTIONS,
-                    'exit': Action.QUIT,
                 }
                 action = button_to_action.get(action_name)
                 if action:
@@ -238,35 +223,51 @@ class MenuEventHandler:
         }
         action = key_to_action.get(event.key)
         if action:
-            self.act(action)
+            self.act(action)    
 
     def handle_mousebuttondown(self, event):
         """Handle mouse button down events."""
-
-        # Handle graphical changes for button clicks
-        for button in self.game.game_ui.actions_panel.button_group:
-            button.handle_event(event)
-
         for button in self.game.menu.pause_menu.button_group:
             button.handle_event(event)
 
     def handle_mousebuttonup(self, event):
         """Handle mouse button up events."""
+        # Handle saving and loading from the pause menu
+        if self.game.save_menu:
+            for slot in self.game.menu.save_menu.slots:
+                if slot.rect.collidepoint(event.pos):
+                    self.game.save_game(slot.index)
+                    slot.update_image()
+
+            back_button = self.game.menu.save_menu.back_button
+            if back_button.sprite.rect.collidepoint(event.pos):
+                self.act(Action.BACK)
+                    
+        elif self.game.load_menu:
+            for slot in self.game.menu.load_menu.slots:
+                if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
+                    self.game.load_game(slot.index)
+                    slot.update_image()
+
+            back_button = self.game.menu.load_menu.back_button
+            if back_button.sprite.rect.collidepoint(event.pos):
+                self.act(Action.BACK)            
 
         # Handle actions for button clicks
-        for button in self.game.menu.pause_menu.button_group:
-            action_name = button.handle_event(event)
-            if action_name:
-                button_to_action = {
-                    'menu_newgame': Action.NEW_GAME,
-                    'menu_save': Action.SAVE,
-                    'menu_load': Action.LOAD,
-                    'menu_play': Action.PAUSE,
-                    'menu_exit': Action.QUIT,
-                }
-                action = button_to_action.get(action_name)
-                if action:
-                    self.act(action)                
+        else:
+            for button in self.game.menu.pause_menu.button_group:
+                action_name = button.handle_event(event)
+                if action_name:
+                    button_to_action = {
+                        'menu_newgame': Action.NEW_GAME,
+                        'menu_save': Action.SAVE_MENU,
+                        'menu_load': Action.LOAD_MENU,
+                        'menu_play': Action.PAUSE,
+                        'menu_exit': Action.QUIT,
+                    }
+                    action = button_to_action.get(action_name)
+                    if action:
+                        self.act(action)                
 
     def act(self, action):
         """Evoke the Action Executor to handle actions."""

@@ -92,16 +92,18 @@ class Gamestate:
         return npc_data
 
     @classmethod
-    def save_game(cls, file_path, game):
+    def save_game(cls, index, game):
         """Save the game state to a file."""
         game_state = cls(game)
+        file_path = ResourcePath(f"saves/save_{index}.pkl").path
         with open(file_path, "wb") as file:
             pickle.dump(game_state, file)
         print("Game saved successfully.")
 
     @classmethod
-    def load_game(cls, file_path):
+    def load_game(cls, index):
         """Load the game state from a file."""
+        file_path = ResourcePath(f"saves/save_{index}.pkl").path
         with open(file_path, "rb") as file:
             game_state = pickle.load(file)
         print("Game loaded successfully.")

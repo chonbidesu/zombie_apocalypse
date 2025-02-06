@@ -54,8 +54,7 @@ class Button(pygame.sprite.Sprite):
             if self.is_pressed:
                 self.is_pressed = False
                 if self.rect.collidepoint(event.pos):
-                    return self.name  # Return the button name when clicked
-                
+                    return self.name  # Return the button name when clicked     
         return None
     
     def update(self, x, y):
