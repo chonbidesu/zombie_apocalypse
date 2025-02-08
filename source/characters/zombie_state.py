@@ -70,7 +70,7 @@ class Zombie(State):
     def _find_target_dxy(self, block):
         """Finds a nearby player or lit building."""
         properties = BLOCKS[block.type]
-        player = self.game.player
+        player = self.game.state.player
 
         # Otherwise, move    
         for dx in range(-1, 2):
@@ -83,7 +83,7 @@ class Zombie(State):
 
                 if 0 < adjacent_x < CITY_SIZE and 0 < adjacent_y < CITY_SIZE:
                     adjacent_humans = [
-                        npc for npc in self.game.npcs.list
+                        npc for npc in self.game.state.npcs.list
                         if (npc.location == (adjacent_x, adjacent_y)) and npc.is_human and not npc.is_dead and not npc.inside
                     ]
 
@@ -96,7 +96,7 @@ class Zombie(State):
                         if properties.is_building and block.lights_on:
                             return (0, 0) # Stay put if current block is lit     
                         else:                 
-                            adjacent_block = self.game.city.block(adjacent_x, adjacent_y)
+                            adjacent_block = self.game.state.city.block(adjacent_x, adjacent_y)
                             adjacent_block_properties = BLOCKS[adjacent_block.type]
                             if adjacent_block_properties.is_building and adjacent_block.lights_on:
                                 return (dx, dy) 

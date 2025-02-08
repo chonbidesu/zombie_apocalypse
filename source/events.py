@@ -10,7 +10,7 @@ from menus import ContextMenu
 class EventHandler:
     def __init__(self, game):
         self.game = game
-        self.action = self.game.player.action
+        self.action = self.game.state.player.action
 
     def handle_events(self, events):
         """Handle all game events."""
@@ -57,7 +57,7 @@ class EventHandler:
         if event.button == 1:
             mouse_pos = pygame.mouse.get_pos()
             target = ClickTarget(self.game, mouse_pos)
-            if self.game.player.is_human and target.type == 'zombie':
+            if self.game.state.player.is_human and target.type == 'zombie':
                 action = Action.ATTACK
                 self.act(action, target.sprite.npc)
             elif target.type == 'block' and not self.game.popup_menu:
@@ -73,7 +73,7 @@ class EventHandler:
         if event.button == 3:  # Right-click for popup menu
             mouse_pos = pygame.mouse.get_pos()
             target = ClickTarget(self.game, mouse_pos)
-            self.context_menu = ContextMenu(target, self.game.player)
+            self.context_menu = ContextMenu(target, self.game.state.player)
             if self.context_menu:
                 self.game.popup_menu = self.context_menu.menu
                 if self.game.popup_menu:
@@ -169,7 +169,7 @@ class ClickTarget:
 
 class MapEventHandler:
     def __init__(self, game):
-        self.action = game.player.action
+        self.action = game.state.player.action
 
     def handle_events(self, events):
         """Handle all game events."""
@@ -199,7 +199,7 @@ class MapEventHandler:
 class MenuEventHandler:
     def __init__(self, game):
         self.game = game
-        self.action = game.player.action
+        self.action = game.state.player.action
 
     def handle_events(self, events):
         """Handle all game events."""
@@ -270,4 +270,57 @@ class MenuEventHandler:
 
     def act(self, action):
         """Evoke the Action Executor to handle actions."""
-        self.action.execute(action)                   
+        self.action.execute(action)          
+
+class TitleEventHandler:
+    def __init__(self, game):
+        self.game = game
+        self.action = game.menu.title_action
+
+    def handle_events(self, events):
+        """Handle all game events."""
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.act(Action.QUIT)
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                self.handle_mousebuttondown(event)
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self.handle_mousebuttonup(event)                
+
+    def handle_mousebuttondown(self, event):
+        """Handle mouse button down events."""
+        for button in self.game.menu.title_menu.buttons:
+            button.handle_event(event)
+
+    def handle_mousebuttonup(self, event):
+        """Handle mouse button up events."""
+        # Handle saving and loading from the pause menu                  
+        if self.game.load_menu:
+            for slot in self.game.menu.load_menu.slots:
+                if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
+                    self.game.load_game(slot.index)
+                    self.game.title_screen = False
+
+            back_button = self.game.menu.load_menu.back_button
+            if back_button.sprite.rect.collidepoint(event.pos):
+                self.act(Action.BACK)            
+
+        # Handle actions for button clicks
+        else:
+            for button in self.game.menu.title_menu.buttons:
+                action_name = button.handle_event(event)
+                if action_name:
+                    button_to_action = {
+                        'menu_newgame': Action.NEW_GAME,
+                        'menu_load': Action.LOAD_MENU,
+                        'menu_exit': Action.QUIT,
+                    }
+                    action = button_to_action.get(action_name)
+                    if action:
+                        self.act(action)                
+
+    def act(self, action):
+        """Evoke the Action Executor to handle actions."""
+        self.action.execute(action)                 

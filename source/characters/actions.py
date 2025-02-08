@@ -40,10 +40,10 @@ class ActionExecutor:
         """Execute AI and player actions."""
         # Fetch block at the actor's location
         x, y = self.actor.location
-        block = self.game.city.block(x, y)
+        block = self.game.state.city.block(x, y)
 
         weapon = self.actor.weapon
-        player = self.game.player 
+        player = self.game.state.player 
         screen_transition = self.game.game_ui.screen_transition
         action_progress = self.game.game_ui.action_progress
 
@@ -439,7 +439,7 @@ class ActionExecutor:
 
     def use(self, item):
         x, y = self.actor.location
-        block = self.game.city.block(x, y)
+        block = self.game.state.city.block(x, y)
         weapon = self.actor.weapon
 
         if item.type == ItemType.FIRST_AID_KIT:

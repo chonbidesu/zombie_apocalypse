@@ -46,7 +46,7 @@ class InventoryPanel:
         updated_sprites = []
 
         # Scale each inventory item image before drawing
-        for index, item in enumerate(list(self.game.player.inventory)[:MAX_ITEMS]):
+        for index, item in enumerate(list(self.game.state.player.inventory)[:MAX_ITEMS]):
             row = index // MAX_ITEMS_PER_ROW
             col = index % MAX_ITEMS_PER_ROW
 
@@ -67,7 +67,7 @@ class InventoryPanel:
                 sprite = new_sprite
 
             # Highlight the item's slot if the item is equipped
-            if item == self.game.player.weapon:
+            if item == self.game.state.player.weapon:
                 highlight.fill((TRANS_YELLOW))
                 self.screen.blit(highlight, sprite.rect.topleft)
 

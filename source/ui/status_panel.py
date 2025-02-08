@@ -23,7 +23,7 @@ class StatusPanel:
         self.player_portrait_scale = (SCREEN_HEIGHT * 31 // 160 - 20) // 66
         self.player_sprite_sheet = SpriteSheet(self.player_sprite_sheet_image)
         self.player_sprite = PlayerSprite(
-            self.screen, self.game.player, self.player_sprite_sheet, 6, 66, 66, self.player_portrait_scale, (0, 0, 0)
+            self.screen, self.game.state.player, self.player_sprite_sheet, 6, 66, 66, self.player_portrait_scale, (0, 0, 0)
         )
         self.player_sprite_group = pygame.sprite.GroupSingle()
         self.player_sprite_group.add(self.player_sprite)
@@ -38,8 +38,8 @@ class StatusPanel:
         status_panel.blit(self.portrait_frame, (0, 0))
 
         # Draw HP bar
-        max_hp = self.game.player.max_hp
-        current_hp = self.game.player.hp
+        max_hp = self.game.state.player.max_hp
+        current_hp = self.game.state.player.hp
         hp_ratio = max(current_hp / max_hp, 0)
         pygame.draw.rect(status_panel, (255, 0, 0), (0, self.height - 20, self.portrait_size, 20))
         pygame.draw.rect(status_panel, (0, 255, 0), (0, self.height - 20, self.portrait_size * hp_ratio, 20))
@@ -56,7 +56,7 @@ class StatusPanel:
     def _render_player_status(self, status_panel):
         y_offset = 30
         status_text = []
-        for status_type, status in self.game.player.status().items():
+        for status_type, status in self.game.state.player.status().items():
             line = f"{status_type}: {status}"
             status_text.append(line)
 

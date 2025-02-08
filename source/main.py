@@ -8,7 +8,6 @@ from game import GameInitializer
 
 # Main game loop
 def main():
-    running = True
 
     # Initialize Pygame
     pygame.init()
@@ -20,71 +19,83 @@ def main():
     action_interval = ACTION_INTERVAL
     action_timer = 0
 
-    # Initialize game
+    # Start the game
     game = GameInitializer(screen)
+    running = True
 
     while running:
 
         # Get events
         events = pygame.event.get()
 
-        # Handle start new game action
-        if game.start_new_game:
-            game = GameInitializer(screen)
-
-        # Handle pause menu
-        if game.paused:
-            game.menu_event_handler.handle_events(events)
-            if game.save_menu:
-                game.menu.save_menu.draw(screen)
-            elif game.load_menu:             
+        # Title screen
+        if game.title_screen:
+            game.title_event_handler.handle_events(events)
+            if game.load_menu:
                 game.menu.load_menu.draw(screen)
+            elif game.start_new_game:
+                game.initialize_game()
+                game.title_screen = False
             else:
-                game.menu.pause_menu.draw(screen)
-
-        # Handle opening the map
-        elif game.reading_map:
-            game.map_event_handler.handle_events(events)
-            game.game_ui.map.draw()
+                game.menu.title_menu.draw(screen)
 
         else:
-            # Handle events
-            game.event_handler.handle_events(events)
 
-            # Draw game elements to screen
-            game.game_ui.update()
-            game.game_ui.draw(game.chat_history)
+            # Handle pause menu
+            if game.paused:
+                game.menu_event_handler.handle_events(events)
+                if game.save_menu:
+                    game.menu.save_menu.draw(screen)
+                elif game.load_menu:             
+                    game.menu.load_menu.draw(screen)
+                else:
+                    game.menu.pause_menu.draw(screen)
 
-            # Handle right-click menu
-            if game.popup_menu:
-                game.popup_menu.handle_events(events)
-                game.popup_menu.draw()
+            # Handle opening the map
+            elif game.reading_map:
+                game.map_event_handler.handle_events(events)
+                game.game_ui.map.draw()
 
-            # Update NPC actions every half-second
-            action_timer += clock.get_time()
-            if action_timer >= action_interval:
-                game.npcs.gain_ap()
-                game.npcs.take_action()
-                action_timer = 0
-                game.ticker += 1
-                
-                # Check buildings for fuel expiry
-                for row in game.city.grid:
-                    for block in row:
-                        if hasattr(block, 'fuel_expiration') and block.fuel_expiration < game.ticker:
-                            if block.lights_on:
-                                block.lights_on = False                
+            else:
+                # Handle events
+                game.event_handler.handle_events(events)
+
+                # Draw game elements to screen
+                game.game_ui.update()
+                game.game_ui.draw(game.chat_history)
+
+                # Handle right-click menu
+                if game.popup_menu:
+                    game.popup_menu.handle_events(events)
+                    game.popup_menu.draw()
+
+                # Update NPC actions every half-second
+                action_timer += clock.get_time()
+                if action_timer >= action_interval:
+                    game.state.npcs.gain_ap()
+                    game.state.npcs.take_action()
+                    action_timer = 0
+                    game.ticker += 1
+                    
+                    # Check buildings for fuel expiry
+                    for row in game.state.city.grid:
+                        for block in row:
+                            if hasattr(block, 'fuel_expiration') and block.fuel_expiration < game.ticker:
+                                if block.lights_on:
+                                    block.lights_on = False         
+
+                # Handle player death
+                if game.state.player.is_dead:
+                    game.game_ui.death_screen.handle_events(events)
+                    game.game_ui.death_screen.draw()
+                    if game.game_ui.death_screen.restart:
+                        game = GameInitializer(screen)  # Reinitialize the game
+                        game.game_ui.death_screen.restart = False                                              
 
         # Draw the cursor
-        game.cursor.update(game.game_ui)
+        #game.cursor.update(game.game_ui)
 
-        # Handle player death
-        if game.player.is_dead:
-            game.game_ui.death_screen.handle_events(events)
-            game.game_ui.death_screen.draw()
-            if game.game_ui.death_screen.restart:
-                game = GameInitializer(screen)  # Reinitialize the game
-                game.game_ui.death_screen.restart = False
+
 
 
         pygame.display.flip()

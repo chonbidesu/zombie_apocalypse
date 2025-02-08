@@ -6,11 +6,11 @@ import os
 from settings import *
 from data import BLOCKS, ITEMS, ItemFunction, SaveLoadPath
 
-class Gamestate:
+class GameData:
     def __init__(self, game):
-        self.city_data = self._serialize_city(game.city)
-        self.player_data = self._serialize_player(game.player)
-        self.npc_data = self._serialize_npcs(game.npcs)
+        self.city_data = self._serialize_city(game.state.city)
+        self.player_data = self._serialize_player(game.state.player)
+        self.npc_data = self._serialize_npcs(game.state.npcs)
 
     def _serialize_city(self, city):
         city_data = []

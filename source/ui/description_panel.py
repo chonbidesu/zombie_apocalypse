@@ -71,9 +71,9 @@ class DescriptionPanel:
 
     def _get_setting_image(self):
         """Determine the setting image."""
-        x, y = self.game.player.location
-        current_block = self.game.city.block(x, y)        
-        image_suffix = "inside" if self.game.player.inside else "outside"
+        x, y = self.game.state.player.location
+        current_block = self.game.state.city.block(x, y)        
+        image_suffix = "inside" if self.game.state.player.inside else "outside"
         image_path = ResourcePath(f"assets/{current_block.type.name.lower()}_{image_suffix}.png").path
 
         try:
@@ -116,12 +116,12 @@ class DescriptionPanel:
 
     def _get_current_observations(self):
         """Get the current observations based on the player's surroundings."""
-        x, y = self.game.player.location
-        current_block = self.game.city.block(x, y)        
+        x, y = self.game.state.player.location
+        current_block = self.game.state.city.block(x, y)        
         current_observations = ""
 
         # Inside building observations
-        if self.game.player.inside:
+        if self.game.state.player.inside:
             current_observations += f'You are standing inside {current_block.name}. '
             if not current_block.lights_on:
                 current_observations += 'With the lights out, you can hardly see anything. '
@@ -178,10 +178,10 @@ class DescriptionPanel:
 
     def _update_observations(self):
         """Update the observations list based on the player's current state."""
-        x, y = self.game.player.location
-        current_block = self.game.city.block(x, y)        
+        x, y = self.game.state.player.location
+        current_block = self.game.state.city.block(x, y)        
         current_block.observations.clear()  # Clear existing observations
-        if self.game.player.inside:
+        if self.game.state.player.inside:
             current_block.observations.append(self._get_current_observations())
             current_block.observations.append(current_block.block_inside_desc)
         else:
@@ -190,16 +190,16 @@ class DescriptionPanel:
 
     def _description(self):
         """Return the current list of observations as a list."""
-        x, y = self.game.player.location
-        current_block = self.game.city.block(x, y)        
+        x, y = self.game.state.player.location
+        current_block = self.game.state.city.block(x, y)        
         self._update_observations()  # Ensure observations are current
         return current_block.observations
 
     def _filter_npcs_at_player_location(self):
         """Retrieve NPCs currently at the player's location and categorize them."""
         npcs_here = [
-            npc for npc in self.game.npcs.list
-            if npc.location == self.game.player.location and npc.inside == self.game.player.inside
+            npc for npc in self.game.state.npcs.list
+            if npc.location == self.game.state.player.location and npc.inside == self.game.state.player.inside
         ]
 
         zombies_here = [npc for npc in npcs_here if not npc.is_human]

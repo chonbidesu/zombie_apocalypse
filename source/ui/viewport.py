@@ -42,8 +42,8 @@ class Viewport:
 
     def draw_neighbourhood_name(self):
         # Draw neighbourhood name
-        x, y = self.game.player.location
-        current_block = self.game.city.block(x, y)
+        x, y = self.game.state.player.location
+        current_block = self.game.state.city.block(x, y)
         pygame.draw.rect(self.screen, ORANGE, (10, self.frame_size + 10, self.frame_size, 30))
         text = font_large.render(current_block.neighbourhood, True, WHITE)
         self.screen.blit(text, ((self.frame_size // 2) - (text.get_width() // 2), self.frame_size + 15))        
@@ -70,12 +70,12 @@ class BlockSprite(pygame.sprite.Sprite):
         Update the sprite's data based on the player's current location and CityBlock objects.
         """
         # Determine the target block coordinates based on player location and dx, dy offsets
-        x = self.game.player.location[0] + self.dx
-        y = self.game.player.location[1] + self.dy
+        x = self.game.state.player.location[0] + self.dx
+        y = self.game.state.player.location[1] + self.dy
 
         # Check if the target coordinates are within city bounds
         if 0 <= x < CITY_SIZE and 0 <= y < CITY_SIZE:
-            self.block = self.game.city.block(x, y)  # Retrieve the CityBlock at (x, y)
+            self.block = self.game.state.city.block(x, y)  # Retrieve the CityBlock at (x, y)
             self.properties = BLOCKS[self.block.type]
 
             # Load the block image
@@ -95,7 +95,7 @@ class BlockSprite(pygame.sprite.Sprite):
 
             # Add ViewportNPCs if they are present in this block
             matching_npcs = [
-                npc for npc in self.game.npcs.list if npc.location[0] == x and npc.location[1] == y and not npc.is_dead
+                npc for npc in self.game.state.npcs.list if npc.location[0] == x and npc.location[1] == y and not npc.is_dead
             ]
             npc_count = len(matching_npcs)
             for index, npc in enumerate(matching_npcs):
@@ -114,9 +114,9 @@ class BlockSprite(pygame.sprite.Sprite):
         for viewport_npc in self.viewport_npcs:
             npc_image = viewport_npc.image
             npc_rect = npc_image.get_rect(center=viewport_npc.position)                
-            if viewport_npc.npc.inside and self.game.player.inside and viewport_npc.npc.location == self.game.player.location:
+            if viewport_npc.npc.inside and self.game.state.player.inside and viewport_npc.npc.location == self.game.state.player.location:
                 self.image.blit(npc_image, npc_rect)
-            elif not viewport_npc.npc.inside and not self.game.player.inside:
+            elif not viewport_npc.npc.inside and not self.game.state.player.inside:
                 self.image.blit(npc_image, npc_rect)
 
     def draw_block_label(self):

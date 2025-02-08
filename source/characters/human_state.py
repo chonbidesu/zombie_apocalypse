@@ -28,7 +28,7 @@ class Human(State):
         elif occupation == Occupation.CONSUMER:
             if len(living_zombies) > 0:
                 return Result(Action.FIND_TARGET) # Flee to another building
-            elif self.character.location == self.game.player.location and self.character.inside == self.game.player.inside:
+            elif self.character.location == self.game.state.player.location and self.character.inside == self.game.state.player.inside:
                 return Result(Action.GIVE_QUEST)
             elif not self.character.inside and properties.is_building:
                 return Result(Action.ENTER)

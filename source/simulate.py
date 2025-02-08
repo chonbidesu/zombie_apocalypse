@@ -29,15 +29,15 @@ def run_simulation(rounds=500):
         game.ticker += 1  # Advance game time
 
         # NPCs gain action points and act
-        for npc in game.npcs.list:
+        for npc in game.state.npcs.list:
             npc.ap += 1  # Gain 1 AP per round
             if npc.ap >= 1:
                 npc.state.act()
 
         # Count populations
-        living_humans = sum(1 for npc in game.npcs.list if npc.is_human and not npc.is_dead)
-        living_zombies = sum(1 for npc in game.npcs.list if not npc.is_human and not npc.is_dead)
-        dead_bodies = sum(1 for npc in game.npcs.list if npc.is_dead)
+        living_humans = sum(1 for npc in game.state.npcs.list if npc.is_human and not npc.is_dead)
+        living_zombies = sum(1 for npc in game.state.npcs.list if not npc.is_human and not npc.is_dead)
+        dead_bodies = sum(1 for npc in game.state.npcs.list if npc.is_dead)
 
         # Log results
         logging.info(f"{round_number}, {living_humans}, {living_zombies}, {dead_bodies}")

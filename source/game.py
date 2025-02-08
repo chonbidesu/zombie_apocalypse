@@ -1,9 +1,9 @@
 # game.py
 
-import pickle
 import pygame
 import sys
 from pygame.locals import *
+from dataclasses import dataclass
 
 import menus
 import events
@@ -15,70 +15,79 @@ from populate import GenerateNPCs
 from blocks import CityBlock, BuildingBlock
 from data import Occupation
 
+
+@dataclass
+class GameState:
+    player: object
+    city: object
+    npcs: object
+
+
 class GameInitializer:
     """Initialize the game, centralizing resources."""
     def __init__(self, screen):
         self.screen = screen
-        self.player = None
-        self.city = None
+        self.state = None
         self.cursor = ui.Cursor()
+        self.menu = menus.GameMenu(self)         
         self.paused = False
-        self.menu = menus.GameMenu()
         self.save_menu = False
         self.load_menu = False
         self.popup_menu = None
         self.ticker = 0
         self.reading_map = False
         self.start_new_game = False
-        self.chat_history = [
-            "The city is in ruins. Can you make it through the night?", 
-            "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
-            "Diagonally 'q', 'e', 'z', 'c'."
-        ]
-
-        self.initialize_game()
+        self.title_event_handler = events.TitleEventHandler(self) 
+        self.title_screen = True
 
     def initialize_game(self):
         """Generate a new game state."""
+        self.state = self._create_new_game()
+        self._create_resources()
 
+    def _create_new_game(self):
         # Initialize city
-        self.city = City()
+        city = City()
 
         # Create player
-        self.player = Character(
+        player = Character(
             self, occupation=Occupation.DOCTOR, x=50, y=50, is_human=True
         )
 
         # Populate the city
-        self.npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
+        npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
 
         print("New game created.")
-
-        self.event_handler = events.EventHandler(self) 
-        self.map_event_handler = events.MapEventHandler(self)
-        self.menu_event_handler = events.MenuEventHandler(self)  
-
-        self.game_ui = ui.DrawUI(self, self.screen)
-
+        return GameState(player, city, npcs)
 
     def save_game(self, index):
         """Save the game state to a file."""
-        saveload.Gamestate.save_game(index, self)
+        saveload.GameData.save_game(index, self)
 
     def load_game(self, index):
         """Load the game state from a file."""
-        self.pause_game()
-        game_state = saveload.Gamestate.load_game(index)
-        self.player, self.city, self.npcs, = game_state.reconstruct_game(
+        if self.paused:
+            self.pause_game()
+        game_state = saveload.GameData.load_game(index)
+        player, city, npcs = game_state.reconstruct_game(
             self, Character, City, GenerateNPCs, 
             BuildingBlock, CityBlock,
         )
+        self.state = GameState(player, city, npcs)
 
+        self._create_resources()
+
+    def _create_resources(self):
         self.event_handler = events.EventHandler(self) 
         self.map_event_handler = events.MapEventHandler(self)
         self.menu_event_handler = events.MenuEventHandler(self) 
 
-        self.game_ui = ui.DrawUI(self, self.screen)
+        self.chat_history = [
+            "The city is in ruins. Can you make it through the night?", 
+            "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
+            "Diagonally 'q', 'e', 'z', 'c'."
+        ]         
+        self.game_ui = ui.DrawUI(self, self.screen)       
 
     def pause_game(self):
         """Toggle game pause state."""

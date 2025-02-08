@@ -31,7 +31,7 @@ class State:
             return False
         
         # Get block object at current location
-        block = self.game.city.block(self.character.location[0], self.character.location[1])
+        block = self.game.state.city.block(self.character.location[0], self.character.location[1])
 
         # Determine behaviour
         result = self._determine_behaviour(block)
@@ -40,17 +40,17 @@ class State:
         if result:
             action_result = self.character.action.execute(result.action, result.target)
             if action_result:
-                if action_result.attacked and result.target == self.game.player:
+                if action_result.attacked and result.target == self.game.state.player:
                     self.game.chat_history.append(action_result.attacked)
-                elif action_result.witness and self.character.location == self.game.player.location and self.character.inside == self.game.player.inside:
+                elif action_result.witness and self.character.location == self.game.state.player.location and self.character.inside == self.game.state.player.inside:
                     self.game.chat_history.append(action_result.witness)
                 
 
     def _filter_npcs_at_npc_location(self):
         """Retrieve other NPCs currently at the NPC's location and categorize them."""
-        player = self.game.player
+        player = self.game.state.player
         npcs_here = [
-            npc for npc in self.game.npcs.list
+            npc for npc in self.game.state.npcs.list
             if npc.location == self.character.location and npc.inside == self.character.inside
         ]
 

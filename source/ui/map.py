@@ -11,8 +11,8 @@ from data import BLOCKS, BlockType, NEIGHBOURHOODS
 class Map:
     def __init__(self, game, screen):
         self.screen = screen
-        self.player = game.player
-        self.city = game.city
+        self.player = game.state.player
+        self.city = game.state.city
         self.GRID_ROWS = 10
         self.GRID_COLS = 10
         self.BLOCK_PADDING = 2

@@ -49,8 +49,8 @@ class ActionsPanel:
     def update(self):
         self.button_group.empty() # Clear existing buttons
 
-        player = self.game.player
-        block = self.game.city.block(player.location[0], player.location[1])
+        player = self.game.state.player
+        block = self.game.state.city.block(player.location[0], player.location[1])
         properties = BLOCKS[block.type]
         buttons = []
 
