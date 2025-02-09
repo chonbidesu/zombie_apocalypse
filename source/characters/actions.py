@@ -298,7 +298,7 @@ class ActionExecutor:
  
     def move(self, dx, dy):
         """Moves the actor to a new location."""
-        city = self.game.city
+        city = self.game.state.city
         x, y = self.actor.location
         new_x, new_y = x + dx, y + dy
         new_block = city.block(new_x, new_y)
@@ -344,7 +344,7 @@ class ActionExecutor:
 
     def barricade(self, building):
         properties = BLOCKS[building.type]
-        _, living_zombies, _ = self._filter_npcs_at_npc_location
+        _, living_zombies, _ = self.actor.state._filter_npcs_at_npc_location()
 
         success_chances = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
         if len(living_zombies) > 1:
@@ -660,22 +660,6 @@ class ActionExecutor:
         self.game.game_ui.map.zoom_in = True
 
     def zoom_out(self):
-        self.game.game_ui.map.zoom_in = False
-
-    def _filter_npcs_at_npc_location(self):
-        """Retrieve NPCs currently at the actor's location and categorize them."""
-        npcs_here = [
-            npc for npc in self.game.state.npcs.list
-            if npc.location == self.actor.location and npc.inside == self.actor.inside
-        ]
-
-        zombies_here = [npc for npc in npcs_here if not npc.is_human]
-        humans_here = [npc for npc in npcs_here if npc.is_human]
-
-        living_zombies = [z for z in zombies_here if not z.is_dead]
-        living_humans = [h for h in humans_here if not h.is_dead]
-        dead_bodies = [npc for npc in npcs_here if npc.is_dead]
-
-        return living_humans, living_zombies, dead_bodies        
+        self.game.game_ui.map.zoom_in = False       
 
 

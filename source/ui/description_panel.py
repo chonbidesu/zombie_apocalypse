@@ -45,8 +45,8 @@ class DescriptionPanel:
         self.screen.blit(self.setting_image, (self.setting_image_x, self.setting_image_y)) 
 
         # Draw NPC sprites
-        self.zombie_sprite_group.update()
-        self.human_sprite_group.update()
+        self.zombie_sprite_group.update(self.game)
+        self.human_sprite_group.update(self.game)
         self.zombie_sprite_group.draw(self.screen)
         self.human_sprite_group.draw(self.screen) 
 
@@ -346,9 +346,9 @@ class NPCSprite(pygame.sprite.Sprite):
             )
         self.draw_name()
 
-        if game.player.is_human and SkillType.DIAGNOSIS in game.player.human_skills:
+        if game.state.player.is_human and SkillType.DIAGNOSIS in game.state.player.human_skills:
             self.draw_hp_bar()
-        elif not game.player.is_human and SkillType.SCENT_BLOOD in game.player.zombie_skills:
+        elif not game.state.player.is_human and SkillType.SCENT_BLOOD in game.state.player.zombie_skills:
             self.draw_hp_bar()
-        elif not game.player.is_human and SkillType.SCENT_FEAR in game.player.zombie_skills:
+        elif not game.state.player.is_human and SkillType.SCENT_FEAR in game.state.player.zombie_skills:
             self.draw_hp_status()
