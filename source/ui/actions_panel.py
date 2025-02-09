@@ -4,7 +4,7 @@ import pygame
 
 from settings import *
 from ui.widgets import Button
-from data import BLOCKS
+from data import BLOCKS, SKILLS, SkillType
 
 
 class ActionsPanel:
@@ -58,9 +58,10 @@ class ActionsPanel:
             buttons.append(self.stand_button)
         else:
             if player.inside:
-                buttons.append(self.barricade_button)
+                if SkillType.CONSTRUCTION in player.human_skills:
+                    buttons.append(self.barricade_button)
                 buttons.append(self.search_button)
-                buttons.append(self.leave_button)
+                buttons.append(self.leave_button)                
                 if not player.is_human:
                     buttons.append(self.ransack_button)
             else:

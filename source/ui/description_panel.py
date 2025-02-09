@@ -4,7 +4,7 @@ import random
 
 from settings import *
 from ui.utils import WrapText, SpriteSheet
-from data import BLOCKS
+from data import BLOCKS, SkillType
 
 
 class DescriptionPanel:
@@ -63,9 +63,9 @@ class DescriptionPanel:
         self._update_npc_sprites()
         self.setting_image = self._get_setting_image()
         self.current_description = self._get_formatted_description()
-        self.zombie_sprite_group.update()
+        self.zombie_sprite_group.update(self.game)
         self._position_npc_sprites(self.zombie_sprite_group, 'right')
-        self.human_sprite_group.update()
+        self.human_sprite_group.update(self.game)
         self._position_npc_sprites(self.human_sprite_group, 'left')    
 
 
@@ -299,6 +299,7 @@ class NPCSprite(pygame.sprite.Sprite):
         self.screen.blit(name_text, name_rect)
 
     def draw_hp_bar(self):
+        """Draw the NPC's HP bar if the player has the necessary skill."""
         max_hp = self.npc.max_hp
         current_hp = self.npc.hp
         bar_width = self.rect.width - 50
@@ -310,7 +311,27 @@ class NPCSprite(pygame.sprite.Sprite):
         pygame.draw.rect(self.screen, (255, 0, 0), (bar_x, bar_y, bar_width, self.hp_bar_height))
         pygame.draw.rect(self.screen, (0, 255, 0), (bar_x, bar_y, bar_width * hp_ratio, self.hp_bar_height))
 
-    def update(self):
+    def draw_hp_status(self):
+        """Draw the NPC's health status if the player has the necessary skill."""
+        current_hp = self.npc.hp
+
+        # Determine status text
+        if current_hp < 13:
+            status_text = "Dying"
+            colour = (255, 0, 0)
+        elif current_hp < 25:
+            status_text = "Wounded"
+            colour = ORANGE
+        else:
+            return
+        
+        text_surface = font_xs.render(status_text, True, colour)
+        text_x = self.rect.centerx - (text_surface.get_width() // 2)
+        text_y = self.rect.y - 15
+
+        self.screen.blit(text_surface, (text_x, text_y))
+
+    def update(self, game):
         """Update the sprite's animation frame."""
         now = pygame.time.get_ticks()
         if now - self.last_update_time > self.animation_speed * 1000:  # Convert to milliseconds
@@ -324,4 +345,10 @@ class NPCSprite(pygame.sprite.Sprite):
                 colour=self.colour,
             )
         self.draw_name()
-        self.draw_hp_bar()
+
+        if game.player.is_human and SkillType.DIAGNOSIS in game.player.human_skills:
+            self.draw_hp_bar()
+        elif not game.player.is_human and SkillType.SCENT_BLOOD in game.player.zombie_skills:
+            self.draw_hp_bar()
+        elif not game.player.is_human and SkillType.SCENT_FEAR in game.player.zombie_skills:
+            self.draw_hp_status()

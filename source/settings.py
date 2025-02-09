@@ -38,8 +38,8 @@ MAX_ITEMS_PER_ROW = 5
 
 # Zombie attacks
 ZOMBIE_ATTACKS = {
-    'hands': {'attack': 35, 'damage': 2},
-    'teeth': {'attack': 20, 'damage': 4}
+    'hands': {'attack': 25, 'damage': 2},
+    'teeth': {'attack': 10, 'damage': 4}
 }
 
 # Fonts
@@ -55,6 +55,7 @@ font_chat = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 16)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (100, 100, 100)
+LIGHT_GRAY = (175, 175, 175)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 DARK_GREEN = (34, 51, 34)

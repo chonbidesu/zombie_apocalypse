@@ -1,0 +1,4 @@
+Ruined condition
+Barricade interference
+Cannot barricade ransacked buildings
+Skills

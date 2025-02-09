@@ -23,6 +23,16 @@ class State:
         self.game = game
         self.character = character # Reference the parent character
         self.current_target = None
+        self.next_action = None
+
+    def get_action(self):
+        """Determines next behaviour and stores the action."""
+        # Get block object at current location
+        city = self.game.state.city
+        block = city.block(self.character.location[0], self.character.location[1])
+
+        # Get the next action and store it
+        self.next_action = self._determine_behaviour(block)
 
     def act(self):
         """Execute AI behaviour."""
@@ -30,24 +40,18 @@ class State:
         if self.character.ap < 1:
             return False
         
-        # Get block object at current location
-        block = self.game.state.city.block(self.character.location[0], self.character.location[1])
-
-        # Determine behaviour
-        result = self._determine_behaviour(block)
-
-        # Execute action
-        if result:
-            action_result = self.character.action.execute(result.action, result.target)
+        # Execute action if one was determined
+        if self.next_action:
+            action_result = self.character.action.execute(self.next_action.action, self.next_action.target)
             if action_result:
-                if action_result.attacked and result.target == self.game.state.player:
+                if action_result.attacked and self.next_action.target == self.game.state.player:
                     self.game.chat_history.append(action_result.attacked)
                 elif action_result.witness and self.character.location == self.game.state.player.location and self.character.inside == self.game.state.player.inside:
                     self.game.chat_history.append(action_result.witness)
                 
 
     def _filter_npcs_at_npc_location(self):
-        """Retrieve other NPCs currently at the NPC's location and categorize them."""
+        """Retrieve other NPCs (including the player) currently at the NPC's location and categorize them."""
         player = self.game.state.player
         npcs_here = [
             npc for npc in self.game.state.npcs.list

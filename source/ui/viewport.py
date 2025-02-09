@@ -132,6 +132,8 @@ class BlockSprite(pygame.sprite.Sprite):
         if self.properties.is_building:
             if self.block.lights_on:
                 pygame.draw.rect(image_copy, PALE_YELLOW, label_rect)
+            elif self.block.ruined:
+                pygame.draw.rect(image_copy, LIGHT_GRAY, label_rect)
             else:
                 pygame.draw.rect(image_copy, WHITE, label_rect)
         else:

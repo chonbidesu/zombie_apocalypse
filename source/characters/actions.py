@@ -6,7 +6,7 @@ import csv
 from dataclasses import dataclass
 
 from settings import *
-from data import Action, ITEMS, ItemType, ItemFunction, BLOCKS, ResourcePath
+from data import Action, ITEMS, ItemType, ItemFunction, BLOCKS, BlockType, ResourcePath, SKILLS, SkillType
 
 
 @dataclass
@@ -170,52 +170,102 @@ class ActionExecutor:
     def _human_attack(self, target, weapon):
         if weapon:
             properties = ITEMS[weapon.type]
+
             if properties.item_function == ItemFunction.FIREARM and weapon.loaded_ammo == 0:
                     return ActionResult(False, "Your firearm is out of ammo.")
 
-            roll = random.randint(1, 20)
-            attack_success = (roll + properties.attack) >= ATTACK_DIFFICULTY
+            # Base attack success rate
+            attack_chance = properties.attack
+
+            # Apply skill bonuses
+            if properties.item_function == ItemFunction.FIREARM:
+                if SkillType.BASIC_FIREARMS_TRAINING in self.actor.human_skills:
+                    attack_chance += 25
+                if weapon.type == ItemType.PISTOL:
+                    if SkillType.PISTOL_TRAINING in self.actor.human_skills:
+                        attack_chance += 25
+                    if SkillType.ADV_PISTOL_TRAINING in self.actor.human_skills:
+                        attack_chance += 10
+                if weapon.type == ItemType.SHOTGUN:
+                    if SkillType.SHOTGUN_TRAINING in self.actor.human_skills:
+                        attack_chance += 25
+                    if SkillType.ADV_SHOTGUN_TRAINING in self.actor.human_skills:
+                        attack_chance += 10
+            if properties.item_function == ItemFunction.MELEE:
+                if SkillType.HAND_TO_HAND in self.actor.human_skills:
+                    attack_chance += 15
+                if weapon.type == ItemType.KNIFE and SkillType.KNIFE_COMBAT in self.actor.human_skills:
+                        attack_chance += 15
+                if weapon.type == ItemType.FIRE_AXE and SkillType.AXE_PROFICIENCY in self.actor.human_skills:
+                        attack_chance += 15
+            
+            roll = random.randint(1, 100)
+            attack_success = roll <= attack_chance
+            self.actor.ap -= 1
 
             if attack_success:
                 self._deplete_weapon(weapon, properties)
                 target.take_damage(properties.damage)
-                if self.actor.weapon:
-                    self.actor.ap -= 1
-                    message = f"Your attack hits for {properties.damage} damage."
-                    witness = f"{self.actor.current_name} attacks {target.current_name} with {properties.description}."
-                    return ActionResult(True, message, witness)
+                if target.is_dead and SkillType.HEADSHOT in self.actor.human_skills:
+                    target.permadeath = True
+                    if self.actor.weapon:
+                        message = f"You deal a headshot for {properties.damage} damage."
+                        witness = f"{self.actor.current_name} deals a headshot against {target.current_name} with {properties.description}."
+                        return ActionResult(True, message, witness)
+                    else:
+                        message = f"You deal a headshot for {properties.damage} damage. Your weapon breaks!"
+                        witness = f"{self.actor.current_name} deals a headshot against {target.current_name} with {properties.description}."
+                        return ActionResult(True, message, witness)
                 else:
-                    self.actor.ap -= 1
-                    message = f"Your attack hits for {properties.damage} damage. Your weapon breaks!"
-                    witness = f"{self.actor.current_name} attacks {target.current_name} with {properties.description}."
-                    return ActionResult(True, message, witness)
+                    if self.actor.weapon:
+                        message = f"Your attack hits for {properties.damage} damage."
+                        witness = f"{self.actor.current_name} attacks {target.current_name} with {properties.description}."
+                        return ActionResult(True, message, witness)
+                    else:
+                        message = f"Your attack hits for {properties.damage} damage. Your weapon breaks!"
+                        witness = f"{self.actor.current_name} attacks {target.current_name} with {properties.description}."
+                        return ActionResult(True, message, witness)                    
             else:
-                self.actor.ap -= 1
                 return ActionResult(False, "Your attack misses.")
 
         else: # If no weapon equipped, punch the enemy.
             roll = random.randint(1, 20)
             attack_success = roll >= ATTACK_DIFFICULTY
 
+            self.actor.ap -= 1
+
             if attack_success:
                 target.take_damage(1)
-                self.actor.ap -= 1
                 return ActionResult(True, "You punch the enemy for 1 damage.")
             else:
-                self.actor.ap -= 1
                 return ActionResult(False, "Your attack misses.")
 
     def _zombie_attack(self, target):
         weapon = ZombieWeapon.choose()  # Get attack choice
-        roll = random.randint(1, 20)
-        attack_success = (roll + weapon.attack) >= ATTACK_DIFFICULTY
+
+        # Base attack success rate
+        attack_chance = weapon.attack
+        bonus_damage = 0
+
+        # Apply skill bonuses
+        if SkillType.VIGOUR_MORTIS in self.actor.zombie_skills:
+            attack_chance += 10
+        if weapon.name == 'hands' and SkillType.DEATH_GRIP in self.actor.zombie_skills:
+            attack_chance += 15
+            if SkillType.REND_FLESH in self.actor.zombie_skills:
+                bonus_damage = 1
+        if weapon.name == 'teeth' and SkillType.NECK_LURCH in self.actor.zombie_skills:
+            attack_chance += 10
+
+        roll = random.randint(1, 100)
+        attack_success = roll <= attack_chance
         self.actor.ap -= 1
 
         if attack_success:
-            target.take_damage(weapon.damage)
-            message = f"You attack {target.current_name} with {weapon.name} for {weapon.damage} damage."
+            target.take_damage(weapon.damage + bonus_damage)
+            message = f"You attack {target.current_name} with {weapon.name} for {weapon.damage + bonus_damage} damage."
             witness = f"{self.actor.current_name} attacks {target.current_name} with {weapon.name}."
-            attacked = f"{self.actor.current_name} attacks you with {weapon.name} for {weapon.damage} damage!"
+            attacked = f"{self.actor.current_name} attacks you with {weapon.name} for {weapon.damage + bonus_damage} damage!"
             return ActionResult(True, message, witness, attacked)
         else:
             message = "Your attack misses."
@@ -248,20 +298,32 @@ class ActionExecutor:
  
     def move(self, dx, dy):
         """Moves the actor to a new location."""
+        city = self.game.city
         x, y = self.actor.location
         new_x, new_y = x + dx, y + dy
+        new_block = city.block(new_x, new_y)
+        block_properties = BLOCKS[new_block.type]
         is_human = self.actor.is_human
 
         # Check if the new coordinates are valid within the grid
         if 0 <= new_x < 100 and 0 <= new_y < 100:
-            # If a player moves, they are no longer inside.
-            if self.actor.inside:
-                self.actor.inside = False
-            self.actor.location = (new_x, new_y)
-            if is_human:
+
+            # If a player moves, they are no longer inside unless they have Free Running.
+            if self.actor.is_human:
+                if SkillType.FREE_RUNNING not in self.actor.human_skills:
+                    self.actor.inside = False
+                elif block_properties.is_building:
+                    if new_block.ruined:
+                        self.actor.inside = False
+                        self.actor.fall()
                 self.actor.ap -= 1
             else:
-                self.actor.ap -= 2
+                self.actor.inside = False
+                if SkillType.LURCHING_GAIT in self.actor.zombie_skills:
+                    self.actor.ap -= 1
+                else:
+                    self.actor.ap -= 2
+            self.actor.location = (new_x, new_y)
 
     def wander(self):
         """Randomly moves the actor to an adjacent block."""
@@ -282,13 +344,22 @@ class ActionExecutor:
 
     def barricade(self, building):
         properties = BLOCKS[building.type]
+        _, living_zombies, _ = self._filter_npcs_at_npc_location
+
         success_chances = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
+        if len(living_zombies) > 1:
+            modifier = 0.5
+        else:
+            modifier = 1
+        
         if properties.is_building and self.actor.inside:
-            if building.barricade.level >= 7 and building.barricade.sublevel >= 4:
+            if building.ransack_level > 0:
+                return ActionResult(False, "You have to repair the building before you can add barricades.")
+            elif building.barricade.level >= 7 and building.barricade.sublevel >= 4:
                 return ActionResult(False, "You can't add more barricades.")
             
             success_chance = success_chances[building.barricade.level]
-            success = random.random() < success_chance
+            success = random.random() < success_chance * modifier
             if success:
                 add_barricade = building.barricade.adjust_barricade_sublevel(1)
                 if not add_barricade:
@@ -325,6 +396,27 @@ class ActionExecutor:
                 return ActionResult(False, "There are no barricades to break.")                
         else:
             return ActionResult(False, "Only buildings have barricades.")
+
+    def ransack(self, building):
+        properties = BLOCKS[building.type]
+        if properties.is_building:
+            if self.actor.inside:
+                if not building.ruined:
+                    building.ransack_level += 1
+                    if building.ransack_level == 6:
+                        building.ruined = True
+                        return ActionResult(True, "You ransack further rooms of the buildling. The building is now ruined.")
+                    else:
+                        if building.ransack_level == 1:
+                            return ActionResult(True, "You ransack the building.")
+                        else:
+                            return ActionResult(True, "You ransack further rooms of the building.")
+                else:
+                    return ActionResult(False, "This building is already ruined.")
+            else:
+                return ActionResult(False, "You have to be inside to ransack.")
+        else:
+            return ActionResult(False, "Only buildings can be ransacked.")
 
     def enter(self, building):
         properties = BLOCKS[building.type]
@@ -440,11 +532,18 @@ class ActionExecutor:
     def use(self, item):
         x, y = self.actor.location
         block = self.game.state.city.block(x, y)
+        block_properties = BLOCKS[block.type]
         weapon = self.actor.weapon
 
         if item.type == ItemType.FIRST_AID_KIT:
+            if SkillType.FIRST_AID in self.actor.human_skills:
+                heal_bonus = 5
+                if SkillType.SURGERY in self.actor.human_skills and block_properties.type == BlockType.HOSPITAL and block.lights_on:
+                    heal_bonus += 5
+            else:
+                heal_bonus = 0
             if self.actor.hp < self.actor.max_hp:
-                self.actor.heal(20)
+                self.actor.heal(5 + heal_bonus)
                 self.actor.inventory.remove(item)
                 self.actor.ap -= 1
                 return ActionResult(True, "You use a first aid kit, and feel a bit better.")
@@ -539,14 +638,20 @@ class ActionExecutor:
             building = block
             if building.ransack_level == 0:
                 return ActionResult(False, "This building does not need repairs.")
+            elif building.ruined:
+                if not building.lights_on:
+                    return ActionResult(False, "Ruined buildings need to be powered in order to be repaired.")
+                elif not SkillType.CONSTRUCTION in self.actor.human_skills:
+                    return ActionResult(False, "You need the Construction skill to repair ruins.")
             else:
                 return ActionResult(True, "You repaired the interior of the building and cleaned up the mess.")
 
     def stand(self):
         """Actor stands up at full health after collecting enough action points."""
-        self.is_dead = False
-        self.hp = 50
-        self.actor.ap -= STAND_AP
+        if not self.actor.permadeath:
+            self.actor.is_dead = False
+            self.actor.hp = self.actor.max_hp
+            self.actor.ap -= STAND_AP
 
     def close_map(self):
         self.game.reading_map = False
@@ -556,5 +661,21 @@ class ActionExecutor:
 
     def zoom_out(self):
         self.game.game_ui.map.zoom_in = False
+
+    def _filter_npcs_at_npc_location(self):
+        """Retrieve NPCs currently at the actor's location and categorize them."""
+        npcs_here = [
+            npc for npc in self.game.state.npcs.list
+            if npc.location == self.actor.location and npc.inside == self.actor.inside
+        ]
+
+        zombies_here = [npc for npc in npcs_here if not npc.is_human]
+        humans_here = [npc for npc in npcs_here if npc.is_human]
+
+        living_zombies = [z for z in zombies_here if not z.is_dead]
+        living_humans = [h for h in humans_here if not h.is_dead]
+        dead_bodies = [npc for npc in npcs_here if npc.is_dead]
+
+        return living_humans, living_zombies, dead_bodies        
 
 

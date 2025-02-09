@@ -5,7 +5,7 @@ import csv
 import random
 
 from settings import *
-from data import ITEMS, ItemType, ItemFunction
+from data import ITEMS, ItemType, ItemFunction, SKILLS, SkillType, SkillCategory
 from characters.items import Item, Weapon
 from characters.human_state import Human
 from characters.zombie_state import Zombie
@@ -31,6 +31,7 @@ class Character:
         self.hp = self.max_hp
         self.ap = 0
         self.is_dead = False
+        self.permadeath = False
         self.is_human = is_human
         self.inside = inside
         self.inventory = []
@@ -53,8 +54,8 @@ class Character:
         else:
             self.current_name = f"{self.name.zombie_adjective} {self.name.first_name}"
 
-    # Set initial state
     def get_state(self):
+        """Set state based on is_human."""
         if self.is_human:
             state = Human(self.game, self)
             self.update_name()
@@ -63,12 +64,48 @@ class Character:
             self.update_name()
         return state
 
-    def take_damage(self, amount):
+    def add_skill(self, skill):
+        """Add a skill to the character's skill set."""
+        if skill in SKILLS:
+            skill_category = SKILLS[skill].skill_category
+
+            if skill_category == SkillCategory.ZOMBIE:
+                self.zombie_skills.add(skill)
+            else:
+                self.human_skills.add(skill)
+
+            self.apply_skill_effect(skill)
+
+    def has_skill(self, skill):
+        """Check if a character has a particular skill."""
+        return skill in self.human_skills or skill in self.zombie_skills
+
+    def apply_skill_effect(self, skill, remove=False):
+        """Apply or remove the passive effects of a skill."""
+        if remove:
+            modifier = -1
+        else:
+            modifier = 1
+
+        if skill == SkillType.BODY_BUILDING:
+            self.max_hp += 10 * modifier
+        elif skill == SkillType.FLESH_ROT:
+            self.max_hp += 10 * modifier
+
+    def take_damage(self, amount, fatal=True):
         """Reduces the character's health by the given amount."""
         self.hp -= amount
         if self.hp <= 0:
-            self.hp = 0
-            self.die()
+            if fatal:
+                self.hp = 0
+                self.die()
+            else:
+                self.hp = 1
+
+    def fall(self):
+        """Character falls from a building, taking damage."""
+        self.take_damage(5, fatal=False)
+        self.game.chat_history.append("You fall from the crumbling building, injuring yourself.")
 
     def heal(self, amount):
         """Heals the character by the given amount up to max health."""
@@ -76,10 +113,22 @@ class Character:
 
     def die(self):
         """Handles the character's death."""
+        if self.is_human:
+            zombified = True
+        else:
+            zombified = False
+
         self.is_dead = True
         self.is_human = False
         self.state = Zombie(self.game, self)
         self.update_name()
+
+        # Reassign passive skill effects
+        if zombified:
+            for skill in self.human_skills:
+                self.apply_skill_effect(skill, remove=True)
+            for skill in self.zombie_skills:
+                self.apply_skill_effect(skill)
 
     def revivify(self):
         """Revives the character to human state."""
@@ -87,6 +136,10 @@ class Character:
         self.is_human = True
         self.state = Human(self.game, self)
         self.update_name()
+        for skill in self.zombie_skills:
+            self.apply_skill_effect(skill, remove=True)
+        for skill in self.human_skills:
+            self.apply_skill_effect(skill)    
 
     def status(self):
         """Returns the character's current status."""

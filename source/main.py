@@ -2,6 +2,7 @@
 
 import pygame
 import sys
+from collections import deque
 
 from settings import *
 from game import GameInitializer
@@ -16,8 +17,12 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Zombie Apocalypse")
     clock = pygame.time.Clock()
+
+    # Set up AI action queue
     action_interval = ACTION_INTERVAL
     action_timer = 0
+    action_queue = deque()
+    actions_per_frame = 20
 
     # Start the game
     game = GameInitializer(screen)
@@ -69,11 +74,11 @@ def main():
                     game.popup_menu.handle_events(events)
                     game.popup_menu.draw()
 
-                # Update NPC actions every half-second
+                # Restart NPC action queue every action interval
                 action_timer += clock.get_time()
                 if action_timer >= action_interval:
-                    game.state.npcs.gain_ap()
-                    game.state.npcs.take_action()
+                    game.state.npcs.gain_ap() # Grant AP to all NPCs
+                    action_queue = deque(game.state.npcs.list) # Load all NPCs into the queue
                     action_timer = 0
                     game.ticker += 1
                     
@@ -84,6 +89,12 @@ def main():
                                 if block.lights_on:
                                     block.lights_on = False         
 
+                # Process the action queue in batches
+                for _ in range(min(actions_per_frame, len(action_queue))):
+                    npc = action_queue.popleft() # Get next npc
+                    npc.state.get_action()
+                    npc.state.act()
+
                 # Handle player death
                 if game.state.player.is_dead:
                     game.game_ui.death_screen.handle_events(events)
@@ -92,11 +103,8 @@ def main():
                         game = GameInitializer(screen)  # Reinitialize the game
                         game.game_ui.death_screen.restart = False                                              
 
-        # Draw the cursor
-        #game.cursor.update(game.game_ui)
-
-
-
+            # Update the cursor
+            game.cursor.update(game.game_ui)
 
         pygame.display.flip()
         clock.tick(FPS)

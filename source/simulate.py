@@ -17,6 +17,7 @@ def run_simulation(rounds=500):
     
     # Initialize game (without rendering)
     game = GameInitializer(screen)
+    game.initialize_game()
     
     # If you want to load a save file, do this:
     # game_state = Gamestate.load_game("savegame.pkl")
