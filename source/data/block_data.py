@@ -16,6 +16,7 @@ class BlockType(Enum):
     AUTO_REPAIR = auto()
     FACTORY = auto()
     SCHOOL = auto()
+    OFFICE = auto()
     NECROTECH_LAB = auto() 
     JUNKYARD = auto()
     MUSEUM = auto()
@@ -44,6 +45,7 @@ BLOCKS = {
     BlockType.AUTO_REPAIR: BlockProperties("an auto repair shop", True, ResourcePath("assets/auto_repair.bmp").path),
     BlockType.FACTORY: BlockProperties("a factory", True, ResourcePath("assets/factory.bmp").path),
     BlockType.SCHOOL: BlockProperties("a school", True, ResourcePath("assets/school.bmp").path),
+    BlockType.OFFICE: BlockProperties("an office building", True, ResourcePath("assets/office.bmp").path),
     BlockType.NECROTECH_LAB: BlockProperties("a NecroTech lab", True, ResourcePath("assets/necrotech_lab.bmp").path),
     BlockType.JUNKYARD: BlockProperties("a junkyard", True, ResourcePath("assets/junkyard.bmp").path),
     BlockType.MUSEUM: BlockProperties("a museum", True, ResourcePath("assets/museum.bmp").path),

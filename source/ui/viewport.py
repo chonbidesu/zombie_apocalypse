@@ -2,7 +2,7 @@ import pygame
 import random
 
 from settings import *
-from data import BLOCKS, BlockType
+from data import BLOCKS, BlockType, SkillType
 from ui.utils import WrapText
 
 class Viewport:
@@ -70,13 +70,17 @@ class BlockSprite(pygame.sprite.Sprite):
         Update the sprite's data based on the player's current location and CityBlock objects.
         """
         # Determine the target block coordinates based on player location and dx, dy offsets
-        x = self.game.state.player.location[0] + self.dx
-        y = self.game.state.player.location[1] + self.dy
+        player = self.game.state.player
+        x = player.location[0] + self.dx
+        y = player.location[1] + self.dy
 
         # Check if the target coordinates are within city bounds
         if 0 <= x < CITY_SIZE and 0 <= y < CITY_SIZE:
             self.block = self.game.state.city.block(x, y)  # Retrieve the CityBlock at (x, y)
-            self.properties = BLOCKS[self.block.type]
+            if self.block.type == BlockType.NECROTECH_LAB and SkillType.NECROTECH_EMPLOYMENT not in player.human_skills:
+                self.properties = BLOCKS[BlockType.OFFICE]
+            else:
+                self.properties = BLOCKS[self.block.type]
 
             # Load the block image
             image_filename = self.properties.image_file

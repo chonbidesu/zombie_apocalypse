@@ -69,6 +69,7 @@ class City:
         self._load_block_names()
         block_pool = []
         block_pool = self._generate_buildings(block_pool)
+        block_pool = self._generate_offices(block_pool)
         block_pool = self._generate_outdoor_spaces(block_pool)
         block_pool = self._generate_streets(block_pool)
         block_pool = self._generate_malls(block_pool)
@@ -91,37 +92,44 @@ class City:
         return block
 
     def _generate_buildings(self, block_pool):
-        # Generate 5380 building blocks
-        for _ in range(CITY_SIZE * 53.8):
+        """Generate 5130 building blocks"""
+        for _ in range(int(CITY_SIZE * 51.3)):
             building_blocks = [block_type for block_type, properties in BLOCKS.items() if properties.is_building and not block_type == BlockType.MALL]
             building_block = self._generate_block(random.choice(building_blocks))         
             block_pool.append(building_block)
         return block_pool
+    
+    def _generate_offices(self, block_pool):
+        """Generate 500 office buildings."""
+        for _ in range(CITY_SIZE * 5):
+            office_block = self._generate_block(BlockType.OFFICE)
+            block_pool.append(office_block)
+        return block_pool
 
     def _generate_outdoor_spaces(self, block_pool):
-        # Generate 1500 outdoor blocks
-        for _ in range(CITY_SIZE * 15):
+        """Generate 1250 outdoor blocks"""
+        for _ in range(int(CITY_SIZE * 12.5)):
             outdoor_blocks = [block_type for block_type, properties in BLOCKS.items() if not properties.is_building]
             outdoor_block = self._generate_block(random.choice(outdoor_blocks))
             block_pool.append(outdoor_block)
         return block_pool
 
     def _generate_streets(self, block_pool):
-        # Generate 3100 street blocks
+        """Generate 3100 street blocks"""
         for _ in range(CITY_SIZE * 31):
             street_block = self._generate_block(BlockType.STREET)
             block_pool.append(street_block)
         return block_pool
     
     def _generate_malls(self, block_pool):
-        # Generate 20 mall blocks
-        for _ in range(CITY_SIZE * 0.2):
+        """Generate 20 mall blocks"""
+        for _ in range(int(CITY_SIZE * 0.2)):
             mall_block = self._generate_block(BlockType.MALL)
             block_pool.append(mall_block)
         return block_pool
 
     def _assign_xy(self, block_pool):
-        # Now, randomly place blocks into a 100x100 grid
+        """Place blocks into a 100x100 grid"""
         grid = []
         for y in range(CITY_SIZE):
             row = []
@@ -134,7 +142,7 @@ class City:
         return grid
 
     def _spread_malls(self, grid):
-        # Implement mall spreading logic
+        """Implement mall spreading logic."""
         mall_sizes = {}  # Track the size of each mall (keyed by name)
 
         for y, row in enumerate(grid):

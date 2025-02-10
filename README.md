@@ -25,7 +25,6 @@ No installation is required, simply run the latest version for your operating sy
 Roadmap
 
 Planned features include:
-Start menu
 Character selection
 Class selection
 Skill Trees and XP system

@@ -4,7 +4,7 @@ import random
 
 from settings import *
 from ui.utils import WrapText, SpriteSheet
-from data import BLOCKS, SkillType
+from data import BLOCKS, BlockType, SkillType
 
 
 class DescriptionPanel:
@@ -142,7 +142,11 @@ class DescriptionPanel:
                     current_observations += "It is out of fuel. "
         # Outside building observations
         else:
-            properties = BLOCKS[current_block.type]
+            player = self.game.state.player
+            if current_block.type == BlockType.NECROTECH_LAB and SkillType.NECROTECH_EMPLOYMENT not in player.human_skills:
+                properties = BLOCKS[BlockType.OFFICE]
+            else:
+                properties = BLOCKS[current_block.type]
             if properties.is_building:
                 current_observations += f'You are standing outside {properties.description}. A sign reads "{current_block.name}". '
                 current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
