@@ -647,11 +647,14 @@ class ActionExecutor:
                 return ActionResult(True, "You repaired the interior of the building and cleaned up the mess.")
 
     def stand(self):
-        """Actor stands up at full health after collecting enough action points."""
+        """Actor stands up at full health."""
         if not self.actor.permadeath:
             self.actor.is_dead = False
             self.actor.hp = self.actor.max_hp
-            self.actor.ap -= STAND_AP
+            if SkillType.ANKLE_GRAB in self.actor.zombie_skills:
+                self.actor.ap -= 1
+            else:
+                self.actor.ap -= STAND_AP
 
     def close_map(self):
         self.game.reading_map = False

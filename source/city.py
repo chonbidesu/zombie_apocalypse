@@ -78,45 +78,45 @@ class City:
         grid = self._generate_neighbourhoods(grid)
         return grid
 
+    def _generate_block(self, block_type):
+        """Generate a city block."""
+        properties = BLOCKS[block_type]
+        if properties.is_building:
+            block = BuildingBlock()
+        else:
+            block = CityBlock()
+        block.type = block_type
+        block.name = self._get_unique_block_name(block.type.name)
+        block.generate_descriptions(self.descriptions)
+        return block
+
     def _generate_buildings(self, block_pool):
-        # Generate 4000 building blocks
-        for _ in range(CITY_SIZE * 40):
+        # Generate 5380 building blocks
+        for _ in range(CITY_SIZE * 53.8):
             building_blocks = [block_type for block_type, properties in BLOCKS.items() if properties.is_building and not block_type == BlockType.MALL]
-            building_block = BuildingBlock()
-            building_block.type = random.choice(building_blocks)
-            building_block.name = self._get_unique_block_name(building_block.type.name)
-            building_block.generate_descriptions(self.descriptions)          
+            building_block = self._generate_block(random.choice(building_blocks))         
             block_pool.append(building_block)
         return block_pool
 
     def _generate_outdoor_spaces(self, block_pool):
-        # Generate 2500 outdoor blocks
-        for _ in range(CITY_SIZE * 25):
+        # Generate 1500 outdoor blocks
+        for _ in range(CITY_SIZE * 15):
             outdoor_blocks = [block_type for block_type, properties in BLOCKS.items() if not properties.is_building]
-            outdoor_block = CityBlock()
-            outdoor_block.type = random.choice(outdoor_blocks)
-            outdoor_block.name = self._get_unique_block_name(outdoor_block.type.name)
-            outdoor_block.generate_descriptions(self.descriptions)
+            outdoor_block = self._generate_block(random.choice(outdoor_blocks))
             block_pool.append(outdoor_block)
         return block_pool
 
     def _generate_streets(self, block_pool):
-        # Generate 3400 street blocks
-        for _ in range(CITY_SIZE * 34):
-            street_block = CityBlock()
-            street_block.type = BlockType.STREET
-            street_block.name = self._get_unique_block_name(street_block.type.name)
-            street_block.generate_descriptions(self.descriptions)         
+        # Generate 3100 street blocks
+        for _ in range(CITY_SIZE * 31):
+            street_block = self._generate_block(BlockType.STREET)
             block_pool.append(street_block)
         return block_pool
     
     def _generate_malls(self, block_pool):
-        # Generate 100 mall blocks
-        for _ in range(CITY_SIZE * 1):
-            mall_block = BuildingBlock()
-            mall_block.type = BlockType.MALL
-            mall_block.name = self._get_unique_block_name(mall_block.type.name)
-            mall_block.generate_descriptions(self.descriptions)         
+        # Generate 20 mall blocks
+        for _ in range(CITY_SIZE * 0.2):
+            mall_block = self._generate_block(BlockType.MALL)
             block_pool.append(mall_block)
         return block_pool
 
