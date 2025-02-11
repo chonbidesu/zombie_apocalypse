@@ -23,6 +23,11 @@ class BlockType(Enum):
     NIGHTCLUB = auto()
     PUB = auto()
     MALL = auto()
+    BANK = auto()
+    CINEMA = auto()
+    HOTEL = auto()
+    RAILWAY_STATION = auto()
+    TOWER = auto()
 
     STREET = auto()
     PARK = auto()
@@ -52,6 +57,11 @@ BLOCKS = {
     BlockType.NIGHTCLUB: BlockProperties("a nightclub", True, ResourcePath("assets/nightclub.bmp").path),
     BlockType.PUB: BlockProperties("a pub", True, ResourcePath("assets/pub.bmp").path),
     BlockType.MALL: BlockProperties("a mall", True, ResourcePath("assets/mall.bmp").path),
+    BlockType.BANK: BlockProperties("a bank", True, ResourcePath("assets/bank.bmp").path),
+    BlockType.CINEMA: BlockProperties("a cinema", True, ResourcePath("assets/cinema.bmp").path),
+    BlockType.HOTEL: BlockProperties("a hotel", True, ResourcePath("assets/hotel.bmp").path),
+    BlockType.RAILWAY_STATION: BlockProperties("a railway station", True, ResourcePath("assets/railway_station.bmp").path),
+    BlockType.TOWER: BlockProperties("a towering skyscraper", True, ResourcePath("assets/tower.bmp").path),
 
     BlockType.STREET: BlockProperties("a street", False, ResourcePath("assets/streets.bmp").path),
     BlockType.PARK: BlockProperties("a park", False, ResourcePath("assets/park.bmp").path),
