@@ -50,7 +50,7 @@ ITEMS = {
     ItemType.TOOLBOX: ItemProperties('Toolbox', 'a toolbox', ItemFunction.ITEM, ResourcePath('assets/toolbox.png').path, None, None, None, None),
     ItemType.BINOCULARS: ItemProperties('Binoculars', 'a pair of binoculars', ItemFunction.ITEM, ResourcePath('assets/binoculars.png').path, None, None, None, None),
     ItemType.DNA_EXTRACTOR: ItemProperties('DNA Extractor', 'a DNA extractor', ItemFunction.ITEM, ResourcePath('assets/dna_extractor.png').path, None, None, None, None),
-    ItemType.SYRINGE: ItemProperties('NecroTech Revivification Syringe', 'a NecroTech revivification syringe', ItemFunction.ITEM, ResourcePath('assets/syringe.png').path, None, None, None, None),
+    ItemType.SYRINGE: ItemProperties('NecroTech Syringe', 'a NecroTech revivification syringe', ItemFunction.ITEM, ResourcePath('assets/syringe.png').path, None, None, None, None),
     ItemType.SHOTGUN_SHELL: ItemProperties('Shotgun Shell', 'a shotgun shell', ItemFunction.AMMO, ResourcePath('assets/shotgun_shell.png').path, None, None, None, None),
     ItemType.PISTOL_CLIP: ItemProperties('Pistol Clip', 'a pistol clip', ItemFunction.AMMO, ResourcePath('assets/pistol_clip.png').path, None, None, None, None),
     ItemType.KNIFE: ItemProperties('Knife', 'a knife', ItemFunction.MELEE, ResourcePath('assets/knife.png').path, 20, 2, 75, None),

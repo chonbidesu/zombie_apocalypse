@@ -45,7 +45,7 @@ class ContextMenu:
                     menu_data = [properties.item_type, 'Unequip', 'Drop']
                 else:
                     menu_data = [properties.item_type, 'Equip', 'Drop']
-            elif item.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX,]:
+            elif item.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX, ItemType.SYRINGE, ItemType.DNA_EXTRACTOR]:
                 menu_data = [properties.item_type, 'Use', 'Drop']
             elif item.type == ItemType.PORTABLE_GENERATOR:
                 menu_data = [properties.item_type, 'Install', 'Drop']
