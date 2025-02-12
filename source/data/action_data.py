@@ -6,10 +6,8 @@ from enum import Enum, auto
 class Action(Enum):
     # NPC actions
     GIVE_QUEST = auto()             # Provide a quest to the player
-    FIND_TARGET = auto()            # Find a nearby location to move
     PURSUE = auto()                 # Pursue an enemy character based on last known location
     WANDER = auto()                 # Move randomly
-    RELOCATE = auto()               # Push character to an adjacent block due to overcrowding
 
     # Gameplay actions
     MOVE = auto()                   # Move to the target

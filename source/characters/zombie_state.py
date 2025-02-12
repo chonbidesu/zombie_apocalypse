@@ -12,9 +12,11 @@ class Zombie(State):
     def __init__(self, game, character):
         super().__init__(game, character)     
 
-    def _determine_behaviour(self, block):
+    def _determine_behaviour(self):
         """Determine the priority for the zombie."""
         # Get block properties at current location
+        city = self.game.state.city
+        block = city.block(self.character.location[0], self.character.location[1])        
         properties = BLOCKS[block.type]
 
         # Get character data at current location

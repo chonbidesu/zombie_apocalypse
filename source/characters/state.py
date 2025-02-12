@@ -39,12 +39,7 @@ class State:
 
     def get_action(self):
         """Determines next behaviour and stores the action."""
-        # Get block object at current location
-        city = self.game.state.city
-        block = city.block(self.character.location[0], self.character.location[1])
-
-        # Get the next action and store it
-        self.next_action = self._determine_behaviour(block)
+        self.next_action = self._determine_behaviour()
 
     def act(self):
         """Execute AI behaviour."""
