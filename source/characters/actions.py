@@ -81,7 +81,10 @@ class ActionExecutor:
 
         # Stand up
         elif action == Action.STAND:
-            return self.stand()
+            if self.actor == player:
+                action_progress.start("Standing", self.stand, duration=10000)
+            else:
+                return self.stand()
 
         # Movement
         elif action == Action.MOVE_UP:

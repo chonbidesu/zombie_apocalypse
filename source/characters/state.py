@@ -17,6 +17,15 @@ class Result:
     target: object = None
 
 
+@dataclass
+class BlockNPCs:
+    x: int
+    y: int
+    living_humans: list
+    living_zombies: list
+    dead_bodies: list
+
+
 class State:
     """Represents an NPC state."""
     def __init__(self, game, character):
@@ -71,4 +80,4 @@ class State:
         living_humans = [h for h in humans_here if not h.is_dead]
         dead_bodies = [npc for npc in npcs_here if npc.is_dead]
 
-        return living_zombies, living_humans, dead_bodies             
+        return BlockNPCs(living_humans, living_zombies, dead_bodies)             

@@ -46,11 +46,11 @@ class ActionProgress:
         self.target_function = None
         self.clock = pygame.time.Clock()
 
-    def start(self, message, target_function, *args, **kwargs):
+    def start(self, message, target_function, *args, duration=750, **kwargs):
         """Start displaying an action progress message for a set duration."""
         self.active_message = message
         self.start_ticks = pygame.time.get_ticks()
-        self.duration = 750
+        self.duration = duration
         self.target_function = target_function
         self.args = args
         self.kwargs = kwargs

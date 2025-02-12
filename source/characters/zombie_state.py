@@ -16,7 +16,7 @@ class Zombie(State):
     def _determine_behaviour(self, block):
         """Determine the priority for the zombie."""
         properties = BLOCKS[block.type]
-        living_zombies, living_humans, _ = self._filter_npcs_at_npc_location()       
+        block_npcs = self._filter_npcs_at_npc_location()       
         dx, dy = self._find_target_dxy(block)
         nearby_target = MoveTarget(dx, dy)
 
@@ -25,13 +25,13 @@ class Zombie(State):
             return Result(Action.STAND) if self.character.ap >= STAND_AP else False
 
         # Relocate if the block is overcrowded
-        if len(living_zombies + living_humans) > BLOCK_CAPACITY:
+        if len(block_npcs.living_zombies + block_npcs.living_humans) > BLOCK_CAPACITY:
             return Result(Action.RELOCATE)
 
-        elif len(living_humans) > 0:
-            if self.current_target not in living_humans:
-                random.shuffle(living_humans)
-                self.current_target = living_humans[0] # Choose a new target
+        elif len(block_npcs.living_humans) > 0:
+            if self.current_target not in block_npcs.living_humans:
+                random.shuffle(block_npcs.living_humans)
+                self.current_target = block_npcs.living_humans[0] # Choose a new target
             return Result(Action.ATTACK, self.current_target)
 
         elif self.current_target:
