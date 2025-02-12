@@ -37,7 +37,7 @@ class Human(State):
         
         # Priority 2+: Determine action based on occupation        
         if occupation == Occupation.CONSUMER:
-            return self._determine_consumer_behaviour(properties, block_characters, adjacent_locations)
+            return self._determine_consumer_behaviour(block, properties, block_characters, adjacent_locations)
             
         if occupation in CIVILIAN_OCCUPATIONS:
             return self._determine_civilian_behaviour(block, properties, block_characters, inventory)
@@ -51,12 +51,12 @@ class Human(State):
         if occupation == Occupation.CORPSE:
             return self._determine_corpse_behaviour()
         
-    def _determine_consumer_behaviour(self, properties, block_characters, adjacent_locations, x, y):
+    def _determine_consumer_behaviour(self, block, properties, block_characters, adjacent_locations, x, y):
         # Check for target locations
-        types = [BlockType.FACTORY, BlockType.AUTO_REPAIR, BlockType.WAREHOUSE]
+        target_types = [BlockType.FACTORY, BlockType.AUTO_REPAIR, BlockType.WAREHOUSE]
         target_locations = [
             loc for loc in adjacent_locations
-            if self.is_target_location(loc, types)
+            if self.is_target_location(loc, target_types)
         ]        
 
         # Check inventory for needed items
@@ -69,9 +69,26 @@ class Human(State):
             if target_locations:
                 target_location = random.choice(target_locations)
                 dx, dy = target_location[0] - x, target_location[1] - y
-                return Result(Action.MOVE, MoveTarget(dx, dy))
+                return Result(Action.MOVE, MoveTarget(dx, dy)) # Move to nearby building if desirable target
             else:
                 return Result(Action.WANDER) # Move randomly if no desireable target present
+
+        # Priority 3: If outside, find a safe place to hide
+        if not self.character.inside:
+            if block.type in target_types:
+                return Result(Action.ENTER) # Enter current building if a desirable target
+            elif target_locations:
+                target_location = random.choice(target_locations)
+                dx, dy = target_location[0] - x, target_location[1] - y
+                return Result(Action.MOVE, MoveTarget(dx, dy)) # Move to nearby building if desirable target
+            else:
+                return Result(Action.WANDER) # Move randomly if no desireable target present
+
+        # Priority 4: If conditions allow searching for items, search
+        if self._can_search(block, has_generator, has_fuel, has_toolbox):
+            return Result(Action.SEARCH)
+        
+
 #####################################################################
         elif self.character.location == self.game.state.player.location and self.character.inside == self.game.state.player.inside:
             return Result(Action.GIVE_QUEST)
@@ -119,13 +136,16 @@ class Human(State):
     def _determine_corpse_behaviour(self):
         pass
 
-    def _is_target_location(self, location, types):
+    def _is_target_location(self, location, target_types):
         """Determine if location is a desirable target."""
         x, y = location
         city = self.game.state.city
         block = city.block(x, y)
 
-        if block.type in types:
+        if block.type in target_types:
             return True
         else:
             return False
+        
+    def _can_search(self, block, has_generator, has_fuel, has_toolbox):
+        return False
