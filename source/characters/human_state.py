@@ -15,47 +15,27 @@ class Human(State):
         properties = BLOCKS[block.type]
         occupation = self.character.occupation
         inventory = self.character.inventory
-        living_zombies, living_humans, dead_bodies = self._filter_npcs_at_npc_location()
+        x, y = self.character.location[0], self.character.location[1]
+        inside = self.character.inside
+        block_characters = self.filter_characters_at_location(x, y, inside)
 
-        # Stand up if dead and have enough action points
+        # Priority 1: Stand up if dead
         if self.character.is_dead:
             return Result(Action.STAND) if self.character.ap >= STAND_AP else False
-
-        # Relocate if the block is overcrowded
-        if len(living_zombies + living_humans) > BLOCK_CAPACITY:
-            return Result(Action.RELOCATE)
         
-        elif occupation == Occupation.CONSUMER:
-            if len(living_zombies) > 0:
-                return Result(Action.FIND_TARGET) # Flee to another building
-            elif self.character.location == self.game.state.player.location and self.character.inside == self.game.state.player.inside:
-                return Result(Action.GIVE_QUEST)
-            elif not self.character.inside and properties.is_building:
-                return Result(Action.ENTER)
-            elif not self.character.inside and not properties.is_building:
-                return Result(Action.WANDER)
+        if occupation == Occupation.CONSUMER:
+            return self._determine_consumer_behaviour()
             
-        elif occupation in CIVILIAN_OCCUPATIONS:
-            if properties.is_building and not self.character.inside:
-                return Result(Action.ENTER)
-            elif self.character.inside:
-                if living_zombies:
-                    return Result(Action.ATTACK, living_zombies[0])
-                elif block.ransack_level > 0:
-                    for item in inventory:
-                        if item.type == ItemType.TOOLBOX:
-                            return Result(Action.USE, item)
-                elif block.barricade.level <= 4:
-                    return Result(Action.BARRICADE)
-                else:
-                    return Result(Action.SEARCH)
+        if occupation in CIVILIAN_OCCUPATIONS:
+            return self._determine_civilian_behaviour()
         
-        elif occupation in SCIENCE_OCCUPATIONS:
+        if occupation in SCIENCE_OCCUPATIONS:
+            return self._determine_science_behaviour()
             if properties.is_building and not self.character.inside:
                 return Result(Action.ENTER)
             elif self.character.inside:
-                if living_zombies:
-                    return Result(Action.ATTACK, living_zombies[0])
+                if block_npcs.living_zombies:
+                    return Result(Action.ATTACK, block_npcs.living_zombies[0])
                 elif block.ransack_level > 0:
                     for item in inventory:
                         if item.type == ItemType.TOOLBOX:
@@ -65,10 +45,39 @@ class Human(State):
                 else:
                     return Result(Action.SEARCH)
                 
-        elif occupation in MILITARY_OCCUPATIONS:
-            if living_zombies:
-                return Result(Action.ATTACK, living_zombies[0])
+        if occupation in MILITARY_OCCUPATIONS:
+            return self._determine_military_behaviour()
+            if block_npcs.living_zombies:
+                return Result(Action.ATTACK, block_npcs.living_zombies[0])
             else:
                 return Result(Action.WANDER)
+            
+        if occupation == Occupation.CORPSE:
+            return self._determine_corpse_behaviour()
+        
+    def _determine_consumer_behaviour(self):
+        if len(block_npcs.living_zombies) > 0:
+            return Result(Action.FIND_TARGET) # Flee to another building
+        elif self.character.location == self.game.state.player.location and self.character.inside == self.game.state.player.inside:
+            return Result(Action.GIVE_QUEST)
+        elif not self.character.inside and properties.is_building:
+            return Result(Action.ENTER)
+        elif not self.character.inside and not properties.is_building:
+            return Result(Action.WANDER)
+        
+    def _determine_civilian_behaviour(self):
+        if properties.is_building and not self.character.inside:
+            return Result(Action.ENTER)
+        elif self.character.inside:
+            if block_npcs.living_zombies:
+                return Result(Action.ATTACK, block_npcs.living_zombies[0])
+            elif block.ransack_level > 0:
+                for item in inventory:
+                    if item.type == ItemType.TOOLBOX:
+                        return Result(Action.USE, item)
+            elif block.barricade.level <= 4:
+                return Result(Action.BARRICADE)
+            else:
+                return Result(Action.SEARCH)
 
-        return None # No behaviour determined
+    def _determine_scienc

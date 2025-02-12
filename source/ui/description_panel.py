@@ -116,12 +116,13 @@ class DescriptionPanel:
 
     def _get_current_observations(self):
         """Get the current observations based on the player's surroundings."""
-        x, y = self.game.state.player.location
+        player = self.game.state.player
+        x, y = player.location
         current_block = self.game.state.city.block(x, y)        
         current_observations = ""
 
         # Inside building observations
-        if self.game.state.player.inside:
+        if player.inside:
             current_observations += f'You are standing inside {current_block.name}. '
             if not current_block.lights_on:
                 current_observations += 'With the lights out, you can hardly see anything. '
@@ -142,7 +143,6 @@ class DescriptionPanel:
                     current_observations += "It is out of fuel. "
         # Outside building observations
         else:
-            player = self.game.state.player
             if current_block.type == BlockType.NECROTECH_LAB and SkillType.NECROTECH_EMPLOYMENT not in player.human_skills:
                 properties = BLOCKS[BlockType.OFFICE]
             else:
@@ -156,33 +156,34 @@ class DescriptionPanel:
                 current_observations += f'You are standing in {properties.description}. '
 
         # Add observations for NPCs and dead bodies
-        living_zombies, living_humans, dead_bodies = self._filter_npcs_at_player_location()
+        block_characters = player.state.filter_characters_at_location(x, y, player.inside)
 
-        if living_zombies:
-            if len(living_zombies) == 1:
+        if block_characters.living_zombies:
+            if len(block_characters.living_zombies) == 1:
                 current_observations += "There is a lone zombie here. "
             else:
-                current_observations += f"There are {len(living_zombies)} zombies here. "
+                current_observations += f"There are {len(block_characters.living_zombies)} zombies here. "
 
-        if living_humans:
-            if len(living_humans) == 1:
+        if block_characters.living_humans:
+            if len(block_characters.living_humans) == 1:
                 current_observations += "There is another survivor here. "
             else:
-                current_observations += f"There are {len(living_humans)} other survivors here. "
+                current_observations += f"There are {len(block_characters.living_humans)} other survivors here. "
 
-        if dead_bodies:
-            if len(dead_bodies) == 1:
+        if block_characters.dead_bodies:
+            if len(block_characters.dead_bodies) == 1:
                 current_observations += "You see a dead body. "
             else:
-                current_observations += f"You see {len(dead_bodies)} dead bodies. "
-            for body in dead_bodies:
+                current_observations += f"You see {len(block_characters.dead_bodies)} dead bodies. "
+            for body in block_characters.dead_bodies:
                 print(f"{body.current_name} has {body.ap} AP.")
 
         return current_observations
 
     def _update_observations(self):
         """Update the observations list based on the player's current state."""
-        x, y = self.game.state.player.location
+        player = self.game.state.player
+        x, y = player.location
         current_block = self.game.state.city.block(x, y)        
         current_block.observations.clear()  # Clear existing observations
         if self.game.state.player.inside:
@@ -194,37 +195,24 @@ class DescriptionPanel:
 
     def _description(self):
         """Return the current list of observations as a list."""
-        x, y = self.game.state.player.location
+        player = self.game.state.player
+        x, y = player.location
         current_block = self.game.state.city.block(x, y)        
         self._update_observations()  # Ensure observations are current
         return current_block.observations
 
-    def _filter_npcs_at_player_location(self):
-        """Retrieve NPCs currently at the player's location and categorize them."""
-        npcs_here = [
-            npc for npc in self.game.state.npcs.list
-            if npc.location == self.game.state.player.location and npc.inside == self.game.state.player.inside
-        ]
-
-        zombies_here = [npc for npc in npcs_here if not npc.is_human]
-        humans_here = [npc for npc in npcs_here if npc.is_human]
-
-        living_zombies = [z for z in zombies_here if not z.is_dead]
-        living_humans = [h for h in humans_here if not h.is_dead]
-        dead_bodies = [npc for npc in npcs_here if npc.is_dead]
-
-        return living_zombies, living_humans, dead_bodies
-
     def _update_npc_sprites(self):
         """Update NPC sprites' visibility."""
+        player = self.game.state.player
+        x, y = player.location        
 
         # Keep track of NPCs currently at the player's location
-        zombies_here, humans_here, dead_npcs = self._filter_npcs_at_player_location()
+        block_characters = player.state.filter_characters_at_location(x, y, player.inside)
 
         # Update existing sprites or create new ones if necessary
         updated_sprites = []
 
-        for zombie in zombies_here:
+        for zombie in block_characters.living_zombies:
             # Check if a sprite for this zombie already exists
             existing_sprite = next(
                 (sprite for sprite in self.zombie_sprite_group if sprite.npc == zombie), None
@@ -241,10 +229,10 @@ class DescriptionPanel:
 
         # Remove sprites for zombies that are no longer here
         for sprite in list(self.zombie_sprite_group):
-            if sprite not in updated_sprites or sprite.npc in dead_npcs:
+            if sprite not in updated_sprites or sprite.npc in block_characters.dead_bodies:
                 sprite.kill()
 
-        for human in humans_here:
+        for human in block_characters.living_humans:
             # Check if a sprite for this human already exists
             existing_sprite = next(
                 (sprite for sprite in self.human_sprite_group if sprite.npc == human), None
@@ -261,10 +249,8 @@ class DescriptionPanel:
 
         # Remove sprites for humans that are no longer here
         for sprite in list(self.human_sprite_group):
-            if sprite not in updated_sprites or sprite.npc in dead_npcs:
-                sprite.kill()
-
-  
+            if sprite not in updated_sprites or sprite.npc in block_characters.dead_bodies:
+                sprite.kill()  
 
 
 class NPCSprite(pygame.sprite.Sprite):
