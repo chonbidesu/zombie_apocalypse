@@ -3,7 +3,7 @@
 import random
 
 from settings import *
-from data import Action, BLOCKS, BlockType, Occupation, ItemType, MILITARY_OCCUPATIONS, SCIENCE_OCCUPATIONS, CIVILIAN_OCCUPATIONS
+from data import Action, BLOCKS, BlockType, Occupation, OccupationCategory, OCCUPATIONS, ItemType
 from characters.state import State, MoveTarget, Result
 
 
@@ -12,17 +12,17 @@ class Human(State):
     def __init__(self, game, character):
         super().__init__(game, character)
 
-    def _determine_behaviour(self, block):
+    def _determine_behaviour(self):
         """Determine the priority for the NPC."""
         # Get block properties at current location
         city = self.game.state.city
-        block = city.block(self.character.location[0], self.character.location[1])        
+        x, y = self.character.location[0], self.character.location[1]
+        block = city.block(x, y)        
         properties = BLOCKS[block.type]        
 
         # Get character properties
         occupation = self.character.occupation
         inventory = self.character.inventory
-        x, y = self.character.location[0], self.character.location[1]
         inside = self.character.inside
 
         # Get adjacent locations
@@ -35,17 +35,18 @@ class Human(State):
         if self.character.is_dead:
             return Result(Action.STAND) if self.character.ap >= STAND_AP else False
         
-        # Priority 2+: Determine action based on occupation        
+        # Priority 2+: Determine action based on occupation  
+        occupation_properties = OCCUPATIONS[occupation]      
         if occupation == Occupation.CONSUMER:
-            return self._determine_consumer_behaviour(block, properties, block_characters, adjacent_locations)
+            return self._determine_consumer_behaviour(block, properties, block_characters, adjacent_locations, x, y)
             
-        if occupation in CIVILIAN_OCCUPATIONS:
+        if occupation_properties.occupation_category == OccupationCategory.CIVILIAN:
             return self._determine_civilian_behaviour(block, properties, block_characters, inventory)
         
-        if occupation in SCIENCE_OCCUPATIONS:
+        if occupation_properties.occupation_category == OccupationCategory.SCIENCE:
             return self._determine_science_behaviour(block, properties, block_characters, inventory)
                 
-        if occupation in MILITARY_OCCUPATIONS:
+        if occupation_properties.occupation_category == OccupationCategory.MILITARY:
             return self._determine_military_behaviour(block_characters)
             
         if occupation == Occupation.CORPSE:
@@ -56,7 +57,7 @@ class Human(State):
         target_types = [BlockType.FACTORY, BlockType.AUTO_REPAIR, BlockType.WAREHOUSE]
         target_locations = [
             loc for loc in adjacent_locations
-            if self.is_target_location(loc, target_types)
+            if self._is_target_location(loc, target_types)
         ]        
 
         # Check inventory for needed items

@@ -207,8 +207,20 @@ class ActionExecutor:
             self.actor.ap -= 1
 
             if attack_success:
+                # Resolve action result
                 self._deplete_weapon(weapon, properties)
                 target.take_damage(properties.damage)
+
+                # Trigger NPC sprite animation if visible
+                sprites = list(self.game.game_ui.description_panel.zombie_sprite_group)
+                for sprite in sprites:
+                    if target == sprite.npc:
+                        if target.is_dead:
+                            sprite.set_action(2)
+                        else:
+                            sprite.set_action(3)
+
+
                 if target.is_dead and SkillType.HEADSHOT in self.actor.human_skills:
                     target.permadeath = True
                     if self.actor.weapon:
@@ -239,6 +251,16 @@ class ActionExecutor:
 
             if attack_success:
                 target.take_damage(1)
+
+                # Trigger NPC sprite animation if visible
+                sprites = list(self.game.game_ui.description_panel.zombie_sprite_group)
+                for sprite in sprites:
+                    if target == sprite.npc:
+                        if target.is_dead:
+                            sprite.set_action(2)
+                        else:
+                            sprite.set_action(3)
+
                 return ActionResult(True, "You punch the enemy for 1 damage.")
             else:
                 return ActionResult(False, "Your attack misses.")
@@ -266,6 +288,16 @@ class ActionExecutor:
 
         if attack_success:
             target.take_damage(weapon.damage + bonus_damage)
+
+            # Trigger NPC sprite animation if visible
+            sprites = list(self.game.game_ui.description_panel.human_sprite_group)
+            for sprite in sprites:
+                if target == sprite.npc:
+                    if target.is_dead:
+                        sprite.set_action(2)
+                    else:
+                        sprite.set_action(3)
+
             message = f"You attack {target.current_name} with {weapon.name} for {weapon.damage + bonus_damage} damage."
             witness = f"{self.actor.current_name} attacks {target.current_name} with {weapon.name}."
             attacked = f"{self.actor.current_name} attacks you with {weapon.name} for {weapon.damage + bonus_damage} damage!"
@@ -347,10 +379,11 @@ class ActionExecutor:
 
     def barricade(self, building):
         properties = BLOCKS[building.type]
-        _, living_zombies, _ = self.actor.state._filter_npcs_at_npc_location()
+        x, y = building.x, building.y
+        block_npcs = self.actor.state.filter_characters_at_location(x, y, inside=True)
 
         success_chances = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
-        if len(living_zombies) > 1:
+        if len(block_npcs.living_zombies) > 1:
             modifier = 0.5
         else:
             modifier = 1

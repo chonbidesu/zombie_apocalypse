@@ -104,7 +104,7 @@ class Zombie(State):
                 move_target = MoveTarget(dx, dy)
                 move_targets.append(move_target)
         if not move_targets: # If no brainz available, look for lit buildings
-            city = self.game.city
+            city = self.game.state.city
             for location in adjacent_locations:
                 adjacent_x, adjacent_y = location
                 block = city.block(adjacent_x, adjacent_y)

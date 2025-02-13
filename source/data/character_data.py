@@ -1,5 +1,6 @@
 # character_data.py
 
+from collections import namedtuple
 from enum import Enum, auto
 
 class Occupation(Enum):
@@ -20,31 +21,25 @@ class Occupation(Enum):
     # Zombie occupations
     CORPSE = auto()
 
+class OccupationCategory(Enum):
+    MILITARY = auto()
+    SCIENCE = auto()
+    CIVILIAN = auto()
+    ZOMBIE = auto()
 
-HUMAN_OCCUPATIONS = [
-    Occupation.PRIVATE,
-    Occupation.MEDIC,
-    Occupation.SCOUT,
-    Occupation.NECROTECH_ASSISTANT,
-    Occupation.DOCTOR,
-    Occupation.POLICE_OFFICER,
-    Occupation.FIREFIGHTER,
-    Occupation.CONSUMER,
-]
+OccupationProperties = namedtuple(
+    'OccupationProperties', [
+        'occupation', 'occupation_category', 'sprite_sheet', 'description'
+    ]
+)
 
-MILITARY_OCCUPATIONS = [
-    Occupation.PRIVATE,
-    Occupation.MEDIC,
-    Occupation.SCOUT,
-]
-
-SCIENCE_OCCUPATIONS = [
-    Occupation.NECROTECH_ASSISTANT,
-    Occupation.DOCTOR,
-]
-
-CIVILIAN_OCCUPATIONS = [
-    Occupation.POLICE_OFFICER,
-    Occupation.FIREFIGHTER,
-    Occupation.CONSUMER,
-]
+OCCUPATIONS = {
+    Occupation.PRIVATE: OccupationProperties('Private', OccupationCategory.MILITARY, 'military_sprite_sheet', ''),
+    Occupation.MEDIC: OccupationProperties('Medic', OccupationCategory.MILITARY, 'military_sprite_sheet', ''),
+    Occupation.SCOUT: OccupationProperties('Scout', OccupationCategory.MILITARY, 'military_sprite_sheet', ''),
+    Occupation.NECROTECH_ASSISTANT: OccupationProperties('NecroTech Lab Assistant', OccupationCategory.SCIENCE, 'science_sprite_sheet', ''),
+    Occupation.DOCTOR: OccupationProperties('Doctor', OccupationCategory.SCIENCE, 'science_sprite_sheet', ''),
+    Occupation.POLICE_OFFICER: OccupationProperties('Police Officer', OccupationCategory.CIVILIAN, 'civilian_sprite_sheet', ''),
+    Occupation.FIREFIGHTER: OccupationProperties('Firefighter', OccupationCategory.CIVILIAN, 'civilian_sprite_sheet', ''),
+    Occupation.CONSUMER: OccupationProperties('Consumer', OccupationCategory.CIVILIAN, 'consumer_sprite_sheet', ''),
+}

@@ -4,7 +4,8 @@ import random
 
 from settings import *
 from ui.utils import WrapText, SpriteSheet
-from data import BLOCKS, BlockType, SkillType
+from data import BLOCKS, BlockType, SkillType, OCCUPATIONS
+from ui.widgets import ClockHUD
 
 
 class DescriptionPanel:
@@ -25,17 +26,14 @@ class DescriptionPanel:
         self.setting_image_y = 50
 
         # Set up sprite elements
-        self.zombie_sprite_group = pygame.sprite.Group()
-        self.zombie_sprite_sheet_image = pygame.image.load(ResourcePath("assets/zombie_spritesheet.png").path).convert_alpha()
-        self.zombie_sprite_sheet = SpriteSheet(self.zombie_sprite_sheet_image)
-
-        self.human_sprite_group = pygame.sprite.Group()      
-        self.human_sprite_sheet_image = pygame.image.load(ResourcePath("assets/human_spritesheet.png").path).convert_alpha()
-        self.human_sprite_sheet = SpriteSheet(self.human_sprite_sheet_image)        
+        self._create_sprite_elements()  
 
         # Store current description and setting image data
         self.current_description = []
         self.setting_image = None
+
+        # Set up Clock HUD
+        self.clock_hud = ClockHUD(self.game)        
 
     def draw(self):
         # Blit the panel background
@@ -43,6 +41,11 @@ class DescriptionPanel:
 
         # Blit the setting image at the top of the panel
         self.screen.blit(self.setting_image, (self.setting_image_x, self.setting_image_y)) 
+
+        # Draw the Clock HUD
+        self.clock_x = self.setting_image_x + 5
+        self.clock_y = self.setting_image_y + 5
+        self.clock_hud.draw(self.screen, self.clock_x, self.clock_y)
 
         # Draw NPC sprites
         self.zombie_sprite_group.update(self.game)
@@ -61,6 +64,7 @@ class DescriptionPanel:
     def update(self):
         self._update_observations()
         self._update_npc_sprites()
+        self.clock_hud.update()
         self.setting_image = self._get_setting_image()
         self.current_description = self._get_formatted_description()
         self.zombie_sprite_group.update(self.game)
@@ -68,6 +72,20 @@ class DescriptionPanel:
         self.human_sprite_group.update(self.game)
         self._position_npc_sprites(self.human_sprite_group, 'left')    
 
+    def _create_sprite_elements(self):
+        self.zombie_sprite_group = pygame.sprite.Group()
+        self.zombie_sprite_sheet_image = pygame.image.load(ResourcePath("assets/sprite_sheets/zombie_sprite_sheet.png").path).convert_alpha()
+        self.zombie_sprite_sheet = SpriteSheet(self.zombie_sprite_sheet_image)
+
+        self.human_sprite_group = pygame.sprite.Group()      
+        self.consumer_sprite_sheet_image = pygame.image.load(ResourcePath("assets/sprite_sheets/consumer_sprite_sheet.png").path).convert_alpha()
+        self.consumer_sprite_sheet = SpriteSheet(self.consumer_sprite_sheet_image)
+        self.civilian_sprite_sheet_image = pygame.image.load(ResourcePath("assets/sprite_sheets/civilian_sprite_sheet.png").path).convert_alpha()
+        self.civilian_sprite_sheet = SpriteSheet(self.civilian_sprite_sheet_image)
+        self.military_sprite_sheet_image = pygame.image.load(ResourcePath("assets/sprite_sheets/military_sprite_sheet.png").path).convert_alpha()
+        self.military_sprite_sheet = SpriteSheet(self.military_sprite_sheet_image)
+        self.science_sprite_sheet_image = pygame.image.load(ResourcePath("assets/sprite_sheets/science_sprite_sheet.png").path).convert_alpha()
+        self.science_sprite_sheet = SpriteSheet(self.science_sprite_sheet_image)                             
 
     def _get_setting_image(self):
         """Determine the setting image."""
@@ -207,7 +225,7 @@ class DescriptionPanel:
         x, y = player.location        
 
         # Keep track of NPCs currently at the player's location
-        block_characters = player.state.filter_characters_at_location(x, y, player.inside)
+        block_characters = player.state.filter_characters_at_location(x, y, player.inside, include_player=False)
 
         # Update existing sprites or create new ones if necessary
         updated_sprites = []
@@ -222,14 +240,14 @@ class DescriptionPanel:
             else:
                 # Create a new sprite for the zombie
                 new_sprite = NPCSprite(
-                    self.screen, zombie, self.zombie_sprite_sheet, 8, 44, 54, 2.5, (0, 0, 0)
+                    self.screen, zombie, self.zombie_sprite_sheet, 2.5, (0, 0, 0)
                 )
                 self.zombie_sprite_group.add(new_sprite)
                 updated_sprites.append(new_sprite)
 
         # Remove sprites for zombies that are no longer here
         for sprite in list(self.zombie_sprite_group):
-            if sprite not in updated_sprites or sprite.npc in block_characters.dead_bodies:
+            if sprite not in updated_sprites:
                 sprite.kill()
 
         for human in block_characters.living_humans:
@@ -241,34 +259,48 @@ class DescriptionPanel:
                 updated_sprites.append(existing_sprite)
             else:
                 # Create a new sprite for the human
+                occupation = human.occupation
+                sprite_sheet_name = OCCUPATIONS[occupation].sprite_sheet
+                sprite_sheet = getattr(self, sprite_sheet_name)
+
                 new_sprite = NPCSprite(
-                    self.screen, human, self.human_sprite_sheet, 8, 44, 64, 2.5, (0, 0, 0)
+                    self.screen, human, sprite_sheet, 2.5, (0, 0, 0)
                 )
                 self.human_sprite_group.add(new_sprite)
                 updated_sprites.append(new_sprite)                
 
         # Remove sprites for humans that are no longer here
         for sprite in list(self.human_sprite_group):
-            if sprite not in updated_sprites or sprite.npc in block_characters.dead_bodies:
+            if sprite not in updated_sprites:
                 sprite.kill()  
 
 
 class NPCSprite(pygame.sprite.Sprite):
     """An NPC sprite for the description panel."""
-    def __init__(self, screen, npc, sprite_sheet, frame_count, frame_width, frame_height, scale, colour):
+    def __init__(self, screen, npc, sprite_sheet, scale, colour):
         super().__init__()
         self.screen = screen
         self.npc = npc  # Reference to the parent NPC
         self.sprite_sheet = sprite_sheet
-        self.frame_count = frame_count  # Total number of frames
-        self.frame_width = frame_width  # Width of each frame
-        self.frame_height = frame_height  # Height of each frame
+        self.frame_count = [8, 7, 6, 3]  # Total number of frames
+        self.action = 0
+        self.frame_width = 64  # Width of each frame
+        self.frame_height = 64  # Height of each frame
         self.scale = scale  # Scale factor for the frames
         self.colour = colour  # Transparent color for the frames
-        self.current_frame = random.randint(0, 7)  # Current frame index
         self.animation_speed = 0.15  # Animation speed (seconds per frame)
         self.last_update_time = pygame.time.get_ticks()  # Time since the last frame update
         self.hp_bar_height = 10
+        self.play_once = False # For one-time animations
+
+        # Calculate starting frames for each action
+        self.action_start_frames = [
+            0,  # Action 0 (Idle)
+            self.frame_count[0],  # Action 1 (Attack)
+            self.frame_count[0] + self.frame_count[1],  # Action 2 (Die)
+            self.frame_count[0] + self.frame_count[1] + self.frame_count[2],  # Action 3 (Hurt)
+        ]
+        self.current_frame = self.action_start_frames[self.action] + random.randint(0, self.frame_count[0] - 1)
 
         # Set the initial image and rect
         self.image = self.sprite_sheet.get_image(
@@ -279,6 +311,28 @@ class NPCSprite(pygame.sprite.Sprite):
             colour=self.colour,
         )
         self.rect = self.image.get_rect()
+
+
+    def _get_current_frame(self):
+        """Retrieve the correct frame from the sprite sheet."""
+        start_frame = self.action_start_frames[self.action]
+        return self.sprite_sheet.get_image(
+            frame=start_frame + self.current_frame,
+            width=self.frame_width,
+            height=self.frame_height,
+            scale=self.scale,
+            colour=self.colour,
+        )
+
+    def set_action(self, action):
+        """
+        Set the NPC action. If switching from idle (0), reset animation.
+        """
+        if self.action == 0 and action > 0:  # Switching from idle to action
+            self.current_frame = 0
+            self.play_once = True  # Ensure action plays fully
+        
+        self.action = action  # Update action
 
     def draw_name(self):
         """Draw the NPC's name above the sprite."""
@@ -326,14 +380,26 @@ class NPCSprite(pygame.sprite.Sprite):
         now = pygame.time.get_ticks()
         if now - self.last_update_time > self.animation_speed * 1000:  # Convert to milliseconds
             self.last_update_time = now
-            self.current_frame = (self.current_frame + 1) % self.frame_count  # Loop through frames
-            self.image = self.sprite_sheet.get_image(
-                frame=self.current_frame,
-                width=self.frame_width,
-                height=self.frame_height,
-                scale=self.scale,
-                colour=self.colour,
-            )
+            self.current_frame += 1
+
+            # Get max frames for the current action
+            max_frames = self.frame_count[self.action]
+
+            # If the animation is complete for actions 1-3, return to idle (0)
+            if self.current_frame >= max_frames:
+                if self.action == 2:
+                    self.kill()
+                elif self.play_once:
+                    self.action = 0
+                    self.current_frame = self.action_start_frames[self.action]
+                    self.play_once = False
+                else:
+                    self.current_frame = 0 # Loop if it's an idle animation
+
+            # Update the image with the new frame
+            self.image = self._get_current_frame()
+
+        # Draw UI elements
         self.draw_name()
 
         if game.state.player.is_human and SkillType.DIAGNOSIS in game.state.player.human_skills:

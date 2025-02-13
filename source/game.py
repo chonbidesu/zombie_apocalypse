@@ -87,7 +87,8 @@ class GameInitializer:
             "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
             "Diagonally 'q', 'e', 'z', 'c'."
         ]         
-        self.game_ui = ui.DrawUI(self, self.screen)       
+        self.game_ui = ui.DrawUI(self, self.screen)  
+        self.day_cycle = ui.DayCycleManager(self)     
 
     def pause_game(self):
         """Toggle game pause state."""

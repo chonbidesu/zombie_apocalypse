@@ -28,6 +28,7 @@ class StatusPanel:
         self.player_sprite_group = pygame.sprite.GroupSingle()
         self.player_sprite_group.add(self.player_sprite)
 
+
     def draw(self):
         x, y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT * 25 // 32 + 10
         status_panel = pygame.Surface((self.width, self.height), pygame.SRCALPHA)

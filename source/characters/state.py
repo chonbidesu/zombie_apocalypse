@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import random
 
 from data import Action
+from settings import *
 
 
 @dataclass
@@ -56,7 +57,7 @@ class State:
                 elif action_result.witness and self.character.location == self.game.state.player.location and self.character.inside == self.game.state.player.inside:
                     self.game.chat_history.append(action_result.witness)           
 
-    def filter_characters_at_location(self, x, y, inside=False):
+    def filter_characters_at_location(self, x, y, inside=False, include_player=True):
         """Retrieve all characters at a given location and categorize them."""
         player = self.game.state.player
         characters_here = [
@@ -64,9 +65,10 @@ class State:
             if npc.location == (x, y) and npc.inside == inside
         ]
 
-        # Add the player to the list if they are at location
-        if player.location == (x, y) and player.inside == inside:
-            characters_here.append(player)
+        if include_player:
+            # Add the player to the list if they are at location
+            if player.location == (x, y) and player.inside == inside:
+                characters_here.append(player)
 
         zombies_here = [character for character in characters_here if not character.is_human]
         humans_here = [character for character in characters_here if character.is_human]
@@ -86,7 +88,14 @@ class State:
             (x - 1, y),                 (x + 1, y),     # Middle row
             (x - 1, y + 1), (x, y + 1), (x + 1, y + 1)  # Bottom row
         ]
-        return adjacent_locations
+        valid_locations = []
+
+        # Filter only valid locations in bounds
+        for location in adjacent_locations:
+            x, y = location
+            if 0 < x < CITY_SIZE - 1 and 0 < y < CITY_SIZE - 1:
+                valid_locations.append(location)
+        return valid_locations
     
     def _make_choice(self, actions):
         """Choose an action based on weighted probabilities."""

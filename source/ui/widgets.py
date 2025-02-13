@@ -1,6 +1,7 @@
 # button.py
 
 import pygame
+import time
 
 from settings import *
 
@@ -90,3 +91,38 @@ class Cursor(object):
 
         if not cursor_changed:
             pygame.mouse.set_cursor(self.default_cursor)
+
+class ClockHUD:
+    """Displays and updates the in-game clock."""
+    def __init__(self, game):
+        self.game = game
+        self.time_in_minutes = 8 * 60  # Start at 8:00 AM (8 * 60 minutes)
+        self.last_update = time.time()
+
+    def update(self):
+        """Update the clock every second in real time."""
+        current_time = time.time()
+        if current_time - self.last_update >= 1:  # 1 second = 1 in-game minute
+            self.time_in_minutes += 1
+            self.last_update = current_time
+
+        # If it's 12:00 PM, start the night cycle
+        if self.time_in_minutes >= 24 * 60:  # 24 * 60 = 1440 minutes = 12:00 PM
+            self.game.day_cycle.start_night()
+
+    def draw(self, screen, x, y):
+        """Draw the clock on screen."""
+        hours = (self.time_in_minutes // 60) % 24  # Convert minutes to hours
+        minutes = self.time_in_minutes % 60
+        am_pm = "AM" if hours < 12 else "PM"
+        display_hours = hours if hours <= 12 else hours - 12  # Convert to 12-hour format
+
+        time_str = f"{display_hours:02}:{minutes:02} {am_pm}"
+        
+        # Change colour to red if night is approaching
+        colour = (255, 0, 0) if self.time_in_minutes >= 21 * 60 else (255, 255, 255)
+
+        time_surface = font_xl.render(time_str, True, colour)
+        time_shadow = font_xl.render(time_str, True, BLACK)
+        screen.blit(time_shadow, (x + 1, y + 1))  # Drop shadow
+        screen.blit(time_surface, (x, y))  # Display in centre of setting image

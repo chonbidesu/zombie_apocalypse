@@ -6,9 +6,9 @@ from ui.inventory_panel import InventoryPanel
 from ui.description_panel import DescriptionPanel
 from ui.skills_panel import SkillsPanel
 from ui.viewport import Viewport
-from ui.utils import ActionProgress, DeathScreen
+from ui.utils import ActionProgress, DayCycleManager, DeathScreen
 from ui.effects import ScreenTransition
-from ui.widgets import Cursor, Button
+from ui.widgets import Cursor, Button, ClockHUD
 from ui.map import Map
 
 

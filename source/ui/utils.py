@@ -87,6 +87,33 @@ class SpriteSheet():
 
         return image
     
+
+class DayCycleManager:
+    """Manages the transition from daytime to nighttime."""
+    def __init__(self, game):
+        self.game = game
+        self.night_fast_forward = False
+        self.night_complete = False
+
+    def start_night(self):
+        """Trigger night transition when 12:00 PM hits."""
+        self.game.game_ui.circle_wipe(self.process_night_cycle, self.game.chat_history)
+
+    def process_night_cycle(self):
+        """Process 8 hours of NPC actions."""
+        for _ in range(8 * 60 * 1000 // ACTION_INTERVAL): # Calculate number of NPC actions in 8 hours
+            self.game.state.npcs.gain_ap()
+            self.game.state.npcs.take_action()
+            self.game.ticker += 1  # Track time progression
+
+            self.end_night()
+
+    def end_night(self):
+        """End the night cycle and start a new day."""
+        self.game.clock.time_in_minutes = 8 * 60  # Reset to 8:00 AM
+        print("You wake up at dawn...")
+
+
 class DeathScreen():
     """Display a death screen with restart options."""
     def __init__(self, game, screen):

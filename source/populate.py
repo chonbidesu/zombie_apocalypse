@@ -2,7 +2,7 @@ import random
 
 from characters import Character
 from settings import *
-from data import Occupation, HUMAN_OCCUPATIONS
+from data import Occupation, OCCUPATIONS
 
 
 class GenerateNPCs:
@@ -29,7 +29,8 @@ class GenerateNPCs:
         """Add a single npc at a specific location."""
         # Determine NPC occupation
         if is_human:
-            occupation = random.choice(HUMAN_OCCUPATIONS)
+            human_occupations = [occupation for occupation in OCCUPATIONS if occupation != Occupation.CORPSE]
+            occupation = random.choice(human_occupations)
         else:
             occupation = Occupation.CORPSE
 
