@@ -30,6 +30,7 @@ class Character:
         self.max_hp = MAX_HP
         self.hp = self.max_hp
         self.ap = 0
+        self.xp = 0
         self.is_dead = False
         self.permadeath = False
         self.is_human = is_human

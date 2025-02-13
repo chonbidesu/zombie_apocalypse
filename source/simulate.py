@@ -33,6 +33,7 @@ def run_simulation(rounds=500):
         for npc in game.state.npcs.list:
             npc.ap += 1  # Gain 1 AP per round
             if npc.ap >= 1:
+                npc.state.get_action()
                 npc.state.act()
 
         # Count populations

@@ -60,9 +60,13 @@ class ActionExecutor:
         elif action == Action.LOAD_MENU:
             self.game.load_menu = True
 
+        elif action == Action.SKILLS_MENU:
+            self.game.skills_menu = True
+
         elif action == Action.BACK:
             self.game.save_menu = False
             self.game.load_menu = False
+            self.game.skills_menu = False
 
         elif action == Action.PAUSE:
             return self.game.pause_game()

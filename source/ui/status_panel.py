@@ -2,6 +2,7 @@
 
 from settings import *
 from ui.utils import SpriteSheet
+from ui.widgets import Button
 
 
 class StatusPanel:
@@ -9,6 +10,7 @@ class StatusPanel:
     def __init__(self, game, screen):
         self.game = game
         self.screen = screen
+        self.x, self.y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT * 25 // 32 + 10
         self.width, self.height = SCREEN_WIDTH // 4 - 10, SCREEN_HEIGHT * 31 // 160
         self.portrait_size = self.height - 20
         self.original_hp_bar = pygame.image.load(ResourcePath("assets/hp_bar.png").path).convert_alpha()
@@ -27,10 +29,12 @@ class StatusPanel:
         )
         self.player_sprite_group = pygame.sprite.GroupSingle()
         self.player_sprite_group.add(self.player_sprite)
-
+        self.skills_button = Button('skills', (self.width - self.height) // 2, 25)
+        self.skills_button.update(self.portrait_size + ((self.width - self.portrait_size) // 2 - (self.width - self.height) // 4), self.height - 35)
+        self.button_group = pygame.sprite.GroupSingle()
+        self.button_group.add(self.skills_button)
 
     def draw(self):
-        x, y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT * 25 // 32 + 10
         status_panel = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
         # Draw player portrait
@@ -46,13 +50,13 @@ class StatusPanel:
         pygame.draw.rect(status_panel, (0, 255, 0), (0, self.height - 20, self.portrait_size * hp_ratio, 20))
         status_panel.blit(self.hp_bar, (0, self.height - 20))
 
-
         # Draw player status
         status_panel.blit(self.player_info, (self.portrait_size, 0))
         self._render_player_status(status_panel)
+        self.button_group.draw(status_panel)
 
         # Blit to screen
-        self.screen.blit(status_panel, (x, y))
+        self.screen.blit(status_panel, (self.x, self.y))
 
     def _render_player_status(self, status_panel):
         y_offset = 30

@@ -48,6 +48,7 @@ class Action(Enum):
     SAVE_MENU = auto()
     LOAD = auto()
     LOAD_MENU = auto()
+    SKILLS_MENU = auto()
     BACK = auto()
     CLOSE_MAP = auto()
     ZOOM_IN = auto()

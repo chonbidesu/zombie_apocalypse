@@ -29,7 +29,7 @@ def main():
     running = True
 
     while running:
-
+        
         # Get events
         events = pygame.event.get()
 
@@ -55,6 +55,11 @@ def main():
                     game.menu.load_menu.draw(screen)
                 else:
                     game.menu.pause_menu.draw(screen)
+
+            # Handle skills menu
+            elif game.skills_menu:
+                game.menu_event_handler.handle_events(events)
+                game.menu.skills_menu.draw(screen)
 
             # Handle opening the map
             elif game.reading_map:

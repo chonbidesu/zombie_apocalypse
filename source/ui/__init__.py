@@ -4,7 +4,6 @@ from ui.chat_panel import ChatPanel
 from ui.actions_panel import ActionsPanel 
 from ui.inventory_panel import InventoryPanel
 from ui.description_panel import DescriptionPanel
-from ui.skills_panel import SkillsPanel
 from ui.viewport import Viewport
 from ui.utils import ActionProgress, DayCycleManager, DeathScreen
 from ui.effects import ScreenTransition
@@ -22,7 +21,6 @@ class DrawUI:
         self.chat_panel = ChatPanel(screen)
         self.inventory_panel = InventoryPanel(game, screen)
         self.description_panel = DescriptionPanel(game, screen)
-        self.skills_panel = SkillsPanel(game, screen)
         self.action_progress = ActionProgress(game, screen)
         self.screen_transition = ScreenTransition(screen, self.draw, self.update)
         self.map = Map(game, screen)

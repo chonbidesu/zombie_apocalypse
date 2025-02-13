@@ -62,7 +62,10 @@ class EventHandler:
                 self.act(action, target.sprite.npc)
             elif target.type == 'block' and not self.game.popup_menu:
                 action = Action.MOVE
-                self.act(action, target.sprite)             
+                self.act(action, target.sprite)  
+            else:
+                skills_button = self.game.game_ui.status_panel.button_group.sprite
+                skills_button.handle_event(event)
 
         # Handle graphical changes for button clicks
         for button in self.game.game_ui.actions_panel.button_group:
@@ -85,6 +88,14 @@ class EventHandler:
                 if not menu_rect.collidepoint(event.pos):
                     self.game.popup_menu.hide()
                     self.game.popup_menu = None
+
+            # Handle the skills menu
+            else:
+                skills_button = self.game.game_ui.status_panel.button_group.sprite
+                status_panel_x, status_panel_y = self.game.game_ui.status_panel.x, self.game.game_ui.status_panel.y
+                button_abs_rect = skills_button.rect.move(status_panel_x, status_panel_y)
+                if button_abs_rect.collidepoint(event.pos):
+                    self.act(Action.SKILLS_MENU)                    
 
         # Handle actions for button clicks
         for button in self.game.game_ui.actions_panel.button_group:
@@ -230,6 +241,9 @@ class MenuEventHandler:
         for button in self.game.menu.pause_menu.button_group:
             button.handle_event(event)
 
+        for button in self.game.menu.skills_menu.back_button:
+            button.handle_event(event)
+
     def handle_mousebuttonup(self, event):
         """Handle mouse button up events."""
         # Handle saving and loading from the pause menu
@@ -251,6 +265,12 @@ class MenuEventHandler:
             back_button = self.game.menu.load_menu.back_button
             if back_button.sprite.rect.collidepoint(event.pos):
                 self.act(Action.BACK)            
+
+        # Handle the skills menu
+        elif self.game.skills_menu:
+            back_button = self.game.menu.skills_menu.back_button
+            if back_button.sprite.rect.collidepoint(event.pos):
+                self.act(Action.BACK)
 
         # Handle actions for button clicks
         else:

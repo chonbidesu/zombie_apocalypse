@@ -33,6 +33,7 @@ class GameInitializer:
         self.paused = False
         self.save_menu = False
         self.load_menu = False
+        self.skills_menu = False
         self.popup_menu = None
         self.ticker = 0
         self.reading_map = False

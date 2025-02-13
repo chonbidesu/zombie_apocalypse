@@ -49,13 +49,11 @@ class Zombie(State):
                     if block.barricade.level == 0:
                         return Result(Action.LEAVE)
                     else: # Attack barricades if they are in the way
-                        print("Attacking barricades to get at target outside")
                         return Result(Action.DECADE)
                 else: # Pursue the target inside, if possible
                     if block.barricade.level == 0:
                         return Result(Action.ENTER)
                     else: # Attack the barricades if they are in the way
-                        print("Attacking barricades to get at target inside")
                         return Result(Action.DECADE)
             elif self.current_target.location in adjacent_locations: # If the current target is in an adjacent block, pursue
                 for location in adjacent_locations:
