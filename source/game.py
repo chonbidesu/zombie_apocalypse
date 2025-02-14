@@ -76,9 +76,9 @@ class GameInitializer:
         )
         self.state = GameState(player, city, npcs)
 
-        self._create_resources()
+        self._create_resources(set_time=game_state.game_time)
 
-    def _create_resources(self):
+    def _create_resources(self, set_time=None):
         """Create or reinitialize game resources."""
         # Initialize event handlers
         self.event_handler = events.EventHandler(self) 
@@ -92,8 +92,10 @@ class GameInitializer:
             "Diagonally 'q', 'e', 'z', 'c'."
         ]         
 
-        # Initialize game UI
+        # Initialize game UI and set clock
         self.game_ui = ui.DrawUI(self, self.screen)  
+        if set_time:
+            self.game_ui.description_panel.clock.time_in_minutes = set_time
 
         # Initialize day/night cycle manager
         self.day_cycle = ui.DayCycleManager(self)

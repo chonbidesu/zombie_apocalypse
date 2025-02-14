@@ -94,9 +94,9 @@ class Cursor(object):
 
 class ClockHUD:
     """Displays and updates the in-game clock."""
-    def __init__(self, game):
+    def __init__(self, game, start_time=480): # Default start time 8:00 AM (8 * 60 minutes)
         self.game = game
-        self.time_in_minutes = 8 * 60  # Start at 8:00 AM (8 * 60 minutes)
+        self.time_in_minutes = start_time
         self.last_update = time.time()
 
     def update(self):

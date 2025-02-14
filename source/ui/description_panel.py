@@ -33,7 +33,7 @@ class DescriptionPanel:
         self.setting_image = None
 
         # Set up Clock HUD
-        self.clock_hud = ClockHUD(self.game)        
+        self.clock = ClockHUD(self.game)        
 
     def draw(self):
         # Blit the panel background
@@ -45,7 +45,7 @@ class DescriptionPanel:
         # Draw the Clock HUD
         self.clock_x = self.setting_image_x + 5
         self.clock_y = self.setting_image_y + 5
-        self.clock_hud.draw(self.screen, self.clock_x, self.clock_y)
+        self.clock.draw(self.screen, self.clock_x, self.clock_y)
 
         # Draw NPC sprites
         self.zombie_sprite_group.update(self.game)
@@ -64,7 +64,7 @@ class DescriptionPanel:
     def update(self):
         self._update_observations()
         self._update_npc_sprites()
-        self.clock_hud.update()
+        self.clock.update()
         self.setting_image = self._get_setting_image()
         self.current_description = self._get_formatted_description()
         self.zombie_sprite_group.update(self.game)

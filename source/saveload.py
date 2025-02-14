@@ -11,6 +11,7 @@ class GameData:
         self.city_data = self._serialize_city(game.state.city)
         self.player_data = self._serialize_player(game.state.player)
         self.npc_data = self._serialize_npcs(game.state.npcs)
+        self.game_time = game.game_ui.description_panel.clock.time_in_minutes
 
     def _serialize_city(self, city):
         city_data = []

@@ -106,7 +106,7 @@ def main():
                     game.game_ui.death_screen.draw()
                     if game.game_ui.death_screen.restart:
                         game = GameInitializer(screen)  # Reinitialize the game
-                        game.game_ui.death_screen.restart = False                                              
+                        game.initialize_game()                                              
 
             # Update the cursor
             game.cursor.update(game.game_ui)

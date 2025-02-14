@@ -97,7 +97,7 @@ class DayCycleManager:
 
     def update_day_cycle(self):
         """Updates the environment based on the time of day."""
-        current_time = self.game.clock.time_in_minutes // 60
+        current_time = self.game.game_ui.description_panel.clock.time_in_minutes // 60
 
         # Transition from day to night (9:00 AM → Midnight)
         if 21 <= current_time < 24:
@@ -145,7 +145,7 @@ class DayCycleManager:
 
     def end_night(self):
         """End the night cycle and start a new day."""
-        self.game.clock.time_in_minutes = 8 * 60  # Reset to 8:00 AM
+        self.game.game_ui.description_panel.clock.time_in_minutes = 8 * 60  # Reset to 8:00 AM
         print("You wake up at dawn...")
 
 
