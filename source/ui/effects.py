@@ -46,3 +46,14 @@ class ScreenTransition:
             self.clock.tick(60)
 
         return result
+    
+    def flicker_red(self, intensity=120, duration=0.3):
+        """Flickers the screen red to indicate damage taken."""
+        overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+        overlay.fill((255, 0, 0, intensity))  # Semi-transparent red
+
+        steps = int(duration * 30)  # Convert seconds to frames
+        for _ in range(steps):
+            self.screen.blit(overlay, (0, 0))
+            pygame.display.flip()
+            self.clock.tick(60)  # 60 FPS flicker effect    

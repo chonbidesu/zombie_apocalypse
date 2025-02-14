@@ -102,6 +102,8 @@ class Character:
                 self.die()
             else:
                 self.hp = 1
+        elif self == self.game.state.player:  # Trigger red flicker effect for the player only
+            self.game.game_ui.screen_transition.flicker_red()                
 
     def fall(self):
         """Character falls from a building, taking damage."""
