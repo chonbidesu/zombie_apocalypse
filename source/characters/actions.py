@@ -265,7 +265,7 @@ class ActionExecutor:
                         else:
                             sprite.set_action(3)
 
-                return ActionResult(True, "You punch the enemy for 1 damage.")
+                return ActionResult(True, "You punch the enemy for 1 damage.", f"{self.actor.current_name} punches {target.current_name}.")
             else:
                 return ActionResult(False, "Your attack misses.")
 
