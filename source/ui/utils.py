@@ -92,8 +92,43 @@ class DayCycleManager:
     """Manages the transition from daytime to nighttime."""
     def __init__(self, game):
         self.game = game
-        self.night_fast_forward = False
-        self.night_complete = False
+        self.night_overlay_alpha = 0 # Start the day with a transparent overlay
+        self.is_night = False
+
+    def update_day_cycle(self):
+        """Updates the environment based on the time of day."""
+        current_time = self.game.clock.time_in_minutes // 60
+
+        # Transition from day to night (9:00 AM → Midnight)
+        if 21 <= current_time < 24:
+            self.apply_night_overlay(current_time)
+        
+        # Trigger night cycle when midnight hits
+        if current_time == 0 and not self.is_night:
+            self.is_night = True
+            self.start_night()
+
+    def apply_night_overlay(self, current_time):
+        """
+        Gradually darkens the setting as night approaches.
+        The overlay becomes fully dark blue by midnight.
+        """
+        start_time = 21   # Start of day
+        end_time = 24    # Full night
+        max_alpha = 180  # Maximum transparency value for night effect
+
+        # Calculate transition progress (0.0 → 1.0)
+        progress = min(1, max(0, (current_time - start_time) / (end_time - start_time)))
+
+        # Set overlay transparency
+        self.night_overlay_alpha = int(progress * max_alpha)
+
+    def render_night_overlay(self):
+        """Draws the transparent night overlay onto the screen."""
+        overlay = pygame.Surface(self.game.screen.get_size(), pygame.SRCALPHA)
+        night_color = (0, 0, 139, self.night_overlay_alpha)  # Dark blue with transparency
+        overlay.fill(night_color)
+        self.game.screen.blit(overlay, (0, 0))
 
     def start_night(self):
         """Trigger night transition when 12:00 PM hits."""
