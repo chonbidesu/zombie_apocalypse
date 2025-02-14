@@ -4,6 +4,7 @@ import pygame
 import sys
 from pygame.locals import *
 from dataclasses import dataclass
+import time
 
 import menus
 import events
@@ -101,13 +102,15 @@ class GameInitializer:
         self.day_cycle = ui.DayCycleManager(self)
 
         # Opening scene transition
-        self.game_ui.screen_transition.start_scene(self.chat_history)             
+        #self.game_ui.screen_transition.start_scene(self.chat_history)             
 
     def pause_game(self):
         """Toggle game pause state."""
         if not self.paused:
+            print("Pausing game")
             self.paused = True
         elif self.paused:
+            print("Unpausing game")
             self.paused = False
             self.save_menu = False
             self.load_menu = False
