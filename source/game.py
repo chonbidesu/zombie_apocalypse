@@ -79,17 +79,27 @@ class GameInitializer:
         self._create_resources()
 
     def _create_resources(self):
+        """Create or reinitialize game resources."""
+        # Initialize event handlers
         self.event_handler = events.EventHandler(self) 
         self.map_event_handler = events.MapEventHandler(self)
         self.menu_event_handler = events.MenuEventHandler(self) 
 
+        # Initialize chat history
         self.chat_history = [
             "The city is in ruins. Can you make it through the night?", 
             "Use 'w', 'a', 's', 'd' to move. ESC to quit.",
             "Diagonally 'q', 'e', 'z', 'c'."
         ]         
+
+        # Initialize game UI
         self.game_ui = ui.DrawUI(self, self.screen)  
-        self.day_cycle = ui.DayCycleManager(self)     
+
+        # Initialize day/night cycle manager
+        self.day_cycle = ui.DayCycleManager(self)
+
+        # Opening scene transition
+        self.game_ui.screen_transition.start_scene(self.chat_history)             
 
     def pause_game(self):
         """Toggle game pause state."""

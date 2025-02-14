@@ -46,7 +46,28 @@ class ScreenTransition:
             self.clock.tick(60)
 
         return result
-    
+
+    def start_scene(self, chat_history):
+        """Reverse circle wipe to reveal the game after loading/starting new game"""
+        max_radius = int((SCREEN_WIDTH ** 2 + SCREEN_HEIGHT ** 2) ** 0.5) # Cover the screen
+        duration = 1.0
+        steps = int(duration * 30)
+        increment = max_radius // steps
+
+        # Create surface for the mask effect
+        mask_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+
+        # Update UI to ensure objects are initialized
+        self.update_ui()
+
+        for radius in range(0, max_radius, increment):
+            self.draw_ui(chat_history)
+            mask_surface.fill((0, 0, 0, 255))
+            pygame.draw.circle(mask_surface, (0, 0, 0, 0), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), radius)
+            self.screen.blit(mask_surface, (0, 0))
+            pygame.display.flip()
+            self.clock.tick(60)        
+
     def flicker_red(self, intensity=120, duration=0.3):
         """Flickers the screen red to indicate damage taken."""
         overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
