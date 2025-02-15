@@ -14,6 +14,8 @@ class Action(Enum):
     ATTACK = auto()                 # Attack a target enemy
     EXTRACT_DNA = auto()            # Extract DNA from a zombie
     REVIVIFY = auto()               # Revive a zombie to human form
+    CLOSE_DOORS = auto()            # Close the doors of a building
+    OPEN_DOORS = auto()             # Open the doors of a building
     BARRICADE = auto()              # Reinforce the barricades
     DECADE = auto()                 # Tear down the barricades
     SEARCH = auto()                 # Search for an item

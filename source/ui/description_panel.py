@@ -145,6 +145,11 @@ class DescriptionPanel:
             if not current_block.lights_on:
                 current_observations += 'With the lights out, you can hardly see anything. '
             current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
+            if current_block.barricade.level == 0:
+                if current_block.doors_closed:
+                    current_observations += "The doors have been closed. "
+                else:
+                    current_observations += "The doors have been left wide open."
 
             # Check if the building has been ransacked or ruined:
             if current_block.ruined:
@@ -168,6 +173,11 @@ class DescriptionPanel:
             if properties.is_building:
                 current_observations += f'You are standing outside {properties.description}. A sign reads "{current_block.name}". '
                 current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
+                if current_block.barricade.level == 0:
+                    if current_block.doors_closed:
+                        current_observations += "The doors have been closed. "
+                    else:
+                        current_observations += "The doors have been left wide open."                        
                 if current_block.lights_on:
                     current_observations += "Lights are on inside. "
             else:

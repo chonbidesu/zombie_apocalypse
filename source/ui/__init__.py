@@ -23,6 +23,7 @@ class DrawUI:
         self.description_panel = DescriptionPanel(game, screen)
         self.action_progress = ActionProgress(game, screen)
         self.screen_transition = ScreenTransition(screen, self.draw, self.update)
+        self.day_cycle = DayCycleManager(game)        
         self.map = Map(game, screen)
         self.death_screen = DeathScreen(game, screen)
 
@@ -35,8 +36,10 @@ class DrawUI:
         self.inventory_panel.draw()
         self.description_panel.draw()
         self.action_progress.draw()
+        self.day_cycle.draw()
 
     def update(self):
         self.viewport.update()
         self.actions_panel.update()
         self.description_panel.update()
+        self.day_cycle.update()

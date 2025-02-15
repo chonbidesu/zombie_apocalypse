@@ -118,6 +118,18 @@ class ActionExecutor:
             return self.attack(target, weapon)            
 
         # Building actions
+        elif action == Action.CLOSE_DOORS:
+            if self.actor == player:
+                action_progress.start("Closing doors", self.close_doors, block)
+            else:
+                return self.close_doors(block)
+            
+        elif action == Action.OPEN_DOORS:
+            if self.actor == player:
+                action_progress.start("Opening doors", self.open_doors, block)
+            else:
+                return self.open_doors(block)
+
         elif action == Action.BARRICADE:
             if self.actor == player:
                 action_progress.start("Barricading", self.barricade, block)
@@ -340,15 +352,15 @@ class ActionExecutor:
         city = self.game.state.city
         x, y = self.actor.location
         new_x, new_y = x + dx, y + dy
-        new_block = city.block(new_x, new_y)
-        block_properties = BLOCKS[new_block.type]
-        is_human = self.actor.is_human
 
         # Check if the new coordinates are valid within the grid
-        if 0 <= new_x < 100 and 0 <= new_y < 100:
+        if 0 < new_x < CITY_SIZE and 0 < new_y < CITY_SIZE:
+            new_block = city.block(new_x, new_y)
+            block_properties = BLOCKS[new_block.type]
+            is_human = self.actor.is_human
 
             # If a player moves, they are no longer inside unless they have Free Running.
-            if self.actor.is_human:
+            if is_human:
                 if SkillType.FREE_RUNNING not in self.actor.human_skills:
                     self.actor.inside = False
                 elif block_properties.is_building:
@@ -363,6 +375,9 @@ class ActionExecutor:
                 else:
                     self.actor.ap -= 2
             self.actor.location = (new_x, new_y)
+        
+        else:
+            return False
 
     def wander(self):
         """Randomly moves the actor to an adjacent block."""
@@ -380,6 +395,14 @@ class ActionExecutor:
             self.actor.inside = False
             return ActionResult(True)
         return ActionResult(False)
+
+    def close_doors(self, building):
+        building.doors_closed = True
+        return ActionResult(True, "You close the doors of the building.")
+    
+    def open_doors(self, building):
+        building.doors_closed = False
+        return ActionResult(True, "You open the doors of the building.")
 
     def barricade(self, building):
         properties = BLOCKS[building.type]

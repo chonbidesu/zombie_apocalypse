@@ -97,9 +97,6 @@ class GameInitializer:
         if set_time:
             self.game_ui.description_panel.clock.time_in_minutes = set_time
 
-        # Initialize day/night cycle manager
-        self.day_cycle = ui.DayCycleManager(self)
-
         # Opening scene transition
         self.game_ui.screen_transition.start_scene(self.chat_history)   
 

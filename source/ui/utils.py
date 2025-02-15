@@ -95,12 +95,11 @@ class DayCycleManager:
         self.night_overlay_alpha = 0 # Start the day with a transparent overlay
         self.is_night = False
 
-    def update_day_cycle(self):
+    def update(self):
         """Updates the environment based on the time of day."""
-        current_time = self.game.game_ui.description_panel.clock.time_in_minutes // 60
-
+        current_time = self.game.game_ui.description_panel.clock.time_in_minutes
         # Transition from day to night (9:00 AM → Midnight)
-        if 21 <= current_time < 24:
+        if 1260 <= current_time < 1440:
             self.apply_night_overlay(current_time)
         
         # Trigger night cycle when midnight hits
@@ -113,9 +112,9 @@ class DayCycleManager:
         Gradually darkens the setting as night approaches.
         The overlay becomes fully dark blue by midnight.
         """
-        start_time = 21   # Start of day
-        end_time = 24    # Full night
-        max_alpha = 180  # Maximum transparency value for night effect
+        start_time = 1260   # Start of day
+        end_time = 1440    # Full night
+        max_alpha = 115  # Maximum transparency value for night effect
 
         # Calculate transition progress (0.0 → 1.0)
         progress = min(1, max(0, (current_time - start_time) / (end_time - start_time)))
@@ -123,11 +122,11 @@ class DayCycleManager:
         # Set overlay transparency
         self.night_overlay_alpha = int(progress * max_alpha)
 
-    def render_night_overlay(self):
+    def draw(self):
         """Draws the transparent night overlay onto the screen."""
         overlay = pygame.Surface(self.game.screen.get_size(), pygame.SRCALPHA)
-        night_color = (0, 0, 139, self.night_overlay_alpha)  # Dark blue with transparency
-        overlay.fill(night_color)
+        night_colour = (0, 0, 139, self.night_overlay_alpha)  # Dark blue with transparency
+        overlay.fill(night_colour)
         self.game.screen.blit(overlay, (0, 0))
 
     def start_night(self):
@@ -141,11 +140,12 @@ class DayCycleManager:
             self.game.state.npcs.take_action()
             self.game.ticker += 1  # Track time progression
 
-            self.end_night()
+        self.end_night()
 
     def end_night(self):
         """End the night cycle and start a new day."""
         self.game.game_ui.description_panel.clock.time_in_minutes = 8 * 60  # Reset to 8:00 AM
+        self.night_overlay_alpha = 0 # Make night overlay transparent
         print("You wake up at dawn...")
 
 

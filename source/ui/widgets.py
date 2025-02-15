@@ -108,7 +108,7 @@ class ClockHUD:
 
         # If it's 12:00 PM, start the night cycle
         if self.time_in_minutes >= 24 * 60:  # 24 * 60 = 1440 minutes = 12:00 PM
-            self.game.day_cycle.start_night()
+            self.game.game_ui.day_cycle.start_night()
 
     def draw(self, screen, x, y):
         """Draw the clock on screen."""
