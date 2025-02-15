@@ -10,12 +10,26 @@ class SkillsMenu:
     """A menu displaying the player's skills and skill selection."""
     def __init__(self, game):
         self.game = game
-        self.back_button = self._create_back_button()
         self.skill_spacing = 30
         self.margin = 100
 
+        # Define columns
+        self.column_width = SCREEN_WIDTH // 3
+        self.column_x_positions = [self.margin, self.column_width + self.margin, 2 * self.column_width + self.margin]        
+        self.category_columns = {
+            SkillCategory.CIVILIAN: 0,
+            SkillCategory.MILITARY: 1,
+            SkillCategory.SCIENCE: 2,
+            SkillCategory.ZOMBIE_HUNTER: 1,
+            SkillCategory.ZOMBIE: 1,
+        }        
+
     def draw(self, screen):
         """Draws the skills menu."""
+        self.skill_slots = self._create_skill_slots()
+        self.back_button = self._create_back_button()        
+        player = self.game.state.player        
+
         # Create a dark green background
         screen.fill(DARK_GREEN)
         
@@ -25,76 +39,33 @@ class SkillsMenu:
         screen.blit(title_text, title_rect)
         self.back_button.draw(screen)
 
-        player = self.game.state.player
         xp = player.xp
-
-        if player.is_human:
-            skill_categories = {
-                SkillCategory.CIVILIAN: [],
-                SkillCategory.MILITARY: [],
-                SkillCategory.SCIENCE: [],
-                SkillCategory.ZOMBIE_HUNTER: []
-            }
-            acquired_skills = player.human_skills
-        else:
-            skill_categories = {SkillCategory.ZOMBIE: []}
-            acquired_skills = player.zombie_skills
-        
-        # Organize skills into categories
-        for skill, properties in SKILLS.items():
-            if properties.skill_category in skill_categories:
-                skill_categories[properties.skill_category].append((skill, properties))
 
         # Display XP at the top
         xp_text = font_large.render(f"XP: {xp}", True, (255, 255, 255))
         screen.blit(xp_text, (self.margin, 10))
 
-        # Display skills by category
-        # Define columns
-        column_width = SCREEN_WIDTH // 3
-        column_x_positions = [self.margin, column_width + self.margin, 2 * column_width + self.margin]
+        # Initialize y-offset for each column
+        base_y = 140
 
-        # Define category-to-column mapping
-        category_columns = {
-            SkillCategory.CIVILIAN: 0,  # Left column
-            SkillCategory.MILITARY: 1,  # Middle column
-            SkillCategory.SCIENCE: 2,   # Right column
-            SkillCategory.ZOMBIE_HUNTER: 1,  # Middle column (second row, centered)
-            SkillCategory.ZOMBIE: 0  # If zombie skills are displayed later
-        }
+        # Draw skill categories
+        for category in SkillCategory:
 
-        # Initialize y-offsets for each column
-        y_offsets = [140, 140, 140]
-
-        # Display skills by category
-        for category, skills in skill_categories.items():
-            column = category_columns.get(category, 0)  # Default to column 0 if not found
-            x_pos = column_x_positions[column]
+            column = self.category_columns.get(category, 0)  # Default to column 0 if not found
+            x_pos = self.column_x_positions[column]
+            y_offset = base_y
             
             # Handle Zombie Hunter separately to center it in the middle column
             if category == SkillCategory.ZOMBIE_HUNTER:
-                y_offsets[1] += 50  # Move to second row of middle column
+                y_offset += 500  # Move to second row of middle column
 
             # Draw category title
-            category_text = font_xl.render(category.name.replace("_", " "), True, (200, 200, 0))
-            screen.blit(category_text, (x_pos, y_offsets[column]))
-            y_offsets[column] += category_text.get_height()  # Space after category title
+            if (player.is_human and category != SkillCategory.ZOMBIE) or (not player.is_human and category == SkillCategory.ZOMBIE):
+                category_text = font_xl.render(category.name.replace("_", " "), True, (200, 200, 0))
+                screen.blit(category_text, (x_pos, y_offset))
 
-            for skill, properties in skills:
-                skill_text = properties.skill_type.replace("_", " ").title()
-                color = (200, 200, 200) if skill in acquired_skills else (255, 255, 255)
-
-                skill_label = font_large.render(skill_text, True, color)
-                screen.blit(skill_label, (x_pos, y_offsets[column]))
-
-                # Show 'Gain Skill' button if the skill is not acquired and player has enough XP
-                if skill not in acquired_skills and xp >= 100:
-                    gain_button_rect = pygame.Rect(x_pos + 200, y_offsets[column] - 5, 80, 20)
-                    pygame.draw.rect(screen, (0, 150, 0), gain_button_rect)  # Green button
-                    button_text = self.button_font.render("Gain", True, (255, 255, 255))
-                    screen.blit(button_text, (gain_button_rect.x + 15, gain_button_rect.y + 2))
-                
-                y_offsets[column] += self.skill_spacing  # Move to next skill
+        # Draw skill slots
+        self.skill_slots.draw()
 
     def _create_back_button(self):
         width = 116
@@ -105,3 +76,63 @@ class SkillsMenu:
         button_group = pygame.sprite.GroupSingle()
         button_group.add(back_button)
         return button_group
+    
+    def _create_skill_slots(self):
+        """Create SkillSlots and add to skill_slots group"""
+        player = self.game.state.player        
+        skill_slots = pygame.sprite.Group()
+
+        if player.is_human:
+            acquired_skills = [skill for skill in SKILLS if skill in player.human_skills]
+        else:
+            acquired_skills = [skill for skill in SKILLS if skill in player.zombie_skills]
+
+        # Initialize y-offset for each column
+        base_y = 200
+
+        for category in SkillCategory:
+            column = self.category_columns.get(category, 0)
+            x_pos = self.column_x_positions[column]
+            y_offset = base_y
+            
+            # Handle Zombie Hunter separately to center it in the middle column
+            if category == SkillCategory.ZOMBIE_HUNTER:
+                y_offset += 500  # Move to second row of middle column
+
+            for skill in SKILLS:
+                properties = SKILLS[skill]
+                if (player.is_human and properties.skill_category != SkillCategory.ZOMBIE) or (not player.is_human and properties.skill_category == SkillCategory.ZOMBIE):
+                    skill_slot = SkillSlot(
+                        skill, properties, x_pos, y_offset, self.column_width - 20,
+                        acquired=(skill in acquired_skills)
+                    )
+                    skill_slots.add(skill_slot)
+                    y_offset += self.skill_spacing     
+        
+        return skill_slots
+    
+
+class SkillSlot(pygame.sprite.Sprite):
+    """A skill slot representing a selectable skill."""
+    def __init__(self, skill, properties, x, y, width, acquired=False):
+        super().__init__()
+        self.skill = skill
+        self.properties = properties
+        self.rect = pygame.Rect(x, y, width, 30)
+        self.acquired = acquired
+        self.selected = False
+
+    def toggle_selection(self):
+        """Toggle the selected state of the skill slot."""
+        self.selected = not self.selected
+
+    def draw(self, screen):
+        """Draw the skill slot."""
+        colour = (200, 200, 200) if self.acquired else (255, 255, 255)
+        text = font_large.render(self.properties.skill_type.replace("_", " ").title(), True, colour)
+
+        # Draw selection border if selected
+        if self.selected:
+            pygame.draw.rect(screen, WHITE, self.rect.inflate(6, 6), 2)
+
+        screen.blit(text, (self.rect.x + 10, self.rect.y))

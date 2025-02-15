@@ -144,6 +144,10 @@ class Character:
         for skill in self.human_skills:
             self.apply_skill_effect(skill)    
 
+    def gain_xp(self, xp):
+        """Gain a certain amount of experience points."""
+        self.xp += xp
+
     def status(self):
         """Returns the character's current status."""
         status = {

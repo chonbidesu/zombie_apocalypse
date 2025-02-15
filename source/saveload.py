@@ -52,6 +52,8 @@ class GameData:
             "is_human": player.is_human,
             "inside": player.inside,
             "hp": player.hp,
+            "ap": player.ap,
+            "xp": player.xp,
             "human_skills": player.human_skills,
             "zombie_skills": player.zombie_skills,
             "inventory": [
@@ -79,6 +81,8 @@ class GameData:
             "is_dead": npc.is_dead,
             "inside": npc.inside,
             "hp": npc.hp,
+            "ap": npc.ap,
+            "xp": npc.xp,
             "human_skills": npc.human_skills,
             "zombie_skills": npc.zombie_skills,
             "inventory": [
@@ -191,6 +195,8 @@ class GameData:
         player.name.last_name = self.player_data["last_name"]
         player.name.zombie_adjective = self.player_data["zombie_adjective"]
         player.hp = self.player_data.get("hp", player.max_hp)
+        player.ap = self.player_data.get("ap", 0)
+        player.xp = self.player_data.get("xp", 0)
 
         if player.is_human:
             player.current_name = f"{player.name.first_name} {player.name.last_name}"
@@ -214,7 +220,9 @@ class GameData:
             npc.name.first_name = npc_data["first_name"]
             npc.name.last_name = npc_data["last_name"]
             npc.name.zombie_adjective = npc_data["zombie_adjective"]
-            npc.hp = npc_data.get("hp", MAX_HP)
+            npc.hp = npc_data.get("hp", npc.max_hp)
+            npc.ap = npc_data.get("ap", 0)
+            npc.xp = npc_data.get("xp", 0)
             npc.is_dead = npc_data.get("is_dead", False)
             npc.state = npc.get_state()
 

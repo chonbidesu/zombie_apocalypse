@@ -226,6 +226,9 @@ class ActionExecutor:
                 # Resolve action result
                 self._deplete_weapon(weapon, properties)
                 target.take_damage(properties.damage)
+                self.actor.gain_xp(properties.damage)
+                if target.is_dead:
+                    self.actor.gain_xp(10)                
 
                 # Trigger NPC sprite animation if visible
                 sprites = list(self.game.game_ui.description_panel.zombie_sprite_group)
@@ -267,6 +270,9 @@ class ActionExecutor:
 
             if attack_success:
                 target.take_damage(1)
+                self.actor.gain_xp(1)
+                if target.is_dead:
+                    self.actor.gain_xp(10)                
 
                 # Trigger NPC sprite animation if visible
                 sprites = list(self.game.game_ui.description_panel.zombie_sprite_group)
@@ -304,6 +310,9 @@ class ActionExecutor:
 
         if attack_success:
             target.take_damage(weapon.damage + bonus_damage)
+            self.actor.gain_xp(weapon.damage + bonus_damage)
+            if target.is_dead:
+                self.actor.gain_xp(10)
 
             # Trigger NPC sprite animation if visible
             sprites = list(self.game.game_ui.description_panel.human_sprite_group)
@@ -398,10 +407,12 @@ class ActionExecutor:
 
     def close_doors(self, building):
         building.doors_closed = True
+        self.actor.ap -= 1
         return ActionResult(True, "You close the doors of the building.")
     
     def open_doors(self, building):
         building.doors_closed = False
+        self.actor.ap -= 1
         return ActionResult(True, "You open the doors of the building.")
 
     def barricade(self, building):
@@ -498,7 +509,18 @@ class ActionExecutor:
                         return ActionResult(False, "You can't find a way through the barricades.")
                 else:
                     if building.barricade.level == 0:
-                        self.actor.inside = True   
+                        if building.doors_closed:
+                            if SkillType.MEMORIES_OF_LIFE in self.actor.zombie_skills:
+                                building.doors_closed = False
+                                self.actor.inside = True
+                                self.actor.ap -= 1
+                                return ActionResult(True, "You enter the building, leaving the doors wide open.")
+                            else:
+                                return ActionResult(False, "You need the MEMORIES OF LIFE skill in order to open doors.")
+                        else:
+                            self.actor.inside = True
+                            self.actor.ap -= 1
+                            return ActionResult(True, "You enter the building.")   
                     else:
                         return ActionResult(False, "You have to break through the barricades first.")
             else:
@@ -522,9 +544,17 @@ class ActionExecutor:
                     return ActionResult(False, "The building has been so heavily barricaded that you cannot leave through the main doors.")
             else:
                 if building.barricade.level == 0:
-                    self.actor.inside = False
-                    self.actor.ap -= 1
-                    return ActionResult(True, "You left the building.")
+                    if building.doors_closed:
+                        if SkillType.MEMORIES_OF_LIFE in self.actor.zombie_skills:
+                            self.actor.inside = False
+                            self.actor.ap -= 1
+                            return ActionResult(True, "You left the building, leaving the doors wide open.")   
+                        else:
+                            return ActionResult(False, "You need the MEMORIES OF LIFE skill in order to open doors.")                         
+                    else:
+                        self.actor.inside = False
+                        self.actor.ap -= 1
+                        return ActionResult(True, "You left the building.")
                 else:
                     return ActionResult(False, "You have to break through the barricades first.")
         else:
@@ -537,37 +567,51 @@ class ActionExecutor:
         items_held = len(self.actor.inventory)
         building_properties = BLOCKS[building.type]
 
-        if building_properties.is_building and self.actor.inside:
-            if building.lights_on:
-                multiplier = SEARCH_MULTIPLIER + LIGHTSON_MULTIPLIER
-            elif building.ransack_level > 0:
-                multiplier = RANSACKED_MULTIPLIER // building.ransack_level
-            else:
-                multiplier = SEARCH_MULTIPLIER
-            items = list(search_chances.keys())
-            random.shuffle(items)
+        # Ensure we are inside a valid search location
+        if not building_properties.is_building and self.actor.inside:
+            return ActionResult(False, "You have to be inside a building to search.")     
 
-            for item_type in items:
-                search_chance = search_chances[item_type].get(building.type.name, 0.0) # Default to 0.0 if item not found
-                roll = random.random()
-                if roll < search_chance * multiplier:
-                    item = self.actor.create_item(item_type)
-                    item_properties = ITEMS[item.type]
-                    if item is not None:
-                        if items_held >= MAX_ITEMS:
-                            self.actor.ap -= 1
-                            return ActionResult(False, f"You found {item_properties.description}, but you are carrying too much!")
-                        elif item.type == ItemType.PORTABLE_GENERATOR:
-                            for inventory_item in self.actor.inventory:
-                                if hasattr(inventory_item, 'type') and inventory_item.type == ItemType.PORTABLE_GENERATOR:
-                                    self.actor.ap -= 1
-                                    return ActionResult(False, "You found a portable generator, but you can only carry one at a time.")
-                        self.actor.inventory.append(item)
-                        self.actor.ap -= 1
-                        return ActionResult(True, f"You found {item_properties.description}!")
-            return ActionResult(False, "You didn't find anything.")
+        # Determine search success chance
+        if building.ruined:
+            search_chance = 0.10 # 10% base chance if building ruined
         else:
-            return ActionResult(False, "You have to be inside a building to search.")
+            base_chance = 0.20 + (0.05 if building.lights_on else 0.00) # 20% unlit, 25% lit
+            search_chance = max(0, base_chance - (building.ransack_level * 0.01)) # Subtract ransack penalty
+
+        # Roll for success
+        if random.random() >= search_chance:
+            self.actor.ap -= 1
+            return ActionResult(False, "You didn't find anything.")
+
+        # If successful, determine the found item
+        items = list(search_chances)
+        weights = [search_chances[item].get(building.type.name, 0.0) for item in items]
+
+        if not any(weights):
+            self.actor.ap -= 1
+            return ActionResult(False, "You didn't find anything.")
+        
+        item_type = random.choices(items, weights=weights, k=1)[0]
+        item = self.actor.create_item(item_type)
+        item_properties = ITEMS[item.type]
+
+        # Check inventory capacity
+        if items_held >= MAX_ITEMS:
+            self.actor.ap -= 1
+            return ActionResult(False, f"You found {item_properties.description}, but you are carrying too much!")
+
+        # Check for duplicate portable generator
+        if item.type == ItemType.PORTABLE_GENERATOR:
+            for inventory_item in self.actor.inventory:
+                if hasattr(inventory_item, 'type') and inventory_item.type == ItemType.PORTABLE_GENERATOR:
+                    self.actor.ap -= 1
+                    return ActionResult(False, "You found a portable generator, but you can only carry one at a time.")
+ 
+        # Add the item to inventory
+        self.actor.inventory.append(item)
+        self.actor.ap -= 1
+        return ActionResult(True, f"You found {item_properties.description}!")
+
 
     def _load_search_chances(self, file_path):
         """Load search chances from a CSV file."""

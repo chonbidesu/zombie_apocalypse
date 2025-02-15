@@ -36,6 +36,8 @@ class ActionsPanel:
         height = 49
 
         self.barricade_button = Button('barricade', width, height, is_pressable=True)
+        self.close_doors_button = Button('close_doors', width, height, is_pressable=True)
+        self.open_doors_button = Button('open_doors', width, height, is_pressable=True)
         self.search_button = Button('search', width, height, is_pressable=True)
         self.enter_button = Button('enter', width, height, is_pressable=True)
         self.leave_button = Button('leave', width, height, is_pressable=True)
@@ -58,6 +60,13 @@ class ActionsPanel:
             buttons.append(self.stand_button)
         else:
             if player.inside:
+                if block.barricade.level == 0:
+                    if player.is_human:
+                        if block.doors_closed:
+                            buttons.append(self.open_doors_button)
+                        else:
+                            buttons.append(self.close_doors_button)
+
                 if SkillType.CONSTRUCTION in player.human_skills:
                     buttons.append(self.barricade_button)
                 buttons.append(self.search_button)

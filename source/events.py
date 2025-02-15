@@ -102,6 +102,8 @@ class EventHandler:
             action_name = button.handle_event(event)
             if action_name:
                 button_to_action = {
+                    'close_doors': Action.CLOSE_DOORS,
+                    'open_doors': Action.OPEN_DOORS,
                     'barricade': Action.BARRICADE,
                     'search': Action.SEARCH,
                     'enter': Action.ENTER,
