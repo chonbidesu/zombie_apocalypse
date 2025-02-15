@@ -260,6 +260,7 @@ class MenuEventHandler:
         elif self.game.load_menu:
             for slot in self.game.menu.load_menu.slots:
                 if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
+                    self.game.pause_game()
                     self.game.load_game(slot.index)
 
             back_button = self.game.menu.load_menu.back_button

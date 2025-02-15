@@ -132,7 +132,7 @@ class DayCycleManager:
 
     def start_night(self):
         """Trigger night transition when 12:00 PM hits."""
-        self.game.game_ui.circle_wipe(self.process_night_cycle, self.game.chat_history)
+        self.game.game_ui.screen_transition.circle_wipe(self.process_night_cycle, self.game.chat_history)
 
     def process_night_cycle(self):
         """Process 8 hours of NPC actions."""

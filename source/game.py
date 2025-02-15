@@ -68,8 +68,6 @@ class GameInitializer:
 
     def load_game(self, index):
         """Load the game state from a file."""
-        if self.paused:
-            self.pause_game()
         game_state = saveload.GameData.load_game(index)
         player, city, npcs = game_state.reconstruct_game(
             self, Character, City, GenerateNPCs, 
@@ -95,6 +93,7 @@ class GameInitializer:
 
         # Initialize game UI and set clock
         self.game_ui = ui.DrawUI(self, self.screen)  
+
         if set_time:
             self.game_ui.description_panel.clock.time_in_minutes = set_time
 
@@ -102,7 +101,10 @@ class GameInitializer:
         self.day_cycle = ui.DayCycleManager(self)
 
         # Opening scene transition
-        self.game_ui.screen_transition.start_scene(self.chat_history)             
+        self.game_ui.screen_transition.start_scene(self.chat_history)   
+
+        if self.load_menu:
+            self.load_menu = False          
 
     def pause_game(self):
         """Toggle game pause state."""

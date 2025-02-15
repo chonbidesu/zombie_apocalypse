@@ -35,7 +35,6 @@ def main():
 
         # Title screen
         if game.title_screen:
-            game.title_event_handler.handle_events(events)
             if game.load_menu:
                 game.menu.load_menu.draw(screen)
             elif game.start_new_game:
@@ -44,12 +43,13 @@ def main():
                 game.title_screen = False
             else:
                 game.menu.title_menu.draw(screen)
+            game.title_event_handler.handle_events(events)
+
 
         else:
 
             # Handle pause menu
             if game.paused:
-                game.menu_event_handler.handle_events(events)
                 if game.save_menu:
                     game.menu.save_menu.draw(screen)
                 elif game.load_menu:             
@@ -60,6 +60,8 @@ def main():
                     game.pause_game()
                 else:
                     game.menu.pause_menu.draw(screen)
+                game.menu_event_handler.handle_events(events)
+
 
             # Handle skills menu
             elif game.skills_menu:
