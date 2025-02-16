@@ -88,7 +88,7 @@ class SkillsMenu:
 
         # Draw skill name
         properties = SKILLS[self.selected_skill.skill]
-        skill_name = font_xl.render(properties.skill_type, True, WHITE)
+        skill_name = font_large.render(properties.skill_type, True, WHITE)
         skill_name_width = skill_name.get_width()
         screen.blit(skill_name, (x + width // 2 - skill_name_width // 2, y + 10))
 
