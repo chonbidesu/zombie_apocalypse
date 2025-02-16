@@ -240,7 +240,7 @@ class DescriptionPanel:
         # Update existing sprites or create new ones if necessary
         updated_sprites = []
 
-        for zombie in block_characters.living_zombies:
+        for zombie in block_characters.living_zombies + block_characters.dead_zombies:
             # Check if a sprite for this zombie already exists
             existing_sprite = next(
                 (sprite for sprite in self.zombie_sprite_group if sprite.npc == zombie), None
@@ -248,12 +248,13 @@ class DescriptionPanel:
             if existing_sprite:
                 updated_sprites.append(existing_sprite)
             else:
-                # Create a new sprite for the zombie
-                new_sprite = NPCSprite(
-                    self.screen, zombie, self.zombie_sprite_sheet, 2.5, (0, 0, 0)
-                )
-                self.zombie_sprite_group.add(new_sprite)
-                updated_sprites.append(new_sprite)
+                if not zombie.is_dead:
+                    # Create a new sprite for the zombie
+                    new_sprite = NPCSprite(
+                        self.screen, zombie, self.zombie_sprite_sheet, 2.5, (0, 0, 0)
+                    )
+                    self.zombie_sprite_group.add(new_sprite)
+                    updated_sprites.append(new_sprite)
 
         # Remove sprites for zombies that are no longer here
         for sprite in list(self.zombie_sprite_group):

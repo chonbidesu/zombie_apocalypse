@@ -27,6 +27,7 @@ class BlockNPCs:
     living_humans: list
     living_zombies: list
     dead_bodies: list
+    dead_zombies: list
     revivifying_bodies: list
 
 
@@ -76,9 +77,10 @@ class State:
         living_zombies = [z for z in zombies_here if not z.is_dead]
         living_humans = [h for h in humans_here if not h.is_dead]
         dead_bodies = [c for c in characters_here if c.is_dead]
+        dead_zombies = [z for z in zombies_here if z.is_dead]
         revivifying_bodies = [h for h in humans_here if h.is_dead]
 
-        return BlockNPCs(x, y, inside, living_humans, living_zombies, dead_bodies, revivifying_bodies)                      
+        return BlockNPCs(x, y, inside, living_humans, living_zombies, dead_bodies, dead_zombies, revivifying_bodies)                      
     
     def get_adjacent_locations(self):
         """Returns a list of (x, y) coordinates for the 8 adjacent blocks."""
