@@ -46,7 +46,7 @@ class SkillsMenu:
         screen.blit(xp_text, (self.margin, 10))
 
         # Initialize y-offset for each column
-        base_y = 140
+        base_y = SCREEN_HEIGHT * 7 // 40
 
         # Draw skill categories
         for category in SkillCategory:
@@ -57,7 +57,7 @@ class SkillsMenu:
             
             # Handle Zombie Hunter separately to center it in the middle column
             if category == SkillCategory.ZOMBIE_HUNTER:
-                y_offset += 500  # Move to second row of middle column
+                y_offset += SCREEN_HEIGHT // 2  # Move to second row of middle column
 
             # Draw category title
             if (player.is_human and category != SkillCategory.ZOMBIE) or (not player.is_human and category == SkillCategory.ZOMBIE):
@@ -65,7 +65,8 @@ class SkillsMenu:
                 screen.blit(category_text, (x_pos, y_offset))
 
         # Draw skill slots
-        self.skill_slots.draw()
+        self.skill_slots.update()
+        self.skill_slots.draw(screen)
 
     def _create_back_button(self):
         width = 116
@@ -88,7 +89,7 @@ class SkillsMenu:
             acquired_skills = [skill for skill in SKILLS if skill in player.zombie_skills]
 
         # Initialize y-offset for each column
-        base_y = 200
+        base_y = SCREEN_HEIGHT // 4
 
         for category in SkillCategory:
             column = self.category_columns.get(category, 0)
@@ -97,17 +98,18 @@ class SkillsMenu:
             
             # Handle Zombie Hunter separately to center it in the middle column
             if category == SkillCategory.ZOMBIE_HUNTER:
-                y_offset += 500  # Move to second row of middle column
+                y_offset += SCREEN_HEIGHT // 2  # Move to second row of middle column
 
             for skill in SKILLS:
                 properties = SKILLS[skill]
                 if (player.is_human and properties.skill_category != SkillCategory.ZOMBIE) or (not player.is_human and properties.skill_category == SkillCategory.ZOMBIE):
-                    skill_slot = SkillSlot(
-                        skill, properties, x_pos, y_offset, self.column_width - 20,
-                        acquired=(skill in acquired_skills)
-                    )
-                    skill_slots.add(skill_slot)
-                    y_offset += self.skill_spacing     
+                    if properties.skill_category == category:
+                        skill_slot = SkillSlot(
+                            skill, properties, x_pos, y_offset, self.column_width - 20,
+                            acquired=(skill in acquired_skills)
+                        )
+                        skill_slots.add(skill_slot)
+                        y_offset += self.skill_spacing     
         
         return skill_slots
     
@@ -118,21 +120,28 @@ class SkillSlot(pygame.sprite.Sprite):
         super().__init__()
         self.skill = skill
         self.properties = properties
-        self.rect = pygame.Rect(x, y, width, 30)
         self.acquired = acquired
         self.selected = False
+
+        self.width = width
+        self.height = 30
+        self.rect = pygame.Rect(x, y, width, 30)
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
     def toggle_selection(self):
         """Toggle the selected state of the skill slot."""
         self.selected = not self.selected
+        self.update()
 
-    def draw(self, screen):
-        """Draw the skill slot."""
-        colour = (200, 200, 200) if self.acquired else (255, 255, 255)
-        text = font_large.render(self.properties.skill_type.replace("_", " ").title(), True, colour)
+    def update(self):
+        """Update the skill slot appearance."""
+        self.image.fill((0, 0, 0, 0))
+
+        border_colour = WHITE if self.selected else (0, 0, 0)
+        text = font_large.render(self.properties.skill_type.replace("_", " ").title(), True, WHITE)
 
         # Draw selection border if selected
         if self.selected:
-            pygame.draw.rect(screen, WHITE, self.rect.inflate(6, 6), 2)
+            pygame.draw.rect(self.image, border_colour, (0, 0, self.width, self.height), 2)
 
-        screen.blit(text, (self.rect.x + 10, self.rect.y))
+        self.image.blit(text, (10, 5))
