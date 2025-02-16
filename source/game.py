@@ -102,7 +102,8 @@ class GameInitializer:
             self.game_ui.description_panel.clock.time_in_minutes = set_time
 
         # Opening scene transition
-        self.game_ui.screen_transition.start_scene(self.chat_history)   
+        self.game_ui.day_cycle.start_new_day()
+        self.game_ui.screen_transition.start_scene(self.chat_history) 
 
         if self.load_menu:
             self.load_menu = False          

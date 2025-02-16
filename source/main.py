@@ -107,6 +107,7 @@ def main():
                     npc = action_queue.popleft() # Get next npc
                     npc.state.get_action()
                     npc.state.act()
+                    npc.state.gain_skill()
 
                 # Handle player death
                 if game.state.player.is_dead:

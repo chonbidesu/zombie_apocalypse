@@ -446,14 +446,20 @@ class ActionExecutor:
                     return ActionResult(False, "You can't add more barricades.")
                 elif building.barricade.level == 4 and building.barricade.sublevel == 2:
                     self.actor.ap -= 1
-                    return ActionResult(True, "You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in.")
+                    message = "You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
+                    witness = f"{self.actor.current_name} reinforced the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
+                    return ActionResult(True, message, witness)
                 elif building.barricade.sublevel == 0:
                     barricade_description = building.barricade.get_barricade_description()
-                    self.actor.ap -= 1            
-                    return ActionResult(True, f"You reinforce the barricade. The building is now {barricade_description}.")
+                    self.actor.ap -= 1         
+                    message = f"You reinforce the barricade. The building is now {barricade_description}."   
+                    witness = f"{self.actor.current_name} reinforced the barricade. The building is now {barricade_description}."
+                    return ActionResult(True, message, witness)
                 elif building.barricade.sublevel > 0:
                     self.actor.ap -= 1
-                    return ActionResult(True, "You reinforce the barricade.")
+                    message = "You reinforce the barricade."
+                    witness = f"{self.actor.current_name} reinforced the barricade."
+                    return ActionResult(True, message, witness)
             else:
                 return ActionResult(False, "You can't find anything to reinforce the barricade.")
         else:

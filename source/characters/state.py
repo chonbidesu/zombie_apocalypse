@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 import random
 
-from data import Action
+from data import Action, SKILLS, SkillType, SkillCategory, OCCUPATIONS, OccupationCategory
 from settings import *
 
 
@@ -38,6 +38,7 @@ class State:
         self.character = character # Reference the parent character
         self.current_target = None
         self.next_action = None
+        self.selected_skill = None
 
     def get_action(self):
         """Determines next behaviour and stores the action."""
@@ -55,8 +56,12 @@ class State:
             if action_result:
                 if action_result.attacked and self.next_action.target == self.game.state.player:
                     self.game.chat_history.append(action_result.attacked)
-                elif action_result.witness and self.character.location == self.game.state.player.location and self.character.inside == self.game.state.player.inside:
-                    self.game.chat_history.append(action_result.witness)           
+                elif action_result.witness and self.character.location == self.game.state.player.location:
+                    if self.character.inside == self.game.state.player.inside:
+                        self.game.chat_history.append(action_result.witness) 
+                    else:
+                        if self.next_action.action == Action.DECADE:
+                            self.game.chat_history.append(action_result.witness)
 
     def filter_characters_at_location(self, x, y, inside=False, include_player=True):
         """Retrieve all characters at a given location and categorize them."""
@@ -107,3 +112,83 @@ class State:
         
         choices, weights = zip(*valid_actions)
         return random.choices(choices, weights=weights, k=1)[0] # Select an action    
+    
+    def gain_skill(self):
+        """If enough XP available, gain a skill."""
+        if self.character.is_dead:
+            return
+        
+        if not self.selected_skill:
+            self.selected_skill = self.select_skill()
+
+        if self.selected_skill:
+            skill_xp_cost = self._get_skill_xp_cost(self.selected_skill)
+
+            if self.character.xp >= skill_xp_cost:
+                self.character.add_skill(self.selected_skill)
+                print(f"NPC gained skill: {self.selected_skill}")
+                self.character.xp -= skill_xp_cost
+                self.selected_skill = None
+
+    def select_skill(self):
+        """Selects a skill to learn."""
+        occupation_category = OCCUPATIONS[self.character.occupation].occupation_category
+
+        if self.character.is_human:
+            skills = [skill for skill, properties in SKILLS.items() if properties.skill_category != SkillCategory.ZOMBIE]
+        else:
+            skills = [skill for skill, properties in SKILLS.items() if properties.skill_category == SkillCategory.ZOMBIE]           
+
+        acquired_skills = [skill for skill in self.character.human_skills] \
+            if self.character.is_human else \
+            [skill for skill in self.character.zombie_skills]
+
+        skills_with_prereqs_met = [
+            skill for skill in skills if all(prerequisite in acquired_skills for prerequisite in SKILLS[skill].prerequisite_skills)
+        ]
+        occupation_skills = [skill for skill, properties in SKILLS.items() if skill in skills_with_prereqs_met and properties.skill_category == occupation_category]
+
+        # Learn occupation skills first
+        for skill in occupation_skills:
+            if skill not in acquired_skills:
+                return skill
+        
+        for skill in skills_with_prereqs_met:
+            if skill not in acquired_skills:
+                return skill
+            
+        return None
+
+    def _get_skill_xp_cost(self, skill):
+        """Calculate the XP cost for the given skill based on the player's occupation."""
+        player = self.game.state.player
+        skill_category = SKILLS[skill].skill_category
+        occupation_category = OCCUPATIONS[player.occupation].occupation_category
+
+        if skill_category == SkillCategory.CIVILIAN:
+            return 100 # Fixed cost for civilian skills
+        
+        elif skill_category == SkillCategory.MILITARY:
+            if occupation_category == OccupationCategory.MILITARY:
+                return 75
+            elif occupation_category == OccupationCategory.CIVILIAN:
+                return 100
+            else: # Science occupation
+                return 150
+            
+        elif skill_category == SkillCategory.SCIENCE:
+            if occupation_category == OccupationCategory.SCIENCE:
+                return 75
+            elif occupation_category == OccupationCategory.CIVILIAN:
+                return 100
+            else: # Military occupation
+                return 150
+            
+        elif skill_category == SkillCategory.ZOMBIE_HUNTER:
+            if player.level >= 10: # Requires level 10
+                return 100
+            else:
+                return None
+            
+        elif skill_category == SkillCategory.ZOMBIE:
+            return 100 # Fixed cost for zombie skills        

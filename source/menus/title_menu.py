@@ -9,6 +9,7 @@ from data import Action
 class TitleMenu:
     def __init__(self):
         self.buttons = self.create_buttons()
+        self.playing_music = False
 
     def create_buttons(self):
         buttons = pygame.sprite.Group()
@@ -32,12 +33,22 @@ class TitleMenu:
         return buttons
     
     def draw(self, screen):
+        self.title_music()
         screen.fill(DARK_GREEN)
         title_text = font_xxl.render("Zombie Apocalypse", True, WHITE)
         title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 5))
         screen.blit(title_text, title_rect)        
 
         self.buttons.draw(screen)
+
+    def title_music(self):
+        if self.playing_music:
+            return
+        else:
+            self.playing_music = True
+            pygame.mixer.init()
+            pygame.mixer.music.load(ResourcePath("assets/music/summoning.mp3").path)
+            pygame.mixer.music.play(-1)
 
 class TitleAction:
     """Handles executing actions for the title screen."""

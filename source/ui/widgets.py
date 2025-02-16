@@ -105,7 +105,7 @@ class ClockHUD:
     def update(self):
         """Update the clock every second in real time."""
         current_time = time.time()
-        if current_time - self.last_update >= 5:  # 5 seconds = 10 in-game minute
+        if current_time - self.last_update >= 3.125:  # 3.125 seconds = 10 in-game minute = full day cycle in 5 minutes
             self.time_in_minutes += 10
             self.last_update = current_time
 

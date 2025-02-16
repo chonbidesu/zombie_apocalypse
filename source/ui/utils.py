@@ -95,6 +95,9 @@ class DayCycleManager:
         self.night_overlay_alpha = 0 # Start the day with a transparent overlay
         self.is_night = False
 
+        pygame.mixer.init() # Initialize the sound mixer
+        pygame.mixer.music.load(ResourcePath("assets/music/road_runner.mp3").path)
+
     def update(self):
         """Updates the environment based on the time of day."""
         current_time = self.game.game_ui.description_panel.clock.time_in_minutes
@@ -112,7 +115,7 @@ class DayCycleManager:
         Gradually darkens the setting as night approaches.
         The overlay becomes fully dark blue by midnight.
         """
-        start_time = 1260   # Start of day
+        start_time = 1260   # Start of dusk
         end_time = 1440    # Full night
         max_alpha = 115  # Maximum transparency value for night effect
 
@@ -140,12 +143,13 @@ class DayCycleManager:
             self.game.state.npcs.take_action()
             self.game.ticker += 1  # Track time progression
 
-        self.end_night()
-
-    def end_night(self):
-        """End the night cycle and start a new day."""
+        self.start_new_day()
         self.game.game_ui.description_panel.clock.time_in_minutes = 8 * 60  # Reset to 8:00 AM
+
+    def start_new_day(self):
+        """End the night cycle and start a new day."""
         self.night_overlay_alpha = 0 # Make night overlay transparent
+        pygame.mixer.music.play(-1)
         print("You wake up at dawn...")
 
 
