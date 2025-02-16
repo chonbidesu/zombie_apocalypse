@@ -370,12 +370,15 @@ class ActionExecutor:
 
             # If a player moves, they are no longer inside unless they have Free Running.
             if is_human:
-                if SkillType.FREE_RUNNING not in self.actor.human_skills:
-                    self.actor.inside = False
-                elif block_properties.is_building:
-                    if new_block.ruined:
+                if block_properties.is_building:
+                    if SkillType.FREE_RUNNING not in self.actor.human_skills:
                         self.actor.inside = False
-                        self.actor.fall()
+                    else:
+                        if new_block.ruined:
+                            self.actor.inside = False
+                            self.actor.fall()
+                else:
+                    self.actor.inside = False
                 self.actor.ap -= 1
             else:
                 self.actor.inside = False

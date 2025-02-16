@@ -274,11 +274,17 @@ class MenuEventHandler:
 
         # Handle the skills menu
         elif self.game.skills_menu:
+            skills_menu = self.game.menu.skills_menu
             back_button = self.game.menu.skills_menu.back_button
+
             if back_button.sprite.rect.collidepoint(event.pos):
                 self.act(Action.BACK)
 
-        # Handle actions for button clicks
+            if skills_menu.selected_skill and hasattr(skills_menu, 'gain_button_rect'):
+                if skills_menu.gain_button_rect.collidepoint(event.pos):
+                    skills_menu._gain_skill()
+
+        # Handle general UI buttons
         else:
             for button in self.game.menu.pause_menu.button_group:
                 action_name = button.handle_event(event)

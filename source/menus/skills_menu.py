@@ -3,7 +3,7 @@
 import pygame
 
 from settings import *
-from data import SKILLS, SkillType, SkillCategory
+from data import SKILLS, SkillType, SkillCategory, OCCUPATIONS, OccupationCategory
 from ui import Button, WrapText
 
 
@@ -82,6 +82,7 @@ class SkillsMenu:
         """Draws the information panel for the selected skill."""
         x, y = 50, SCREEN_HEIGHT // 2
         width, height = SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2 - 40
+        player = self.game.state.player
 
         # Draw border
         pygame.draw.rect(screen, WHITE, (x, y, width, height), 2)
@@ -99,6 +100,91 @@ class SkillsMenu:
             text_surface = font_large.render(line, True, WHITE)
             screen.blit(text_surface, (x + 10, y_offset))
             y_offset += 20
+
+        # Determine XP cost
+        xp_cost = self._get_skill_xp_cost(self.selected_skill.skill)
+
+        # Skill acquisition rules
+        if xp_cost is None:
+            status_text = "Requires Level 10+"
+            colour = RED
+        elif self.selected_skill.skill in player.human_skills or self.selected_skill.skill in player.zombie_skills:
+            status_text = "Skill already learned"
+            colour = LIGHT_GRAY
+        elif player.xp < xp_cost:
+            status_text = f"Requires {xp_cost} XP"
+            colour = RED
+        else:
+            self._draw_gain_button(screen, x, y, width, xp_cost)
+            return
+        
+        # Draw status text
+        status_surface = font_large.render(status_text, True, colour)
+        status_rect = status_surface.get_rect(center=(x + width // 2, y + height - 40))
+        screen.blit(status_surface, status_rect)
+
+    def _draw_gain_button(self, screen, x, y, width, xp_cost):
+        """Draw the 'GAIN SKILL' button at the bottom of the info panel."""
+        button_width, button_height = 120, 40
+        button_x = x + width // 2 - button_width // 2
+        button_y = y + width - 60
+
+        self.gain_button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
+
+        # Draw button
+        pygame.draw.rect(screen, (0, 150, 0), self.gain_button_rect)
+        pygame.draw.rect(screen, WHITE, self.gain_button_rect, 2)
+
+        # Draw button text
+        text_surface = font_large.render(f"GAIN SKILL", True, WHITE)
+        text_rect = text_surface.get_rect(center=self.gain_button_rect.center)
+        screen.blit(text_surface, text_rect)
+
+    def _get_skill_xp_cost(self, skill):
+        """Calculate the XP cost for the given skill based on the player's occupation."""
+        player = self.game.state.player
+        skill_category = SKILLS[skill].skill_category
+        occupation_category = OCCUPATIONS[player.occupation].occupation_category
+
+        if skill_category == SkillCategory.CIVILIAN:
+            return 100 # Fixed cost for civilian skills
+        
+        elif skill_category == SkillCategory.MILITARY:
+            if occupation_category == OccupationCategory.MILITARY:
+                return 75
+            elif occupation_category == OccupationCategory.CIVILIAN:
+                return 100
+            else: # Science occupation
+                return 150
+            
+        elif skill_category == SkillCategory.SCIENCE:
+            if occupation_category == OccupationCategory.SCIENCE:
+                return 75
+            elif occupation_category == OccupationCategory.CIVILIAN:
+                return 100
+            else: # Military occupation
+                return 150
+            
+        elif skill_category == SkillCategory.ZOMBIE_HUNTER:
+            if player.level >= 10: # Requires level 10
+                return 100
+            else:
+                return None
+            
+        elif skill_category == SkillCategory.ZOMBIE:
+            return 100 # Fixed cost for zombie skills
+
+    def _gain_skill(self):
+        """Grants the selected skill if the player has enough XP."""
+        if not self.selected_skill:
+            return
+        
+        player = self.game.state.player
+        skill = self.selected_skill.skill
+        xp_cost = self._get_skill_xp_cost(skill)
+
+        player.xp -= xp_cost
+        player.add_skill(skill)
 
     def create_resources(self):
         self.skill_slots = self._create_skill_slots()

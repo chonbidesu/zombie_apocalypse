@@ -31,6 +31,7 @@ class Character:
         self.hp = self.max_hp
         self.ap = 0
         self.xp = 0
+        self.level = 1
         self.is_dead = False
         self.permadeath = False
         self.is_human = is_human
@@ -76,6 +77,7 @@ class Character:
                 self.human_skills.add(skill)
 
             self.apply_skill_effect(skill)
+            self.level += 1
 
     def has_skill(self, skill):
         """Check if a character has a particular skill."""

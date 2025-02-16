@@ -56,6 +56,9 @@ class GameInitializer:
             self, occupation=Occupation.DOCTOR, x=50, y=50, is_human=True
         )
 
+        # Give the player starting XP for testing purposes
+        player.gain_xp(1000)
+
         # Populate the city
         npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
 

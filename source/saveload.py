@@ -50,10 +50,12 @@ class GameData:
             "x": player.location[0],
             "y": player.location[1],
             "is_human": player.is_human,
+            "is_dead": player.is_dead,
             "inside": player.inside,
             "hp": player.hp,
             "ap": player.ap,
             "xp": player.xp,
+            "level": player.level,
             "human_skills": player.human_skills,
             "zombie_skills": player.zombie_skills,
             "inventory": [
@@ -83,6 +85,7 @@ class GameData:
             "hp": npc.hp,
             "ap": npc.ap,
             "xp": npc.xp,
+            "level": npc.level,
             "human_skills": npc.human_skills,
             "zombie_skills": npc.zombie_skills,
             "inventory": [
@@ -197,6 +200,8 @@ class GameData:
         player.hp = self.player_data.get("hp", player.max_hp)
         player.ap = self.player_data.get("ap", 0)
         player.xp = self.player_data.get("xp", 0)
+        player.level = self.player_data.get("level", 1)
+        player.is_dead = self.player_data.get("is_dead", False)
 
         if player.is_human:
             player.current_name = f"{player.name.first_name} {player.name.last_name}"
@@ -223,8 +228,8 @@ class GameData:
             npc.hp = npc_data.get("hp", npc.max_hp)
             npc.ap = npc_data.get("ap", 0)
             npc.xp = npc_data.get("xp", 0)
+            npc.level = npc_data.get("level", 1)
             npc.is_dead = npc_data.get("is_dead", False)
-            npc.state = npc.get_state()
 
             if npc.is_human:
                 npc.current_name = f"{npc.name.first_name} {npc.name.last_name}"
