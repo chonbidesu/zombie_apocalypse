@@ -5,7 +5,7 @@ import csv
 import random
 
 from settings import *
-from data import ITEMS, ItemType, ItemFunction, SKILLS, SkillType, SkillCategory
+from data import ITEMS, ItemType, ItemFunction, SKILLS, SkillType, SkillCategory, OCCUPATIONS
 from characters.items import Item, Weapon
 from characters.human_state import Human
 from characters.zombie_state import Zombie
@@ -31,7 +31,7 @@ class Character:
         self.hp = self.max_hp
         self.ap = 0
         self.xp = 0
-        self.level = 1
+        self.level = 0
         self.is_dead = False
         self.permadeath = False
         self.is_human = is_human
@@ -42,6 +42,8 @@ class Character:
         self.human_skills = set()
         self.zombie_skills = set()
         self.action = ActionExecutor(game, self)
+
+        self.add_starting_skill()
 
     # Assign a random name to the character
     def _assign_name(self):
@@ -65,6 +67,12 @@ class Character:
             state = Zombie(self.game, self)
             self.update_name()
         return state
+
+    def add_starting_skill(self):
+        """Adds a starting skill depending on player's occupation."""
+        occupation_properties = OCCUPATIONS[self.occupation]
+        starting_skill = occupation_properties.starting_skill
+        self.add_skill(starting_skill)
 
     def add_skill(self, skill):
         """Add a skill to the character's skill set."""

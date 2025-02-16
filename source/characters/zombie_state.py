@@ -36,33 +36,13 @@ class Zombie(State):
 
         # Priority 2: Attack current target if in current location, otherwise change target if another human in current location
         if len(block_characters.living_humans) > 0:
-            if self.current_target not in block_characters.living_humans:
-                random.shuffle(block_characters.living_humans)
-                self.current_target = block_characters.living_humans[0] # Choose a new target
-            return Result(Action.ATTACK, self.current_target)
+            result = self._attack_target(block_characters)
+            return result
 
         # Priority 3: If current target exists but not in current location, and no other brainz available, pursue target
         if self.current_target:
-            # Check if the current target is at the current location but not the same inside status
-            if self.current_target.location == self.character.location and self.current_target.inside != self.character.inside:
-                if self.character.inside: # Pursue the target outside, if possible
-                    if block.barricade.level == 0:
-                        return Result(Action.LEAVE)
-                    else: # Attack barricades if they are in the way
-                        return Result(Action.DECADE)
-                else: # Pursue the target inside, if possible
-                    if block.barricade.level == 0:
-                        return Result(Action.ENTER)
-                    else: # Attack the barricades if they are in the way
-                        return Result(Action.DECADE)
-            elif self.current_target.location in adjacent_locations: # If the current target is in an adjacent block, pursue
-                for location in adjacent_locations:
-                    if location == self.current_target.location:
-                        dx, dy = location[0] - self.character.location[0], location[1] - self.character.location[1]
-                        target_direction = MoveTarget(dx, dy)
-                return Result(Action.MOVE, target_direction)
-            else: # Lose current target if they have escaped pursuit
-                self.current_target = None
+            result = self._pursue_target(block, adjacent_locations)
+            return result
 
         # Priority 4: If no current target, move to adjacent target if one exists
         if move_targets:
@@ -91,6 +71,34 @@ class Zombie(State):
                 return Result(choice)            
         
         return Result(Action.WANDER)  # No behaviour determined, so wander
+
+    def _attack_target(self, block_characters):
+            if self.current_target not in block_characters.living_humans:
+                random.shuffle(block_characters.living_humans)
+                self.current_target = block_characters.living_humans[0] # Choose a new target
+            return Result(Action.ATTACK, self.current_target)        
+
+    def _pursue_target(self, block, adjacent_locations):
+        # Check if the current target is at the current location but not the same inside status
+        if self.current_target.location == self.character.location and self.current_target.inside != self.character.inside:
+            if self.character.inside: # Pursue the target outside, if possible
+                if block.barricade.level == 0:
+                    return Result(Action.LEAVE)
+                else: # Attack barricades if they are in the way
+                    return Result(Action.DECADE)
+            else: # Pursue the target inside, if possible
+                if block.barricade.level == 0:
+                    return Result(Action.ENTER)
+                else: # Attack the barricades if they are in the way
+                    return Result(Action.DECADE)
+        elif self.current_target.location in adjacent_locations: # If the current target is in an adjacent block, pursue
+            for location in adjacent_locations:
+                if location == self.current_target.location:
+                    dx, dy = location[0] - self.character.location[0], location[1] - self.character.location[1]
+                    target_direction = MoveTarget(dx, dy)
+            return Result(Action.MOVE, target_direction)
+        else: # Lose current target if they have escaped pursuit
+            self.current_target = None        
 
     def get_move_targets(self, adjacent_locations, x, y):
         move_targets = []

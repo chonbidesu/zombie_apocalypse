@@ -250,18 +250,24 @@ class SkillSlot(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x, y, width, 30)
         self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
+        self.checkmark = pygame.image.load(ResourcePath("assets/checkmark.png").path).convert_alpha()
+        self.checkmark = pygame.transform.scale(self.checkmark, (16, 16))
+
     def update(self):
         """Update the skill slot appearance."""
         self.image.fill((0, 0, 0, 0))
 
         border_colour = WHITE if self.selected else (0, 0, 0)
-        text = font_large.render(self.properties.skill_type.replace("_", " ").title(), True, WHITE)
+        text = font_large.render(self.properties.skill_type, True, WHITE)
 
         # Draw selection border if selected
         if self.selected:
             pygame.draw.rect(self.image, border_colour, (0, 0, self.width - 100, self.height), 2)
 
         self.image.blit(text, (10, 5))
+
+        if self.acquired:
+            self.image.blit(self.checkmark, (self.width - 20, 5))
 
     def handle_event(self, event, skills_menu):
         """Handle mouse events to change button state."""
