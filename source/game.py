@@ -4,7 +4,6 @@ import pygame
 import sys
 from pygame.locals import *
 from dataclasses import dataclass
-import time
 
 import menus
 import events
@@ -14,7 +13,7 @@ from city import City
 from characters import Character
 from populate import GenerateNPCs
 from blocks import CityBlock, BuildingBlock
-from data import Occupation
+from data import Occupation, ResourcePath
 
 
 @dataclass
@@ -41,6 +40,27 @@ class GameInitializer:
         self.start_new_game = False
         self.title_event_handler = events.TitleEventHandler(self) 
         self.title_screen = True
+        pygame.mixer.init()  # Initialize the mixer
+        self.load_sounds()    # Load sound effects
+
+    def load_sounds(self):
+        """Load sound effects for actions."""
+        self.sounds = {
+            #"attack": pygame.mixer.Sound("assets/sfx/attack.wav"),
+            #"damage": pygame.mixer.Sound("assets/sfx/damage.wav"),
+            "reload": pygame.mixer.Sound(ResourcePath("assets/sfx/reload.mp3").path),
+            "gun_shot": pygame.mixer.Sound(ResourcePath("assets/sfx/gun_shot.mp3").path),
+            "zombie_sounds": pygame.mixer.Sound(ResourcePath("assets/sfx/zombie_sounds.wav").path),
+            "search": pygame.mixer.Sound(ResourcePath("assets/sfx/search.wav").path),
+            "footsteps": pygame.mixer.Sound(ResourcePath("assets/sfx/footsteps.wav").path),
+            "door_open": pygame.mixer.Sound(ResourcePath("assets/sfx/door_open.wav").path),
+            "door_close": pygame.mixer.Sound(ResourcePath("assets/sfx/door_close.wav").path),
+            "decade": pygame.mixer.Sound(ResourcePath("assets/sfx/decade.wav").path),
+            "barricade": pygame.mixer.Sound(ResourcePath("assets/sfx/barricade.wav").path),
+            "human_death": pygame.mixer.Sound(ResourcePath("assets/sfx/human_death.wav").path),
+            "zombie_death": pygame.mixer.Sound(ResourcePath("assets/sfx/zombie_death.wav").path),
+
+        }        
 
     def initialize_game(self):
         """Generate a new game state."""

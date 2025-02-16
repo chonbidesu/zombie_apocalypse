@@ -15,6 +15,7 @@ class ActionResult:
     message: str = ""
     witness: str = ""
     attacked: str = ""
+    sfx: str = ""
 
 
 @dataclass
@@ -123,34 +124,40 @@ class ActionExecutor:
         # Building actions
         elif action == Action.CLOSE_DOORS:
             if self.actor == player:
+                pygame.mixer.Sound.play(self.game.sounds["door_close"])                
                 action_progress.start("Closing doors", self.close_doors, block)
             else:
                 return self.close_doors(block)
             
         elif action == Action.OPEN_DOORS:
             if self.actor == player:
+                pygame.mixer.Sound.play(self.game.sounds["door_open"])                
                 action_progress.start("Opening doors", self.open_doors, block)
             else:
                 return self.open_doors(block)
 
         elif action == Action.BARRICADE:
             if self.actor == player:
+                pygame.mixer.Sound.play(self.game.sounds["barricade"])                
                 action_progress.start("Barricading", self.barricade, block)
             else:
                 return self.barricade(block)
         elif action == Action.SEARCH:
             if self.actor == player:
+                pygame.mixer.Sound.play(self.game.sounds["search"])                
                 action_progress.start("Searching", self.search, block)
             else:
                 return self.search(block)
         elif action == Action.ENTER:
             if self.actor == player and block.barricade.can_pass(self.actor):
+                pygame.mixer.Sound.play(self.game.sounds["footsteps"])                
                 action_result = screen_transition.circle_wipe(self.enter, self.game.chat_history, block)
             else:
                 action_result = self.enter(block)
             return action_result
         elif action == Action.LEAVE:
             if self.actor == player and block.barricade.can_pass(self.actor):
+                pygame.mixer.Sound.play(self.game.sounds["footsteps"])                
                 action_result = screen_transition.circle_wipe(self.leave, self.game.chat_history, block)
             else:
                 action_result = self.leave(block)
@@ -162,6 +169,7 @@ class ActionExecutor:
                 return self.repair_building(block)
         elif action == Action.DECADE:
             if self.actor == player:
+                pygame.mixer.Sound.play(self.game.sounds["decade"])                
                 action_progress.start("Smashing", self.break_barricades, block)
             else:
                 return self.break_barricades(block)
@@ -414,12 +422,12 @@ class ActionExecutor:
     def close_doors(self, building):
         building.doors_closed = True
         self.actor.ap -= 1
-        return ActionResult(True, "You close the doors of the building.")
+        return ActionResult(True, "You close the doors of the building.", sfx='door_close')
     
     def open_doors(self, building):
         building.doors_closed = False
         self.actor.ap -= 1
-        return ActionResult(True, "You open the doors of the building.")
+        return ActionResult(True, "You open the doors of the building.", sfx='door_open')
 
     def barricade(self, building):
         properties = BLOCKS[building.type]
@@ -448,18 +456,18 @@ class ActionExecutor:
                     self.actor.ap -= 1
                     message = "You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
                     witness = f"{self.actor.current_name} reinforced the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
-                    return ActionResult(True, message, witness)
+                    return ActionResult(True, message, witness, sfx='barricade')
                 elif building.barricade.sublevel == 0:
                     barricade_description = building.barricade.get_barricade_description()
                     self.actor.ap -= 1         
                     message = f"You reinforce the barricade. The building is now {barricade_description}."   
                     witness = f"{self.actor.current_name} reinforced the barricade. The building is now {barricade_description}."
-                    return ActionResult(True, message, witness)
+                    return ActionResult(True, message, witness, sfx='barricade')
                 elif building.barricade.sublevel > 0:
                     self.actor.ap -= 1
                     message = "You reinforce the barricade."
                     witness = f"{self.actor.current_name} reinforced the barricade."
-                    return ActionResult(True, message, witness)
+                    return ActionResult(True, message, witness, sfx='barricade')
             else:
                 return ActionResult(False, "You can't find anything to reinforce the barricade.")
         else:
@@ -477,7 +485,7 @@ class ActionExecutor:
                 else:
                     message = "You smash at the barricades."
                     witness = "Something smashes at the barricades."
-                return ActionResult(True, message, witness)
+                return ActionResult(True, message, witness, sfx='decade')
             else:
                 return ActionResult(False, "There are no barricades to break.")                
         else:
@@ -512,11 +520,11 @@ class ActionExecutor:
                     if building.barricade.level == 0:
                         self.actor.inside = True
                         self.actor.ap -= 1
-                        return ActionResult(True, "You entered the building.")
+                        return ActionResult(True, "You entered the building.", sfx='footsteps')
                     elif building.barricade.level <= 4:
                         self.actor.inside = True
                         self.actor.ap -= 1
-                        return ActionResult(True, "You climb through the barricades and are now inside.")
+                        return ActionResult(True, "You climb through the barricades and are now inside.", sfx='footsteps')
                     else:
                         return ActionResult(False, "You can't find a way through the barricades.")
                 else:
@@ -526,13 +534,13 @@ class ActionExecutor:
                                 building.doors_closed = False
                                 self.actor.inside = True
                                 self.actor.ap -= 1
-                                return ActionResult(True, "You enter the building, leaving the doors wide open.")
+                                return ActionResult(True, "You enter the building, leaving the doors wide open.", sfx='footsteps')
                             else:
                                 return ActionResult(False, "You need the MEMORIES OF LIFE skill in order to open doors.")
                         else:
                             self.actor.inside = True
                             self.actor.ap -= 1
-                            return ActionResult(True, "You enter the building.")   
+                            return ActionResult(True, "You enter the building.", sfx='footsteps')   
                     else:
                         return ActionResult(False, "You have to break through the barricades first.")
             else:
@@ -547,11 +555,11 @@ class ActionExecutor:
                 if building.barricade.level == 0:
                     self.actor.inside = False
                     self.actor.ap -= 1
-                    return ActionResult(True, "You left the building.")
+                    return ActionResult(True, "You left the building.", sfx='footsteps')
                 if building.barricade.level <= 4:
                     self.actor.inside = False
                     self.actor.ap -= 1
-                    return ActionResult(True, "You climb through the barricades and are now outside.")
+                    return ActionResult(True, "You climb through the barricades and are now outside.", sfx='footsteps')
                 else:
                     return ActionResult(False, "The building has been so heavily barricaded that you cannot leave through the main doors.")
             else:
@@ -560,13 +568,13 @@ class ActionExecutor:
                         if SkillType.MEMORIES_OF_LIFE in self.actor.zombie_skills:
                             self.actor.inside = False
                             self.actor.ap -= 1
-                            return ActionResult(True, "You left the building, leaving the doors wide open.")   
+                            return ActionResult(True, "You left the building, leaving the doors wide open.", sfx='footsteps')   
                         else:
                             return ActionResult(False, "You need the MEMORIES OF LIFE skill in order to open doors.")                         
                     else:
                         self.actor.inside = False
                         self.actor.ap -= 1
-                        return ActionResult(True, "You left the building.")
+                        return ActionResult(True, "You left the building.", sfx='footsteps')
                 else:
                     return ActionResult(False, "You have to break through the barricades first.")
         else:

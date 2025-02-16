@@ -60,16 +60,15 @@ class ActionsPanel:
             buttons.append(self.stand_button)
         else:
             if player.inside:
+                if SkillType.CONSTRUCTION in player.human_skills:
+                    buttons.append(self.barricade_button)
+                buttons.append(self.search_button)
                 if block.barricade.level == 0:
                     if player.is_human:
                         if block.doors_closed:
                             buttons.append(self.open_doors_button)
                         else:
-                            buttons.append(self.close_doors_button)
-
-                if SkillType.CONSTRUCTION in player.human_skills:
-                    buttons.append(self.barricade_button)
-                buttons.append(self.search_button)
+                            buttons.append(self.close_doors_button)                
                 buttons.append(self.leave_button)                
                 if not player.is_human:
                     buttons.append(self.ransack_button)
