@@ -61,7 +61,10 @@ class ActionExecutor:
             self.game.load_menu = True
 
         elif action == Action.SKILLS_MENU:
-            self.game.skills_menu = True
+            if self.game.skills_menu:
+                self.game.skills_menu = False
+            else:
+                self.game.skills_menu = True
 
         elif action == Action.BACK:
             self.game.save_menu = False

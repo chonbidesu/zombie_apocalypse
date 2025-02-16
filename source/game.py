@@ -53,7 +53,7 @@ class GameInitializer:
 
         # Create player
         player = Character(
-            self, occupation=Occupation.DOCTOR, x=50, y=50, is_human=True
+            self, occupation=Occupation.FIREFIGHTER, x=50, y=50, is_human=True
         )
 
         # Give the player starting XP for testing purposes

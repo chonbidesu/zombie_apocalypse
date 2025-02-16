@@ -231,12 +231,18 @@ class MenuEventHandler:
 
     def handle_keydown(self, event):
         """Handle key press events."""
-        key_to_action = {
-            pygame.K_ESCAPE: Action.PAUSE,
-        }
+        if self.game.skills_menu:
+            key_to_action = {
+                pygame.K_ESCAPE: Action.SKILLS_MENU,
+            }
+        else:
+            key_to_action = {
+                pygame.K_ESCAPE: Action.PAUSE,
+            }
         action = key_to_action.get(event.key)
         if action:
-            self.act(action)    
+            self.act(action)   
+
 
     def handle_mousebuttondown(self, event):
         """Handle mouse button down events."""

@@ -50,6 +50,7 @@ font_large = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 18)
 font_xl = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 56)
 font_xxl = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 102)
 font_chat = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 16)
+font_skills = pygame.font.SysFont("Courier New", 16)
 
 # Colors
 WHITE = (255, 255, 255)

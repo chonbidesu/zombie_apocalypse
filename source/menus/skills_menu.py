@@ -39,11 +39,14 @@ class SkillsMenu:
         screen.blit(title_text, title_rect)
         self.back_button.draw(screen)
 
+        level = player.level
         xp = player.xp
 
-        # Display XP at the top
-        xp_text = font_large.render(f"XP: {xp}", True, (255, 255, 255))
-        screen.blit(xp_text, (self.margin, 10))
+        # Display Level and XP at the top
+        level_text = font_large.render(f"Player Level: {level}", True, WHITE)
+        xp_text = font_large.render(f"XP: {xp}", True, WHITE)
+        screen.blit(level_text, (self.margin, 10))
+        screen.blit(xp_text, (self.margin, level_text.get_height() + 10))
 
         # Initialize y-offset for each column
         base_y = SCREEN_HEIGHT * 7 // 40
@@ -111,12 +114,34 @@ class SkillsMenu:
         elif self.selected_skill.skill in player.human_skills or self.selected_skill.skill in player.zombie_skills:
             status_text = "Skill already learned"
             colour = LIGHT_GRAY
+        elif properties.prerequisite_skills:
+            parent_skill = properties.prerequisite_skills[0]
+            if parent_skill not in player.human_skills and parent_skill not in player.zombie_skills:
+                prereq = SKILLS[parent_skill]
+                status_text = f"Requires {prereq.skill_type} skill"
+                colour = RED
+            elif len(properties.prerequisite_skills) > 1:
+                first_child_skill = properties.prerequisite_skills[1]
+                if first_child_skill not in player.human_skills and first_child_skill not in player.zombie_skills:
+                    prereq = SKILLS[first_child_skill]
+                    status_text = f"Requires {prereq.skill_type} skill"
+                    colour = RED
+                else:
+                    status_text = f"Requires {xp_cost} XP"
+                    colour = WHITE
+                    self._draw_gain_button(screen, x, y, width, xp_cost)                    
+            else:
+                status_text = f"Requires {xp_cost} XP"
+                colour = WHITE
+                self._draw_gain_button(screen, x, y, width, xp_cost)                
+                
         elif player.xp < xp_cost:
             status_text = f"Requires {xp_cost} XP"
             colour = RED
         else:
+            status_text = f"Requires {xp_cost} XP"
+            colour = WHITE
             self._draw_gain_button(screen, x, y, width, xp_cost)
-            return
         
         # Draw status text
         status_surface = font_large.render(status_text, True, colour)
@@ -185,6 +210,7 @@ class SkillsMenu:
 
         player.xp -= xp_cost
         player.add_skill(skill)
+        self.selected_skill.acquired = True
 
     def create_resources(self):
         self.skill_slots = self._create_skill_slots()
@@ -224,26 +250,41 @@ class SkillsMenu:
 
             for skill in SKILLS:
                 properties = SKILLS[skill]
-                if (player.is_human and properties.skill_category != SkillCategory.ZOMBIE) or (not player.is_human and properties.skill_category == SkillCategory.ZOMBIE):
+
+                if (player.is_human and properties.skill_category != SkillCategory.ZOMBIE) or \
+                    (not player.is_human and properties.skill_category == SkillCategory.ZOMBIE):
+
                     if properties.skill_category == category:
+                        indent_level = self._get_skill_depth(skill)
+                        indent = indent_level - 1 if indent_level > 0 else 0
+
                         skill_slot = SkillSlot(
-                            skill, properties, x_pos, y_offset, self.column_width - 20,
-                            acquired=(skill in acquired_skills)
+                            skill, properties, x_pos + (indent * 20), y_offset, 
+                            self.column_width, acquired=(skill in acquired_skills),
+                            indent_level=indent_level
                         )
                         skill_slots.add(skill_slot)
                         y_offset += self.skill_spacing     
         
         return skill_slots
     
+    def _get_skill_depth(self, skill, depth=0):
+        """Recursively determine the indentation depth for a skill based on prerequisites."""
+        prerequisites = SKILLS[skill].prerequisite_skills
+        if not prerequisites:
+            return depth
+
+        return len(prerequisites)
 
 class SkillSlot(pygame.sprite.Sprite):
     """A skill slot representing a selectable skill."""
-    def __init__(self, skill, properties, x, y, width, acquired=False):
+    def __init__(self, skill, properties, x, y, width, indent_level, acquired=False):
         super().__init__()
         self.skill = skill
         self.properties = properties
         self.acquired = acquired
         self.selected = False
+        self.indent_level = indent_level
 
         self.width = width
         self.height = 30
@@ -258,7 +299,12 @@ class SkillSlot(pygame.sprite.Sprite):
         self.image.fill((0, 0, 0, 0))
 
         border_colour = WHITE if self.selected else (0, 0, 0)
-        text = font_large.render(self.properties.skill_type, True, WHITE)
+
+        # Format skill name with indentation and "L" bracket if it has prerequisites
+        prefix = "└─" if self.indent_level > 0 else ""
+        skill_text = f"{prefix}{self.properties.skill_type}"
+
+        text = font_skills.render(skill_text, True, WHITE)
 
         # Draw selection border if selected
         if self.selected:
@@ -267,7 +313,7 @@ class SkillSlot(pygame.sprite.Sprite):
         self.image.blit(text, (10, 5))
 
         if self.acquired:
-            self.image.blit(self.checkmark, (self.width - 20, 5))
+            self.image.blit(self.checkmark, (self.width - 120, 5))
 
     def handle_event(self, event, skills_menu):
         """Handle mouse events to change button state."""

@@ -163,8 +163,8 @@ class Character:
         status = {
             "Name": self.current_name,
             "Occupation": self.occupation.name.title(),
-            "Location": self.location,
             "HP": f"{self.hp} / {self.max_hp}",
+            "XP": self.xp
         }
         return status
     

@@ -194,6 +194,11 @@ class GameData:
             if item_data.get("is_equipped", False):
                 player.weapon = item
 
+        for skill in self.player_data["human_skills"]:
+            player.human_skills.add(skill)
+        for skill in self.player_data["zombie_skills"]:
+            player.zombie_skills.add(skill)
+
         player.name.first_name = self.player_data["first_name"]
         player.name.last_name = self.player_data["last_name"]
         player.name.zombie_adjective = self.player_data["zombie_adjective"]
@@ -222,6 +227,31 @@ class GameData:
             npc = character_class(
                 game=game, occupation=occupation, x=x, y=y, is_human=is_human, inside=inside,
             )
+
+            # Reconstruct inventory
+            for item_data in npc_data["inventory"]:
+                # Create item using the predefined method
+                item = npc.create_item(item_data["type"].name)
+
+                # Restore additional attributes
+                item_properties = ITEMS[item.type]
+                if item_properties.item_function == ItemFunction.MELEE:  # For weapons, set weapon-specific attributes
+                    item.durability = item_data.get("durability", item.durability)
+                if item_properties.item_function == ItemFunction.FIREARM:
+                    item.loaded_ammo = item_data.get("loaded_ammo", item.loaded_ammo)
+
+                # Add item to the player's inventory
+                npc.inventory.append(item)
+
+                # Check if the item is equipped
+                if item_data.get("is_equipped", False):
+                    npc.weapon = item
+
+            for skill in npc_data["human_skills"]:
+                npc.human_skills.add(skill)
+            for skill in npc_data["zombie_skills"]:
+                npc.zombie_skills.add(skill)
+
             npc.name.first_name = npc_data["first_name"]
             npc.name.last_name = npc_data["last_name"]
             npc.name.zombie_adjective = npc_data["zombie_adjective"]

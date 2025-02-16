@@ -62,7 +62,10 @@ class StatusPanel:
         y_offset = 30
         status_text = []
         for status_type, status in self.game.state.player.status().items():
-            line = f"{status_type}: {status}"
+            if status_type == 'Occupation':
+                line = status
+            else:
+                line = f"{status_type}: {status}"
             status_text.append(line)
 
         for line in status_text:
