@@ -44,6 +44,7 @@ class Character:
         self.action = ActionExecutor(game, self)
 
         self.add_starting_skill()
+        self.add_starting_items()
 
     # Assign a random name to the character
     def _assign_name(self):
@@ -73,6 +74,14 @@ class Character:
         occupation_properties = OCCUPATIONS[self.occupation]
         starting_skill = occupation_properties.starting_skill
         self.add_skill(starting_skill)
+
+    def add_starting_items(self):
+        """Adds starting items depending on player's occupation."""
+        occupation_properties = OCCUPATIONS[self.occupation]
+        starting_items = occupation_properties.starting_items
+        for item_type in starting_items:
+            item = self.create_item(item_type)
+            self.inventory.append(item)
 
     def add_skill(self, skill):
         """Add a skill to the character's skill set."""
