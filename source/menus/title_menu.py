@@ -48,6 +48,7 @@ class TitleMenu:
             self.playing_music = True
             pygame.mixer.init()
             pygame.mixer.music.load(ResourcePath("assets/music/summoning.mp3").path)
+            pygame.mixer.music.set_volume(0.3)  # Set volume to 50%
             pygame.mixer.music.play(-1)
 
 class TitleAction:

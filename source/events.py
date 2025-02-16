@@ -254,6 +254,30 @@ class MenuEventHandler:
 
         for slot in self.game.menu.skills_menu.skill_slots:
             slot.handle_event(event, self.game.menu.skills_menu)
+            
+        # New Game Menu    
+        newgame_menu = self.game.menu.newgame_menu
+        # Handle portrait selection
+        for i, rect in enumerate(newgame_menu.portrait_rects):
+            if rect.collidepoint(event.pos):
+                newgame_menu.selected_portrait = i
+        
+        # Handle text input
+        for input_box in newgame_menu.text_inputs.values():
+            input_box.handle_event(event)
+        
+        # Handle occupation selection
+        for slot in newgame_menu.occupation_slots:
+            if slot.rect.collidepoint(event.pos):
+                newgame_menu.selected_occupation = slot.occupation
+        
+        # Handle buttons
+        for button in newgame_menu.buttons:
+            action = button.handle_event(event)
+            if action == "menu_start":
+                newgame_menu.start_game()
+            elif action == "menu_back":
+                newgame_menu.game.act(Action.BACK)            
 
     def handle_mousebuttonup(self, event):
         """Handle mouse button up events."""
