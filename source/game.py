@@ -92,7 +92,8 @@ class GameInitializer:
         ]         
 
         # Initialize game UI and set clock
-        self.game_ui = ui.DrawUI(self, self.screen)  
+        self.game_ui = ui.DrawUI(self, self.screen)
+        self.menu.skills_menu.create_resources()
 
         if set_time:
             self.game_ui.description_panel.clock.time_in_minutes = set_time

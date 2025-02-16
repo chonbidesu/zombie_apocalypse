@@ -246,6 +246,9 @@ class MenuEventHandler:
         for button in self.game.menu.skills_menu.back_button:
             button.handle_event(event)
 
+        for slot in self.game.menu.skills_menu.skill_slots:
+            slot.handle_event(event, self.game.menu.skills_menu)
+
     def handle_mousebuttonup(self, event):
         """Handle mouse button up events."""
         # Handle saving and loading from the pause menu

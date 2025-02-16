@@ -60,6 +60,7 @@ def main():
                     game.pause_game()
                 else:
                     game.menu.pause_menu.draw(screen)
+                game.cursor.set_default()
                 game.menu_event_handler.handle_events(events)
 
 
@@ -115,8 +116,8 @@ def main():
                         game = GameInitializer(screen)  # Reinitialize the game
                         game.initialize_game()                                              
 
-            # Update the cursor
-            game.cursor.update(game.game_ui)
+                # Update the cursor
+                game.cursor.update(game.game_ui)
 
         pygame.display.flip()
         clock.tick(FPS)

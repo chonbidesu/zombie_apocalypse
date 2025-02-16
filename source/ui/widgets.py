@@ -92,6 +92,9 @@ class Cursor(object):
         if not cursor_changed:
             pygame.mouse.set_cursor(self.default_cursor)
 
+    def set_default(self):
+        pygame.mouse.set_cursor(self.default_cursor)
+
 class ClockHUD:
     """Displays and updates the in-game clock."""
     def __init__(self, game, start_time=480): # Default start time 8:00 AM (8 * 60 minutes)

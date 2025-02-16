@@ -1,17 +1,19 @@
 # skills_menu.py
 
 import pygame
+
 from settings import *
 from data import SKILLS, SkillType, SkillCategory
-from ui import Button
+from ui import Button, WrapText
 
 
 class SkillsMenu:
     """A menu displaying the player's skills and skill selection."""
     def __init__(self, game):
         self.game = game
-        self.skill_spacing = 30
-        self.margin = 100
+        self.skill_spacing = 35
+        self.margin = 75
+        self.selected_skill = None
 
         # Define columns
         self.column_width = SCREEN_WIDTH // 3
@@ -25,16 +27,14 @@ class SkillsMenu:
         }        
 
     def draw(self, screen):
-        """Draws the skills menu."""
-        self.skill_slots = self._create_skill_slots()
-        self.back_button = self._create_back_button()        
+        """Draws the skills menu."""      
         player = self.game.state.player        
 
         # Create a dark green background
         screen.fill(DARK_GREEN)
         
         title_text = font_xxl.render("Skills", True, WHITE)
-        title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, 50))
+        title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, 75))
 
         screen.blit(title_text, title_rect)
         self.back_button.draw(screen)
@@ -67,6 +67,42 @@ class SkillsMenu:
         # Draw skill slots
         self.skill_slots.update()
         self.skill_slots.draw(screen)
+
+        # Draw info panel if a skill is selected
+        if self.selected_skill:
+            self._draw_info_panel(screen)
+
+    def update(self):
+        """Deselect all other skills when a new one is selected."""
+        for skill_slot in self.skill_slots:
+            skill_slot.selected = (skill_slot == self.selected_skill)
+            skill_slot.update()
+
+    def _draw_info_panel(self, screen):
+        """Draws the information panel for the selected skill."""
+        x, y = 50, SCREEN_HEIGHT // 2
+        width, height = SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2 - 40
+
+        # Draw border
+        pygame.draw.rect(screen, WHITE, (x, y, width, height), 2)
+
+        # Draw skill name
+        properties = SKILLS[self.selected_skill.skill]
+        skill_name = font_xl.render(properties.skill_type, True, WHITE)
+        skill_name_width = skill_name.get_width()
+        screen.blit(skill_name, (x + width // 2 - skill_name_width // 2, y + 10))
+
+        # Draw skill description
+        wrapped_description = WrapText(properties.description, font_large, width - 20)
+        y_offset = y + 50
+        for line in wrapped_description.lines:
+            text_surface = font_large.render(line, True, WHITE)
+            screen.blit(text_surface, (x + 10, y_offset))
+            y_offset += 20
+
+    def create_resources(self):
+        self.skill_slots = self._create_skill_slots()
+        self.back_button = self._create_back_button()         
 
     def _create_back_button(self):
         width = 116
@@ -128,11 +164,6 @@ class SkillSlot(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x, y, width, 30)
         self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
-    def toggle_selection(self):
-        """Toggle the selected state of the skill slot."""
-        self.selected = not self.selected
-        self.update()
-
     def update(self):
         """Update the skill slot appearance."""
         self.image.fill((0, 0, 0, 0))
@@ -142,6 +173,13 @@ class SkillSlot(pygame.sprite.Sprite):
 
         # Draw selection border if selected
         if self.selected:
-            pygame.draw.rect(self.image, border_colour, (0, 0, self.width, self.height), 2)
+            pygame.draw.rect(self.image, border_colour, (0, 0, self.width - 100, self.height), 2)
 
         self.image.blit(text, (10, 5))
+
+    def handle_event(self, event, skills_menu):
+        """Handle mouse events to change button state."""
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.rect.collidepoint(event.pos):
+                skills_menu.selected_skill = self if not self.selected else None
+                skills_menu.update()
