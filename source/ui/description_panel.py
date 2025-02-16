@@ -112,7 +112,7 @@ class DescriptionPanel:
             row_x = self.setting_image_x + 20
         elif alignment == 'right':
             row_x = self.setting_image_x + self.setting_width - len(self.zombie_sprite_group) * (sprite_width + sprite_spacing) - 10
-        row_y = self.setting_image_y + self.setting_height  # Align with bottom edge of setting image
+        row_y = self.setting_image_y + self.setting_height + 25  # Align with bottom edge of setting image
 
         for index, sprite in enumerate(sprite_group):
             # Calculate position for each sprite
@@ -347,20 +347,30 @@ class NPCSprite(pygame.sprite.Sprite):
     def draw_name(self):
         """Draw the NPC's name above the sprite."""
         name = self.npc.current_name
-        name_text = font_xs.render(name, True, BLACK)
-        name_y = self.rect.y + self.rect.height
-        name_rect = name_text.get_rect(centerx=self.rect.centerx, y=name_y)
-        self.screen.blit(name_text, name_rect)
+        wrapped_name = WrapText(name, font_xs, 60)
+
+        name_y = self.rect.y + 5
+        padding = 2
+
+        for line in reversed(wrapped_name.lines):
+            name_text = font_xs.render(line, True, BLACK)
+            name_rect = name_text.get_rect(centerx=self.rect.centerx, y=name_y)
+        
+            background_rect = name_rect.inflate(padding * 2, padding * 2)
+            pygame.draw.rect(self.screen, WHITE, background_rect)        
+
+            self.screen.blit(name_text, name_rect)
+            name_y -= name_rect.height + padding
 
     def draw_hp_bar(self):
         """Draw the NPC's HP bar if the player has the necessary skill."""
         max_hp = self.npc.max_hp
         current_hp = self.npc.hp
-        bar_width = self.rect.width - 50
+        bar_width = self.rect.width - 100
         hp_ratio = max(current_hp / max_hp, 0)
 
-        bar_x = self.rect.x + 25
-        bar_y = self.rect.y + self.rect.height + 15
+        bar_x = self.rect.x + 50
+        bar_y = self.rect.y + self.rect.height - 15
     
         pygame.draw.rect(self.screen, (255, 0, 0), (bar_x, bar_y, bar_width, self.hp_bar_height))
         pygame.draw.rect(self.screen, (0, 255, 0), (bar_x, bar_y, bar_width * hp_ratio, self.hp_bar_height))
