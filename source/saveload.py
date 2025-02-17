@@ -5,6 +5,7 @@ import os
 
 from settings import *
 from data import BLOCKS, ITEMS, ItemFunction, SaveLoadPath
+from characters import CharacterName
 
 class GameData:
     def __init__(self, game):
@@ -167,8 +168,14 @@ class GameData:
 
 
         # Reconstruct player
+        first_name = self.player_data["first_name"]
+        last_name = self.player_data["last_name"]
+        zombie_adjective = self.player_data["zombie_adjective"]        
+        name = CharacterName(first_name, last_name, zombie_adjective)
+        
         player = character_class(
             game=game,
+            name=name,
             occupation=self.player_data["occupation"],
             x=self.player_data["x"],
             y=self.player_data["y"],
@@ -200,9 +207,6 @@ class GameData:
         for skill in self.player_data["zombie_skills"]:
             player.zombie_skills.add(skill)
 
-        player.name.first_name = self.player_data["first_name"]
-        player.name.last_name = self.player_data["last_name"]
-        player.name.zombie_adjective = self.player_data["zombie_adjective"]
         player.hp = self.player_data.get("hp", player.max_hp)
         player.ap = self.player_data.get("ap", 0)
         player.xp = self.player_data.get("xp", 0)
@@ -224,9 +228,13 @@ class GameData:
             y=npc_data["y"]
             is_human=npc_data["is_human"]
             inside=npc_data["inside"]
+            first_name = npc_data["first_name"]
+            last_name = npc_data["last_name"]
+            zombie_adjective = npc_data["zombie_adjective"]
+            name = CharacterName(first_name, last_name, zombie_adjective)            
 
             npc = character_class(
-                game=game, occupation=occupation, x=x, y=y, is_human=is_human, inside=inside,
+                game=game, name=name, occupation=occupation, x=x, y=y, is_human=is_human, inside=inside,
             )
 
             # Reconstruct inventory
@@ -253,9 +261,6 @@ class GameData:
             for skill in npc_data["zombie_skills"]:
                 npc.zombie_skills.add(skill)
 
-            npc.name.first_name = npc_data["first_name"]
-            npc.name.last_name = npc_data["last_name"]
-            npc.name.zombie_adjective = npc_data["zombie_adjective"]
             npc.hp = npc_data.get("hp", npc.max_hp)
             npc.ap = npc_data.get("ap", 0)
             npc.xp = npc_data.get("xp", 0)

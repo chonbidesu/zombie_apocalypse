@@ -110,7 +110,7 @@ class GameInitializer:
         )
         self.state = GameState(player, city, npcs)
 
-        self._create_resources(game_state.sprite_sheet, set_time=game_state.game_time)
+        self._create_resources(game_state.portrait, set_time=game_state.game_time)
 
     def _create_resources(self, portrait, set_time=None):
         """Create or reinitialize game resources."""

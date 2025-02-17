@@ -184,21 +184,68 @@ class Human(State):
 
     def _determine_science_behaviour(self, block, block_characters, adjacent_locations, x, y):
         properties = BLOCKS[block.type]        
-        inventory = self.character.inventory
+        inventory = self.character.inventory       
+        
+        # Check for target locations
+        target_types = [BlockType.FACTORY, BlockType.AUTO_REPAIR, BlockType.WAREHOUSE]
+        target_locations = [
+            loc for loc in adjacent_locations
+            if self._is_target_location(loc, target_types)
+        ]        
 
-        if properties.is_building and not self.character.inside:
-            return Result(Action.ENTER)
-        elif self.character.inside:
+        # Check inventory for needed items
+        has_generator = any(item.type == ItemType.PORTABLE_GENERATOR for item in self.character.inventory)
+        has_fuel = any(item.type == ItemType.FUEL_CAN for item in self.character.inventory)
+        has_toolbox = any(item.type == ItemType.TOOLBOX for item in self.character.inventory)
+        has_weapon = any(
+            ITEMS[item.type].item_function == ItemFunction.MELEE or ITEMS[item.type].item_function == ItemFunction.FIREARM
+            for item in self.character.inventory
+        )
+        
+        # Priority 2: If zombie is present and weapon equipped, attack
+        if not self.character.weapon and has_weapon:
+            weapon = next((item for item in inventory if ITEMS[item.type].item_function == ItemFunction.MELEE or ITEMS[item.type].item_function == ItemFunction.FIREARM))
+            self.character.action.equip(weapon)
+
             if block_characters.living_zombies:
                 return Result(Action.ATTACK, block_characters.living_zombies[0])
-            elif block.ransack_level > 0:
-                for item in inventory:
-                    if item.type == ItemType.TOOLBOX:
-                        return Result(Action.USE, item)
-            elif block.barricade.level <= 4:
-                return Result(Action.BARRICADE)
+            
+        # Priority 3: If outside, find a safe place to hide
+        if not self.character.inside:
+            if block.type in target_types:
+                return Result(Action.ENTER) # Enter current building if a desirable target
+            elif target_locations:
+                target_location = random.choice(target_locations)
+                dx, dy = target_location[0] - x, target_location[1] - y
+                return Result(Action.MOVE, MoveTarget(dx, dy)) # Move to nearby building if desirable target
             else:
-                return Result(Action.SEARCH)        
+                return Result(Action.WANDER) # Move randomly if no desireable target present
+
+        if self.character.inside and not block.doors_closed:
+            return Result(Action.CLOSE_DOORS)
+
+        # Priority 4: If conditions allow searching for items, search
+        if self._can_search(block, has_generator, has_fuel, has_toolbox, has_weapon):
+            return Result(Action.SEARCH)
+        
+        # Priority 5: Install generator and fuel it
+        if self.character.inside and properties.is_building and has_generator and has_fuel:
+            if not block.generator_installed:
+                genny = next((item for item in self.character.inventory if item.type == ItemType.PORTABLE_GENERATOR))
+                return Result(Action.USE, genny)
+            else:
+                if not block.lights_on:
+                    fuel = next((item for item in self.character.inventory if item.type == ItemType.FUEL_CAN))
+                    return Result(Action.USE, fuel)
+                
+        # Priority 6: Repair building if ransacked, or barricade
+        if self.character.inside and properties.is_building:
+            if block.ransack_level > 0 and not block.ruined and has_toolbox:
+                return Result(Action.REPAIR_BUILDING)
+            elif block.ruined and has_toolbox and SkillType.CONSTRUCTION in self.character.human_skills:
+                return Result(Action.REPAIR_BUILDING)
+            if block.barricade.level < 4 and has_toolbox:
+                return Result(Action.BARRICADE)       
             
     def _determine_military_behaviour(self, block, block_characters, adjacent_locations, x, y):
         properties = BLOCKS[block.type]        

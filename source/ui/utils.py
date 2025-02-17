@@ -139,7 +139,7 @@ class DayCycleManager:
 
     def process_night_cycle(self):
         """Process 8 hours of NPC actions."""
-        for _ in range(8 * 60 * 1000 // ACTION_INTERVAL): # Calculate number of NPC actions in 8 hours
+        for _ in range(8 * 10 * 1000 // ACTION_INTERVAL): # Calculate number of NPC actions in 8 hours
             self.game.state.npcs.gain_ap()
             self.game.state.npcs.take_action()
             self.game.ticker += 1  # Track time progression
