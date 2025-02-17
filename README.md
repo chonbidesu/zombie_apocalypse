@@ -1,38 +1,68 @@
 Zombie Apocalypse Simulation
-by Jared Scratch (GitHub: chonbidesu)
+
+By Jared Scratch (GitHub: chonbidesu)
 
 Overview
 
-Zombie Apocalypse is a single-player, offline game modeled after Urban Dead, a free-to-play HTML/text-based massively multiplayer online role-playing game created by British developer Kevan Davis. Set in a quarantined region of the fictional city of Malton, it deals with the aftermath of a zombie outbreak. Players enter the game either as a survivor or a zombie, each with different abilities and limitations. Survivors become zombies when they are killed, while zombies can be "revivified" with appropriate technology, returning to life as a survivor – any character played for long will thus spend some time alive and some as a zombie.
-Zombie Apocalypse differs from Urban Dead in that, as an offline game, other characters are controlled by AI rather than other human users. All credit for the base game mechanics and concepts goes to Kevan Davis. My contribution is to create an offline version for fans of the game to enjoy the nostalgia, as the player-base dwindles and the future possibility of the game servers going offline looms.
+Zombie Apocalypse is a single-player, offline game inspired by Urban Dead, a free-to-play, text-based MMORPG created by British developer Kevan Davis. The game is set in a quarantined region of the fictional city of Malton, following the aftermath of a zombie outbreak.
+
+Players take on the role of either a survivor or a zombie, each with unique abilities and limitations. Survivors who are killed will return as zombies, while zombies can be revived with the right technology to become human again. Unlike Urban Dead, where other characters are controlled by human players, Zombie Apocalypse uses AI to simulate NPCs, allowing fans of the original game to enjoy a similar experience offline.
+
+This project is a tribute to Urban Dead and its community, developed in response to the dwindling player base and the possibility of the official game servers shutting down.
 
 Features
 
-Survivor and Zombie AI, with decision-making for escape, combat, and resource-gathering
-Interaction with buildings: Enter/leave buildings, barricade/smash barricades, search for items, ransack.
-Interaction with NPCs: Characters of either faction will attack each other, including the player.
-Item Usage: A variety of items are available to find, which have various uses you can discover.
-Melee and Firearm Weapons: Melee weapons (crowbar, shovel, fire axe) have durability attributes and will break after a set number of uses. Firearms require ammo and can be reloaded an unlimited number of times.
+Survivor & Zombie AI: NPCs make decisions based on survival, combat, and resource-gathering needs.
+Building Interactions: Enter and leave buildings, barricade entrances, break barricades, and search for resources.
+NPC Interactions: Engage in combat with AI-controlled survivors and zombies.
+Item Usage: A variety of items can be found and used for different purposes.
+Weapons:
+Melee weapons (crowbar, shovel, fire axe) have durability and will break after a set number of uses.
+Firearms require ammo and can be reloaded an unlimited number of times.
+Day/Night Cycle: The game features a dynamic time system where players must find shelter before nightfall to survive.
+
+How to Play
+
+Movement:
+Use WASD to move in cardinal directions.
+Use QEZC to move diagonally.
+Left-click a block in the viewport to move there.
+Combat:
+Left-click an enemy to attack them using your equipped weapon (if any).
+Interactions:
+Right-click objects or NPCs to bring up an interaction menu with available actions.
+Day/Night Cycle:
+The day runs from 8:00 AM to 12:00 AM.
+If you fail to find a safe place to hide before nightfall, you risk death.
+Skills:
+Click the SKILLS button next to the player portrait to access the skill menu and acquire new abilities.
 
 Installation
 
-No installation is required, simply run the latest version for your operating system. Executable files can be found in the dist folder.
+No installation required! Simply run the latest distributable version for your OS.
+Executable files can be found in the dist folder.
+Important: Since I am not a known publisher, Windows may flag the file as dangerous, and some antivirus software may show false positives.
+Alternatively, you can run the source code by executing main.py (requires Python and Pygame installed).
 
 Roadmap
 
-Planned features include:
-Character selection
-Class selection
-Skill Trees and XP system
-Better AI
+Planned Features:
+Improved AI for both survivors and zombies.
+Mall functionality to simulate the strategic importance of malls.
+Shopping and Bargain Hunting skills for specialized looting mechanics.
+Better sound effects to enhance immersion.
+Player zombie state (allowing the player to continue playing after death).
+Functionality for binoculars, DNA extractors, and other items.
 
 Contributing
 
-Contributions are welcome! Feel free to:
-Submit bug reports
-Suggest features or improvements
-Fork and submit pull requests
+Contributions are welcome! You can:
+Submit bug reports.
+Suggest features or improvements.
+Fork the repository and submit pull requests.
 
 License
 
-I don't have a license for this project yet. I haven't yet decided what to do with this. It is currently under development, so no license is available at this time.
+This project is currently under development, and no official license has been assigned. Future licensing decisions will be made as the project evolves.
+
+Enjoy surviving the apocalypse!
