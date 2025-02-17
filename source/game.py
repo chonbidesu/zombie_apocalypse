@@ -31,6 +31,7 @@ class GameInitializer:
         self.cursor = ui.Cursor()
         self.menu = menus.GameMenu(self)         
         self.paused = False
+        self.newgame_menu = False
         self.save_menu = False
         self.load_menu = False
         self.skills_menu = False

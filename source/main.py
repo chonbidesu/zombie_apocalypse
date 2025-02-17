@@ -35,7 +35,9 @@ def main():
 
         # Title screen
         if game.title_screen:
-            if game.load_menu:
+            if game.newgame_menu:
+                game.menu.newgame_menu.draw(screen)
+            elif game.load_menu:
                 game.menu.load_menu.draw(screen)
             elif game.start_new_game:
                 game.initialize_game()
@@ -54,6 +56,8 @@ def main():
                     game.menu.save_menu.draw(screen)
                 elif game.load_menu:             
                     game.menu.load_menu.draw(screen)
+                elif game.newgame_menu:
+                    game.menu.newgame_menu.draw(screen)
                 elif game.start_new_game:
                     game.initialize_game()
                     game.start_new_game = False

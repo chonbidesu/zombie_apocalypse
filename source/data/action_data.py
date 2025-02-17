@@ -46,6 +46,7 @@ class Action(Enum):
     PAUSE = auto()
     OPTIONS = auto()
     NEW_GAME = auto()
+    NEWGAME_MENU = auto()
     SAVE = auto()
     SAVE_MENU = auto()
     LOAD = auto()

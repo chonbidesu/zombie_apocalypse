@@ -61,6 +61,9 @@ class ActionExecutor:
         elif action == Action.LOAD_MENU:
             self.game.load_menu = True
 
+        elif action == Action.NEWGAME_MENU:
+            self.game.newgame_menu = True
+
         elif action == Action.SKILLS_MENU:
             if self.game.skills_menu:
                 self.game.skills_menu = False

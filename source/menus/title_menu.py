@@ -61,6 +61,9 @@ class TitleAction:
         if action == Action.QUIT:
             return self.game.quit_game()
 
+        elif action == Action.NEWGAME_MENU:
+            self.game.newgame_menu = True
+
         elif action == Action.NEW_GAME:
             self.game.start_new_game = True
 
