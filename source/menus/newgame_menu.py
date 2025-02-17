@@ -175,6 +175,23 @@ class NewGameMenu:
             screen.blit(text_surface, (x + 10, y_offset))
             y_offset += 20
 
+    def cycle_text_input(self):
+        """Cycle to the next text input box."""
+        keys = list(self.text_inputs.keys())  # Get the keys in order
+        active_index = None
+
+        # Find the currently active text input
+        for i, key in enumerate(keys):
+            if self.text_inputs[key].active:
+                active_index = i
+                break
+
+        # Deactivate current and activate the next input
+        if active_index is not None:
+            self.text_inputs[keys[active_index]].active = False  # Deactivate current
+            next_index = (active_index + 1) % len(keys)  # Get the next index (loops back)
+            self.text_inputs[keys[next_index]].active = True  # Activate next            
+
     def display_warning(self, message, duration=3):
         """Display a temporary warning message for validation errors."""
         wrapped_text = WrapText(message, font_large, 300).lines
@@ -247,10 +264,11 @@ class TextInputBox:
         self.text = ""
         self.placeholder = placeholder
         self.active = False
+        self.max_length = 10
 
     def draw(self, screen):
         """Draw the text box with text."""
-        colour = WHITE if self.active else LIGHT_GRAY
+        colour = WHITE if self.active else MED_GRAY
         pygame.draw.rect(screen, colour, self.rect, 2)
         
         text_surface = font_large.render(self.text if self.text else self.placeholder, True, WHITE)
