@@ -261,90 +261,101 @@ class MenuEventHandler:
 
     def handle_mousebuttondown(self, event):
         """Handle mouse button down events."""
-        for button in self.game.menu.pause_menu.button_group:
-            button.handle_event(event)
+        if self.game.paused:
 
-        for button in self.game.menu.skills_menu.back_button:
-            button.handle_event(event)
+            if self.game.newgame_menu:
+                # New Game Menu    
+                newgame_menu = self.game.menu.newgame_menu
+                for button in newgame_menu.buttons:
+                    button.handle_event(event)                
+                
+                # Handle portrait selection
+                for i, sprite in enumerate(newgame_menu.portrait_sprites):
+                    if sprite.rect.collidepoint(event.pos):
+                        newgame_menu.selected_portrait = i if not sprite.selected else None
+                    
+                # Handle occupation selection
+                for slot in newgame_menu.occupation_slots:
+                    if slot.rect.collidepoint(event.pos):
+                        newgame_menu.selected_occupation = slot.occupation if not slot.selected else None
+                        newgame_menu.occupation_slots.update(newgame_menu.selected_occupation)
 
-        for slot in self.game.menu.skills_menu.skill_slots:
-            slot.handle_event(event, self.game.menu.skills_menu)
-            
-        # New Game Menu    
-        newgame_menu = self.game.menu.newgame_menu
-        # Handle portrait selection
-        for i, sprite in enumerate(newgame_menu.portrait_sprites):
-            if sprite.rect.collidepoint(event.pos):
-                newgame_menu.selected_portrait = i if not sprite.selected else None
-               
-        # Handle occupation selection
-        for slot in newgame_menu.occupation_slots:
-            if slot.rect.collidepoint(event.pos):
-                newgame_menu.selected_occupation = slot.occupation if not slot.selected else None
-                newgame_menu.occupation_slots.update()
+                for text_input in newgame_menu.text_inputs.values():
+                    text_input.active = text_input.rect.collidepoint(event.pos)
 
-        for text_input in newgame_menu.text_inputs.values():
-            text_input.active = text_input.rect.collidepoint(event.pos)
+            else:
+                for button in self.game.menu.pause_menu.button_group:
+                    button.handle_event(event)
+
+        else:
+            for button in self.game.menu.skills_menu.back_button:
+                button.handle_event(event)
+
+            for slot in self.game.menu.skills_menu.skill_slots:
+                slot.handle_event(event, self.game.menu.skills_menu)
 
     def handle_mousebuttonup(self, event):
         """Handle mouse button up events."""
-        # Handle saving and loading from the pause menu
-        if self.game.save_menu:
-            for slot in self.game.menu.save_menu.slots:
-                if slot.rect.collidepoint(event.pos):
-                    self.game.save_game(slot.index)
-                    slot.update_image()
+        if self.game.paused:
 
-            back_button = self.game.menu.save_menu.back_button
-            if back_button.sprite.rect.collidepoint(event.pos):
-                self.act(Action.BACK)
-                    
-        elif self.game.load_menu:
-            for slot in self.game.menu.load_menu.slots:
-                if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
-                    self.game.pause_game()
-                    self.game.load_game(slot.index)
+            # Handle saving and loading from the pause menu
+            if self.game.save_menu:
+                for slot in self.game.menu.save_menu.slots:
+                    if slot.rect.collidepoint(event.pos):
+                        self.game.save_game(slot.index)
+                        slot.update_image()
 
-            back_button = self.game.menu.load_menu.back_button
-            if back_button.sprite.rect.collidepoint(event.pos):
-                self.act(Action.BACK)            
+                back_button = self.game.menu.save_menu.back_button
+                if back_button.sprite.rect.collidepoint(event.pos):
+                    self.act(Action.BACK)
+                        
+            elif self.game.load_menu:
+                for slot in self.game.menu.load_menu.slots:
+                    if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
+                        self.game.pause_game()
+                        self.game.load_game(slot.index)
 
-        # Handle the skills menu
-        elif self.game.skills_menu:
-            skills_menu = self.game.menu.skills_menu
-            back_button = self.game.menu.skills_menu.back_button
+                back_button = self.game.menu.load_menu.back_button
+                if back_button.sprite.rect.collidepoint(event.pos):
+                    self.act(Action.BACK)            
 
-            if back_button.sprite.rect.collidepoint(event.pos):
-                self.act(Action.BACK)
+            elif self.game.newgame_menu:
+                newgame_menu = self.game.menu.newgame_menu
+                for button in newgame_menu.buttons:
+                    action = button.handle_event(event)
+                    if action == "menu_start":
+                        newgame_menu.start_game()
+                    elif action == "menu_back":
+                        self.act(Action.BACK)            
 
-            if skills_menu.selected_skill and hasattr(skills_menu, 'gain_button_rect'):
-                if skills_menu.gain_button_rect.collidepoint(event.pos):
-                    skills_menu._gain_skill()
+            # Handle general UI buttons
+            else:
+                for button in self.game.menu.pause_menu.button_group:
+                    action_name = button.handle_event(event)
+                    if action_name:
+                        button_to_action = {
+                            'menu_newgame': Action.NEWGAME_MENU,
+                            'menu_save': Action.SAVE_MENU,
+                            'menu_load': Action.LOAD_MENU,
+                            'menu_play': Action.PAUSE,
+                            'menu_exit': Action.QUIT,
+                        }
+                        action = button_to_action.get(action_name)
+                        if action:
+                            self.act(action) 
 
-        elif self.game.newgame_menu:
-            newgame_menu = self.game.menu.newgame_menu
-            for button in newgame_menu.buttons:
-                action = button.handle_event(event)
-                if action == "menu_start":
-                    newgame_menu.start_game()
-                elif action == "menu_back":
-                    newgame_menu.game.act(Action.BACK)            
-
-        # Handle general UI buttons
         else:
-            for button in self.game.menu.pause_menu.button_group:
-                action_name = button.handle_event(event)
-                if action_name:
-                    button_to_action = {
-                        'menu_newgame': Action.NEWGAME_MENU,
-                        'menu_save': Action.SAVE_MENU,
-                        'menu_load': Action.LOAD_MENU,
-                        'menu_play': Action.PAUSE,
-                        'menu_exit': Action.QUIT,
-                    }
-                    action = button_to_action.get(action_name)
-                    if action:
-                        self.act(action)                
+            # Handle the skills menu
+            if self.game.skills_menu:
+                skills_menu = self.game.menu.skills_menu
+                back_button = self.game.menu.skills_menu.back_button
+
+                if back_button.sprite.rect.collidepoint(event.pos):
+                    self.act(Action.BACK)
+
+                if skills_menu.selected_skill and hasattr(skills_menu, 'gain_button_rect'):
+                    if skills_menu.gain_button_rect.collidepoint(event.pos):
+                        skills_menu._gain_skill()               
 
     def act(self, action):
         """Evoke the Action Executor to handle actions."""

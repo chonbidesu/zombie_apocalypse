@@ -7,9 +7,10 @@ from ui.widgets import Button
 
 class StatusPanel:
     """Display player portrait, HP and other status information."""
-    def __init__(self, game, screen):
+    def __init__(self, game, screen, portrait):
         self.game = game
         self.screen = screen
+        self.portrait_path = portrait
         self.x, self.y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT * 25 // 32 + 10
         self.width, self.height = SCREEN_WIDTH // 4 - 10, SCREEN_HEIGHT * 31 // 160
         self.portrait_size = self.height - 20
@@ -17,7 +18,7 @@ class StatusPanel:
         self.hp_bar = pygame.transform.scale(self.original_hp_bar, (self.portrait_size, 20))
         self.original_portrait_frame = pygame.image.load(ResourcePath("assets/player_frame.png").path).convert_alpha()
         self.portrait_frame = pygame.transform.scale(self.original_portrait_frame, (self.portrait_size, self.portrait_size))
-        self.player_sprite_sheet_image = pygame.image.load(ResourcePath("assets/female1_sprite_sheet.png").path).convert_alpha()
+        self.player_sprite_sheet_image = pygame.image.load(self.portrait_path).convert_alpha()
         self.original_player_info = pygame.image.load(ResourcePath("assets/player_info.png").path).convert_alpha()
         self.player_info = pygame.transform.scale(self.original_player_info, (self.width - self.height + 20, self.height))
 

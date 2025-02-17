@@ -13,11 +13,11 @@ from ui.map import Map
 
 class DrawUI:
     """Manages all UI elements and delegates rendering to subcomponents."""
-    def __init__(self, game, screen):
+    def __init__(self, game, screen, portrait):
         self.screen = screen
         self.viewport = Viewport(game, screen)
         self.actions_panel = ActionsPanel(game, screen)
-        self.status_panel = StatusPanel(game, screen)
+        self.status_panel = StatusPanel(game, screen, portrait)
         self.chat_panel = ChatPanel(screen)
         self.inventory_panel = InventoryPanel(game, screen)
         self.description_panel = DescriptionPanel(game, screen)

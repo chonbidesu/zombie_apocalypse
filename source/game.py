@@ -63,19 +63,14 @@ class GameInitializer:
 
         }        
 
-    def initialize_game(self):
+    def initialize_game(self, player, portrait):
         """Generate a new game state."""
-        self.state = self._create_new_game()
-        self._create_resources()
+        self.state = self._create_new_game(player)
+        self._create_resources(portrait)
 
-    def _create_new_game(self):
+    def _create_new_game(self, player):
         # Initialize city
         city = City()
-
-        # Create player
-        player = Character(
-            self, occupation=Occupation.FIREFIGHTER, x=50, y=50, is_human=True
-        )
 
         # Populate the city
         npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
@@ -96,9 +91,9 @@ class GameInitializer:
         )
         self.state = GameState(player, city, npcs)
 
-        self._create_resources(set_time=game_state.game_time)
+        self._create_resources(game_state.sprite_sheet, set_time=game_state.game_time)
 
-    def _create_resources(self, set_time=None):
+    def _create_resources(self, portrait, set_time=None):
         """Create or reinitialize game resources."""
         # Initialize event handlers
         self.event_handler = events.EventHandler(self) 
@@ -113,7 +108,7 @@ class GameInitializer:
         ]         
 
         # Initialize game UI and set clock
-        self.game_ui = ui.DrawUI(self, self.screen)
+        self.game_ui = ui.DrawUI(self, self.screen, portrait)
         self.menu.skills_menu.create_resources()
 
         if set_time:

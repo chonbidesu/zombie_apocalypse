@@ -3,9 +3,9 @@
 import pygame
 
 from settings import *
-from data import Action, SKILLS, SkillType, SkillCategory, OCCUPATIONS, OccupationCategory
+from data import Action, SKILLS, SkillType, SkillCategory, OCCUPATIONS, Occupation, OccupationCategory
 from ui import Button, WrapText
-from characters import CharacterName
+from characters import CharacterName, Character
 
 
 class NewGameMenu:
@@ -144,7 +144,15 @@ class NewGameMenu:
         # Draw info panel if occupation is selected
         if self.selected_occupation:
             self._draw_info_panel(screen)
-    
+
+        # Draw warning message (if active)
+        if hasattr(self, "warning_lines") and pygame.time.get_ticks() < self.warning_timer:
+            y_position = SCREEN_HEIGHT * 3 // 4  # Start position for warning text
+            for line in self.warning_lines:
+                warning_text = font_large.render(line, True, RED)
+                screen.blit(warning_text, (SCREEN_WIDTH * 2 // 3, y_position))
+                y_position += font_large.get_height()  # Move to next line            
+
     def _draw_info_panel(self, screen):
         """Draws the information panel for the selected skill."""
         x, y = 50, SCREEN_HEIGHT * 3 // 4
@@ -167,22 +175,47 @@ class NewGameMenu:
             screen.blit(text_surface, (x + 10, y_offset))
             y_offset += 20
 
+    def display_warning(self, message, duration=3):
+        """Display a temporary warning message for validation errors."""
+        wrapped_text = WrapText(message, font_large, 300).lines
+        self.warning_lines = wrapped_text
+        self.warning_timer = pygame.time.get_ticks() + (duration * 1000)  # Expiration time
+
     def start_game(self):
         """Start the game with the chosen settings."""
         first_name = self.text_inputs["first_name"].text
         last_name = self.text_inputs["last_name"].text
         dead_word = self.text_inputs["dead_word"].text
-        character_name = CharacterName(first_name, last_name, dead_word)
+        portrait_index = self.selected_portrait
         occupation = self.selected_occupation
-        
-        self.game.initialize_new_character(first_name, last_name, dead_word, occupation)
-        self.game.act(Action.NEW_GAME)
 
+        # Validate user input
+        if not first_name or not last_name or not dead_word:
+            self.display_warning("Please enter a first and last name, and an adjective that describes your corpse.")
+            return  
+        if occupation is None:
+            self.display_warning("Please select an occupation.")
+            return
+        if portrait_index is None:
+            self.display_warning("Please select a player portrait.")
+            return
+        
+        portrait = list(self.portrait_sprites)[portrait_index]
+        character_name = CharacterName(first_name, last_name, dead_word)
+        is_human = False if occupation == Occupation.CORPSE else True
+
+        player = Character(self.game, character_name, occupation, 50, 50, is_human)
+        
+        # Disable menus and initialize game
+        self.game.title_screen = False
+        self.game.newgame_menu = False
+        self.game.initialize_game(player, portrait.portrait_path)
 
 class PortraitSprite(pygame.sprite.Sprite):
     """A selectable portrait sprite."""
     def __init__(self, image_path, x, y):
         super().__init__()
+        self.portrait_path = image_path
         self.sprite_sheet = pygame.image.load(image_path).convert_alpha()
 
         # Extract first frame (assuming sprite sheet is horizontal)

@@ -1,8 +1,6 @@
 # __init__.py
 
 from dataclasses import dataclass
-import csv
-import random
 
 from settings import *
 from data import ITEMS, ItemType, ItemFunction, SKILLS, SkillType, SkillCategory, OCCUPATIONS
@@ -21,10 +19,9 @@ class CharacterName:
 
 class Character:
     """Base class for Player and NPC Characters."""
-    def __init__(self, game, occupation, x, y, is_human, inside=False):
+    def __init__(self, game, name, occupation, x, y, is_human, inside=False):
         self.game = game
-        self.name = self._assign_name()
-        self.current_name = ""
+        self.name = name
         self.occupation = occupation
         self.location = (x, y)
         self.max_hp = MAX_HP
@@ -45,12 +42,6 @@ class Character:
 
         self.add_starting_skill()
         self.add_starting_items()
-
-    # Assign a random name to the character
-    def _assign_name(self):
-        file_path = ResourcePath('data/character_names.csv').path
-        name_generator = NameGenerator(file_path)
-        return name_generator.generate_name()
 
     def update_name(self):
         """Updates the character's name based on their current state."""
@@ -195,31 +186,3 @@ class Character:
             item = Item(type=item_type)
             return item
     
-
-class NameGenerator:
-    def __init__(self, csv_file):
-        self.first_names = {}
-        self.last_names = []
-        self.zombie_adjectives = {}
-        self.load_names(csv_file)
-
-    def load_names(self, csv_file):
-        with open(csv_file, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                first_name_letter = row['first_name'][0].upper()
-                zombie_adjective_letter = row['zombie_adjective'][0].upper()
-                if first_name_letter not in self.first_names:
-                    self.first_names[first_name_letter] = []
-                if zombie_adjective_letter not in self.zombie_adjectives:
-                    self.zombie_adjectives[zombie_adjective_letter] = []
-                self.first_names[first_name_letter].append(row['first_name'])
-                self.last_names.append(row['last_name'])
-                self.zombie_adjectives[zombie_adjective_letter].append(row['zombie_adjective'])
-    
-    def generate_name(self):
-        first_letter = random.choice(list(self.first_names.keys()))
-        first_name = random.choice(self.first_names[first_letter])
-        last_name = random.choice(self.last_names)
-        zombie_adjective = random.choice(self.zombie_adjectives[first_letter])
-        return CharacterName(first_name, last_name, zombie_adjective)
