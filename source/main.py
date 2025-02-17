@@ -47,7 +47,6 @@ def main():
                 game.menu.title_menu.draw(screen)
             game.title_event_handler.handle_events(events)
 
-
         else:
 
             # Handle pause menu

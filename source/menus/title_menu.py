@@ -71,4 +71,5 @@ class TitleAction:
             self.game.load_menu = True
 
         elif action == Action.BACK:
-            self.game.load_menu = False    
+            self.game.load_menu = False   
+            self.game.newgame_menu = False 

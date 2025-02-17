@@ -275,12 +275,12 @@ class MenuEventHandler:
         # Handle portrait selection
         for i, sprite in enumerate(newgame_menu.portrait_sprites):
             if sprite.rect.collidepoint(event.pos):
-                newgame_menu.selected_portrait = i
+                newgame_menu.selected_portrait = i if not sprite.selected else None
                
         # Handle occupation selection
         for slot in newgame_menu.occupation_slots:
             if slot.rect.collidepoint(event.pos):
-                newgame_menu.selected_occupation = slot.occupation
+                newgame_menu.selected_occupation = slot.occupation if not slot.selected else None
                 newgame_menu.occupation_slots.update()
 
         for text_input in newgame_menu.text_inputs.values():
@@ -385,35 +385,42 @@ class TitleEventHandler:
 
     def handle_mousebuttondown(self, event):
         """Handle mouse button down events."""
-        for button in self.game.menu.title_menu.buttons:
-            button.handle_event(event)
-
-        # New Game Menu    
+        title_menu = self.game.menu.title_menu
         newgame_menu = self.game.menu.newgame_menu
-        # Handle portrait selection
-        for i, sprite in enumerate(newgame_menu.portrait_sprites):
-            if sprite.rect.collidepoint(event.pos):
-                newgame_menu.selected_portrait = i
-               
-        # Handle occupation selection
-        for slot in newgame_menu.occupation_slots:
-            if slot.rect.collidepoint(event.pos):
-                newgame_menu.selected_occupation = slot.occupation
-                newgame_menu.occupation_slots.update()
 
-        for text_input in newgame_menu.text_inputs.values():
-            text_input.active = text_input.rect.collidepoint(event.pos)            
+        if self.game.newgame_menu:
+            for button in newgame_menu.buttons:
+                button.handle_event(event)
+
+            # Handle portrait selection
+            for i, sprite in enumerate(newgame_menu.portrait_sprites):
+                if sprite.rect.collidepoint(event.pos):
+                    newgame_menu.selected_portrait = i if not sprite.selected else None
+                
+            # Handle occupation selection
+            for slot in newgame_menu.occupation_slots:
+                if slot.rect.collidepoint(event.pos):
+                    newgame_menu.selected_occupation = slot.occupation if not slot.selected else None
+                    newgame_menu.occupation_slots.update(newgame_menu.selected_occupation)
+
+            for text_input in newgame_menu.text_inputs.values():
+                text_input.active = text_input.rect.collidepoint(event.pos)  
+
+        else:
+            for button in title_menu.buttons:
+                button.handle_event(event)         
 
     def handle_mousebuttonup(self, event):
         """Handle mouse button up events."""
         # Handle saving and loading from the pause menu                  
         if self.game.load_menu:
-            for slot in self.game.menu.load_menu.slots:
+            load_menu = self.game.menu.load_menu
+            for slot in load_menu.slots:
                 if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
                     self.game.load_game(slot.index)
                     self.game.title_screen = False
 
-            back_button = self.game.menu.load_menu.back_button
+            back_button = load_menu.back_button
             if back_button.sprite.rect.collidepoint(event.pos):
                 self.act(Action.BACK)            
 
@@ -424,11 +431,12 @@ class TitleEventHandler:
                 if action == "menu_start":
                     newgame_menu.start_game()
                 elif action == "menu_back":
-                    newgame_menu.game.act(Action.BACK)   
+                    self.act(Action.BACK)   
 
         # Handle actions for button clicks
         else:
-            for button in self.game.menu.title_menu.buttons:
+            title_menu = self.game.menu.title_menu
+            for button in title_menu.buttons:
                 action_name = button.handle_event(event)
                 if action_name:
                     button_to_action = {
