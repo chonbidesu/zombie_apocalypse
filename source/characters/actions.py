@@ -736,7 +736,7 @@ class ActionExecutor:
 
         elif item.type == ItemType.SHOTGUN_SHELL:
             result = self.reload(weapon)
-            if result.sucess:       
+            if result.success:       
                 self.actor.ap -= 1
                 weapon.loaded_ammo += 1                
                 self.actor.inventory.remove(item)          
