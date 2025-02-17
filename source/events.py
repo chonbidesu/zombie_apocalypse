@@ -125,14 +125,10 @@ class EventHandler:
             'Install': Action.USE,
             'Reload': Action.USE,
             'Drop': Action.DROP,
-            'Barricade': Action.BARRICADE,
-            'Search': Action.SEARCH,
-            'Enter': Action.ENTER,
-            'Leave': Action.LEAVE,
         }
         action = menu_to_action.get(action_type)
         if action:
-            self.act(action, target)
+            self.act(action, target.item)
 
     def act(self, action, target=None):
         """Evoke the Action Executor to handle actions."""
@@ -159,10 +155,7 @@ class ClickTarget:
     def get(self, mouse_pos):
         """Get the target of a mouse click, saving the sprite and returning the target type."""
         for sprite in self.viewport_group:
-            if sprite.dx == 0 and sprite.dy == 0 and sprite.rect.collidepoint(mouse_pos):
-                self.sprite = sprite
-                self.type = 'center block'
-            elif sprite.rect.collidepoint(mouse_pos):
+            if sprite.rect.collidepoint(mouse_pos):
                 self.sprite = sprite                
                 self.type = 'block'
         for sprite in self.inventory_group:

@@ -41,6 +41,7 @@ class GenerateNPCs:
 
         if 0 <= x < CITY_SIZE and 0 <= y < CITY_SIZE:
             npc = Character(self.game, name, occupation, x, y, is_human)
+
             self.list.append(npc)
 
     def remove_npc(self, npc):

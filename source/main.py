@@ -22,7 +22,7 @@ def main():
     action_interval = ACTION_INTERVAL
     action_timer = 0
     action_queue = deque()
-    actions_per_frame = 20
+    actions_per_frame = 100
 
     # Start the game
     game = GameInitializer(screen)

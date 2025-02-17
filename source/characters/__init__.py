@@ -118,7 +118,8 @@ class Character:
     def fall(self):
         """Character falls from a building, taking damage."""
         self.take_damage(5, fatal=False)
-        self.game.chat_history.append("You fall from the crumbling building, injuring yourself.")
+        if self == self.game.state.player:
+            self.game.chat_history.append("You fall from the crumbling building, injuring yourself.")
 
     def heal(self, amount):
         """Heals the character by the given amount up to max health."""

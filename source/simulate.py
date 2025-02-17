@@ -17,7 +17,7 @@ def run_simulation(rounds=500):
     
     # Initialize game (without rendering)
     game = GameInitializer(screen)
-    game.initialize_game()
+    game.initialize_simulation()
     
     # If you want to load a save file, do this:
     # game_state = Gamestate.load_game("savegame.pkl")
@@ -35,6 +35,7 @@ def run_simulation(rounds=500):
             if npc.ap >= 1:
                 npc.state.get_action()
                 npc.state.act()
+                npc.state.gain_skill()
 
         # Count populations
         living_humans = sum(1 for npc in game.state.npcs.list if npc.is_human and not npc.is_dead)

@@ -49,7 +49,7 @@ class State:
         # Only act if action points are available
         if self.character.ap < 1:
             return False
-        
+
         # Execute action if one was determined
         if self.next_action:
             action_result = self.character.action.execute(self.next_action.action, self.next_action.target)
@@ -62,7 +62,7 @@ class State:
                         if action_result.sfx:
                             pygame.mixer.Sound.play(self.game.sounds[action_result.sfx])                        
                     else:
-                        if self.next_action.action == Action.DECADE:
+                        if self.next_action.action == Action.DECADE or self.next_action.action == Action.ENTER:
                             self.game.chat_history.append(action_result.witness)
                             if action_result.sfx:
                                 pygame.mixer.Sound.play(self.game.sounds[action_result.sfx])                               
@@ -130,7 +130,7 @@ class State:
 
             if self.character.xp >= skill_xp_cost:
                 self.character.add_skill(self.selected_skill)
-                print(f"NPC gained skill: {self.selected_skill}")
+
                 self.character.xp -= skill_xp_cost
                 self.selected_skill = None
 
@@ -139,27 +139,32 @@ class State:
         occupation_category = OCCUPATIONS[self.character.occupation].occupation_category
 
         if self.character.is_human:
-            skills = [skill for skill, properties in SKILLS.items() if properties.skill_category != SkillCategory.ZOMBIE]
+            skills = [
+                skill for skill, properties in SKILLS.items() 
+                if properties.skill_category != SkillCategory.ZOMBIE and
+                (properties.skill_category != SkillCategory.ZOMBIE_HUNTER or self.character.level >= 10)
+            ]
         else:
-            skills = [skill for skill, properties in SKILLS.items() if properties.skill_category == SkillCategory.ZOMBIE]           
+            skills = [skill for skill, properties in SKILLS.items() 
+                      if properties.skill_category == SkillCategory.ZOMBIE]           
 
-        acquired_skills = [skill for skill in self.character.human_skills] \
-            if self.character.is_human else \
-            [skill for skill in self.character.zombie_skills]
+        acquired_skills = set(self.character.human_skills) if self.character.is_human else set(self.character.zombie_skills)
 
+        # Filter skills where prerequisites are met
         skills_with_prereqs_met = [
-            skill for skill in skills if all(prerequisite in acquired_skills for prerequisite in SKILLS[skill].prerequisite_skills)
+            skill for skill in skills 
+            if all(prerequisite in acquired_skills for prerequisite in SKILLS[skill].prerequisite_skills)
         ]
+
         occupation_skills = [skill for skill, properties in SKILLS.items() if skill in skills_with_prereqs_met and properties.skill_category == occupation_category]
 
-        # Learn occupation skills first
-        for skill in occupation_skills:
-            if skill not in acquired_skills:
-                return skill
-        
-        for skill in skills_with_prereqs_met:
-            if skill not in acquired_skills:
-                return skill
+        # Prioritize occupational skills
+        if occupation_skills:
+                return random.choice(occupation_skills) if random.random() < 0.75 else random.choice(skills_with_prereqs_met)
+                
+        # If no occupation skills are available, pick any valid skill
+        if skills_with_prereqs_met:
+            return random.choice(skills_with_prereqs_met)
             
         return None
 
@@ -189,10 +194,7 @@ class State:
                 return 150
             
         elif skill_category == SkillCategory.ZOMBIE_HUNTER:
-            if player.level >= 10: # Requires level 10
-                return 100
-            else:
-                return None
+            return 100
             
         elif skill_category == SkillCategory.ZOMBIE:
             return 100 # Fixed cost for zombie skills        

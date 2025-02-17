@@ -3,7 +3,7 @@
 import random
 
 from settings import *
-from data import Action, BLOCKS
+from data import Action, BLOCKS, SkillType
 from characters.state import State, MoveTarget, Result
 
 
@@ -52,7 +52,7 @@ class Zombie(State):
         # Priority 5: With no immediate priorities, let the zombie decide its next action
         if self.character.inside:
             action_weights = {
-                Action.RANSACK: 50 if not block.ruined else 0,
+                Action.RANSACK: 50 if not block.ruined and SkillType.RANSACK in self.character.zombie_skills else 0,
                 Action.WANDER: 30,
                 Action.LEAVE: 20,
             }
@@ -82,12 +82,12 @@ class Zombie(State):
         # Check if the current target is at the current location but not the same inside status
         if self.current_target.location == self.character.location and self.current_target.inside != self.character.inside:
             if self.character.inside: # Pursue the target outside, if possible
-                if block.barricade.level == 0:
+                if block.barricade.level == 0 and (not block.doors_closed or SkillType.MEMORIES_OF_LIFE in self.character.zombie_skills):
                     return Result(Action.LEAVE)
                 else: # Attack barricades if they are in the way
                     return Result(Action.DECADE)
             else: # Pursue the target inside, if possible
-                if block.barricade.level == 0:
+                if block.barricade.level == 0 and (not block.doors_closed or SkillType.MEMORIES_OF_LIFE in self.character.zombie_skills):
                     return Result(Action.ENTER)
                 else: # Attack the barricades if they are in the way
                     return Result(Action.DECADE)

@@ -10,7 +10,7 @@ import events
 import saveload
 import ui
 from city import City
-from characters import Character
+from characters import Character, CharacterName
 from populate import GenerateNPCs
 from blocks import CityBlock, BuildingBlock
 from data import Occupation, ResourcePath
@@ -68,9 +68,28 @@ class GameInitializer:
         self.state = self._create_new_game(player)
         self._create_resources(portrait)
 
+    def initialize_simulation(self):
+        """Generate a new simulation to test outcomes."""
+        self.state = self._create_new_simulation()
+        self._create_resources(ResourcePath("assets/male1_sprite_sheet.png").path)
+
     def _create_new_game(self, player):
         # Initialize city
         city = City()
+
+        # Populate the city
+        npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
+
+        print("New game created.")
+        return GameState(player, city, npcs)
+
+    def _create_new_simulation(self):
+        # Initialize city
+        city = City()
+
+        # Create dummy player
+        player_name = CharacterName('Jane', 'Doe', 'Jiggly')
+        player = Character(self, player_name, Occupation.CONSUMER, 50, 50, is_human=True)
 
         # Populate the city
         npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
