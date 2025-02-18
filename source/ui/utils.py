@@ -151,7 +151,7 @@ class DayCycleManager:
     def start_new_day(self):
         """End the night cycle and start a new day."""
         self.night_overlay_alpha = 0 # Make night overlay transparent
-        pygame.mixer.music.play(-1)
+        pygame.mixer.music.play(0)
         print("You wake up at dawn...")
 
 
