@@ -5,6 +5,7 @@ import pygame
 import sys
 
 from settings import *
+from data import ResourcePath
 
 
 class WrapText:

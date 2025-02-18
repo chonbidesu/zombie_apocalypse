@@ -3,6 +3,7 @@
 from settings import *
 from ui.utils import SpriteSheet
 from ui.widgets import Button
+from data import ResourcePath
 
 
 class StatusPanel:

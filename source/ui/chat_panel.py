@@ -2,6 +2,7 @@
 
 from settings import *
 from ui.utils import WrapText
+from data import ResourcePath
 
 
 class ChatPanel:

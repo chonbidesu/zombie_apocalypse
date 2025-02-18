@@ -4,7 +4,7 @@ import random
 
 from settings import *
 from ui.utils import WrapText, SpriteSheet
-from data import BLOCKS, BlockType, SkillType, OCCUPATIONS
+from data import BLOCKS, BlockType, SkillType, OCCUPATIONS, ResourcePath
 from ui.widgets import ClockHUD
 
 
@@ -203,8 +203,6 @@ class DescriptionPanel:
                 current_observations += "You see a dead body. "
             else:
                 current_observations += f"You see {len(block_characters.dead_bodies)} dead bodies. "
-            #for body in block_characters.dead_bodies:
-            #    print(f"{body.current_name} has {body.ap} AP and is_dead {body.is_dead}.")
 
         return current_observations
 

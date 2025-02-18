@@ -3,7 +3,7 @@
 import pygame
 
 from settings import *
-from data import ITEMS, ItemFunction
+from data import ITEMS, ItemFunction, ResourcePath
 
 
 class InventoryPanel:

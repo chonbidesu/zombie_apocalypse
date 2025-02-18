@@ -3,7 +3,7 @@
 import pygame
 
 from settings import *
-from data import Action, SKILLS, SkillType, SkillCategory, OCCUPATIONS, Occupation, OccupationCategory
+from data import OCCUPATIONS, Occupation, OccupationCategory, ResourcePath
 from ui import Button, WrapText
 from characters import CharacterName, Character
 

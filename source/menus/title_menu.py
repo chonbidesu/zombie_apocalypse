@@ -3,7 +3,7 @@
 import pygame
 from settings import *
 from ui import Button
-from data import Action
+from data import Action, ResourcePath
 
 
 class TitleMenu:

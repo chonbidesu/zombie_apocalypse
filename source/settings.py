@@ -1,7 +1,7 @@
 # settings.py
 
 import pygame
-from data import ResourcePath
+from data import DataPath
 
 # Saved game file
 SAVE_FILE = "savegame.pkl"
@@ -44,12 +44,12 @@ ZOMBIE_ATTACKS = {
 
 # Fonts
 pygame.init()
-font_xs = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 10)
-font_small = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 12)
-font_large = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 18)
-font_xl = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 56)
-font_xxl = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 102)
-font_chat = pygame.font.Font(ResourcePath('data/PixelifySans.ttf').path, 16)
+font_xs = pygame.font.Font(DataPath('fonts/PixelifySans.ttf').path, 10)
+font_small = pygame.font.Font(DataPath('fonts/PixelifySans.ttf').path, 12)
+font_large = pygame.font.Font(DataPath('fonts/PixelifySans.ttf').path, 18)
+font_xl = pygame.font.Font(DataPath('fonts/PixelifySans.ttf').path, 56)
+font_xxl = pygame.font.Font(DataPath('fonts/PixelifySans.ttf').path, 102)
+font_chat = pygame.font.Font(DataPath('fonts/PixelifySans.ttf').path, 16)
 font_skills = pygame.font.SysFont("Courier New", 16)
 
 # Colors

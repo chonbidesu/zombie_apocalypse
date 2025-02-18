@@ -41,6 +41,7 @@ class ActionsPanel:
         self.search_button = Button('search', width, height, is_pressable=True)
         self.enter_button = Button('enter', width, height, is_pressable=True)
         self.leave_button = Button('leave', width, height, is_pressable=True)
+        self.dump_button = Button('dump', width, height, is_pressable=True)
         self.ransack_button = Button('ransack', width, height, is_pressable=True)
         self.break_cades_button = Button('break_cades', width, height, is_pressable=True)
         self.stand_button = Button('stand', width, height, is_pressable=True) 
@@ -52,8 +53,10 @@ class ActionsPanel:
         self.button_group.empty() # Clear existing buttons
 
         player = self.game.state.player
-        block = self.game.state.city.block(player.location[0], player.location[1])
+        x, y = player.location[0], player.location[1]
+        block = self.game.state.city.block(x, y)
         properties = BLOCKS[block.type]
+        block_npcs = player.state.filter_characters_at_location(x, y, player.inside, include_player=False)
         buttons = []
 
         if player.is_dead:
@@ -69,9 +72,13 @@ class ActionsPanel:
                             buttons.append(self.open_doors_button)
                         else:
                             buttons.append(self.close_doors_button)                
-                buttons.append(self.leave_button)                
-                if not player.is_human:
-                    buttons.append(self.ransack_button)
+                buttons.append(self.leave_button)   
+                if player.is_human:
+                    if len(block_npcs.dead_bodies) > 0:
+                        buttons.append(self.dump_button)             
+                else:
+                    if SkillType.RANSACK in player.zombie_skills:
+                        buttons.append(self.ransack_button)
             else:
                 if properties.is_building:
                     buttons.append(self.enter_button)

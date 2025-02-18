@@ -4,6 +4,7 @@ import pygame
 import time
 
 from settings import *
+from data import ResourcePath
 
 class Button(pygame.sprite.Sprite):
     """A button that changes images on mouse events."""

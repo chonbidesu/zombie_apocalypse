@@ -6,7 +6,7 @@ import csv
 from dataclasses import dataclass
 
 from settings import *
-from data import Action, ITEMS, ItemType, ItemFunction, BLOCKS, BlockType, ResourcePath, SKILLS, SkillType
+from data import Action, ITEMS, ItemType, ItemFunction, BLOCKS, BlockType, SkillType
 
 
 @dataclass
@@ -179,6 +179,7 @@ class ActionExecutor:
                 return self.break_barricades(block)
         elif action == Action.DUMP:
             if self.actor == player:
+                pygame.mixer.Sound.play(self.game.sounds["door_close"])                
                 action_progress.start("Dumping body", self.dump_body, block)
             else:
                 return self.dump_body(block)
@@ -607,7 +608,7 @@ class ActionExecutor:
 
     def search(self, building):
         """Search a building for items."""
-        search_path = ResourcePath('data/search.csv').path
+        search_path = DataPath('tables/search.csv').path
         search_chances = self._load_search_chances(search_path)
         items_held = len(self.actor.inventory)
         building_properties = BLOCKS[building.type]
@@ -800,7 +801,16 @@ class ActionExecutor:
 
     def dump_body(self, block):
         """Dump a body outside the building."""
-        properties = BLOCKS[block.type]
+        x, y = self.actor.location
+        block_npcs = self.actor.state.filter_characters_at_location(x, y, self.actor.inside, include_player=True)
+
+        if block_npcs.dead_bodies:
+            dead_body = random.choice(block_npcs.dead_bodies)
+            dead_body.inside = False
+            self.actor.ap -= 1
+            message = "You dump a body outside."
+            witness = f"{self.actor.current_name} dumps a body outside."
+            return ActionResult(True, message, witness)
 
     def stand(self):
         """Actor stands up at full health."""

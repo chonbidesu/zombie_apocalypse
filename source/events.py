@@ -108,6 +108,7 @@ class EventHandler:
                     'search': Action.SEARCH,
                     'enter': Action.ENTER,
                     'leave': Action.LEAVE,
+                    'dump': Action.DUMP,
                     'ransack': Action.RANSACK,
                     'break_cades': Action.DECADE,
                     'stand': Action.STAND,

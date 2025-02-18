@@ -2,7 +2,7 @@ import pygame
 import random
 
 from settings import *
-from data import BLOCKS, BlockType, SkillType
+from data import BLOCKS, BlockType, SkillType, ResourcePath
 from ui.utils import WrapText
 
 class Viewport:

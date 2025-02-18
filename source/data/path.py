@@ -15,6 +15,17 @@ class ResourcePath:
         return os.path.join(os.path.abspath("."), relative_path)
     
 
+class DataPath:
+    """Get the absolute path to game data, working for both dev & PyInstaller."""
+    def __init__(self, relative_path):
+        relative_path = os.path.join("data", relative_path)
+        self.path = self._get_path(relative_path)
+
+    def _get_path(self, relative_path):
+        if hasattr(sys, '_MEIPASS'):  # PyInstaller extracts files here in --onefile mode
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)
+
 class SaveLoadPath:
     """Handles paths for saving/loading game states to a writable location."""
     def __init__(self, filename):

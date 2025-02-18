@@ -4,13 +4,13 @@ import pygame
 from pygame import Color, Rect, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, USEREVENT
 
 from settings import *
-from data import ITEMS, ItemType, ItemFunction, BLOCKS, ResourcePath
+from data import ITEMS, ItemType, ItemFunction, BLOCKS
 
 # pygame must be initialized before we can create a Font.
 pygame.init()
 
 try:
-    font = pygame.font.Font(ResourcePath('data/Vera.ttf').path, 14)
+    font = pygame.font.Font(DataPath('fonts/Vera.ttf').path, 14)
 except:
     print('warning: cannot load font Vera.ttf: using system default')
     font = pygame.font.SysFont(None, 20)

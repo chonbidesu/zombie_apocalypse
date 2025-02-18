@@ -64,7 +64,7 @@ class GenerateNPCs:
 
     # Assign a random name to the character
     def _assign_name(self):
-        file_path = ResourcePath('data/character_names.csv').path
+        file_path = DataPath('tables/character_names.csv').path
         name_generator = NameGenerator(file_path)
         return name_generator.generate_name()            
 
