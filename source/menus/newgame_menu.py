@@ -84,8 +84,8 @@ class NewGameMenu:
         """Create selectable portrait areas."""
         portraits = pygame.sprite.Group()
         portrait_paths = [
-        ResourcePath("assets/female1_sprite_sheet.png").path,
-        ResourcePath("assets/male1_sprite_sheet.png").path
+        "sprite_sheets/female1_sprite_sheet.png",
+        "sprite_sheets/male1_sprite_sheet.png",
     ]
 
         for i, path in enumerate(portrait_paths):
@@ -233,7 +233,7 @@ class PortraitSprite(pygame.sprite.Sprite):
     def __init__(self, image_path, x, y):
         super().__init__()
         self.portrait_path = image_path
-        self.sprite_sheet = pygame.image.load(image_path).convert_alpha()
+        self.sprite_sheet = pygame.image.load(ResourcePath(image_path).path).convert_alpha()
 
         # Extract first frame (assuming sprite sheet is horizontal)
         frame_width, frame_height = 66, 66

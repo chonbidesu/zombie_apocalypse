@@ -14,12 +14,12 @@ class StatusPanel:
         self.x, self.y = SCREEN_WIDTH // 3 + 10, SCREEN_HEIGHT * 25 // 32 + 10
         self.width, self.height = SCREEN_WIDTH // 4 - 10, SCREEN_HEIGHT * 31 // 160
         self.portrait_size = self.height - 20
-        self.original_hp_bar = pygame.image.load(ResourcePath("assets/hp_bar.png").path).convert_alpha()
+        self.original_hp_bar = pygame.image.load(ResourcePath("panels/hp_bar.png").path).convert_alpha()
         self.hp_bar = pygame.transform.scale(self.original_hp_bar, (self.portrait_size, 20))
-        self.original_portrait_frame = pygame.image.load(ResourcePath("assets/player_frame.png").path).convert_alpha()
+        self.original_portrait_frame = pygame.image.load(ResourcePath("panels/player_frame.png").path).convert_alpha()
         self.portrait_frame = pygame.transform.scale(self.original_portrait_frame, (self.portrait_size, self.portrait_size))
-        self.player_sprite_sheet_image = pygame.image.load(self.portrait_path).convert_alpha()
-        self.original_player_info = pygame.image.load(ResourcePath("assets/player_info.png").path).convert_alpha()
+        self.player_sprite_sheet_image = pygame.image.load(ResourcePath(self.portrait_path).path).convert_alpha()
+        self.original_player_info = pygame.image.load(ResourcePath("panels/player_info.png").path).convert_alpha()
         self.player_info = pygame.transform.scale(self.original_player_info, (self.width - self.height + 20, self.height))
 
         # Set up player portrait

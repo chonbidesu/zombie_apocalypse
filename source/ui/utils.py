@@ -96,7 +96,7 @@ class DayCycleManager:
         self.is_night = False
 
         pygame.mixer.init() # Initialize the sound mixer
-        pygame.mixer.music.load(ResourcePath("assets/music/road_runner.mp3").path)
+        pygame.mixer.music.load(ResourcePath("music/road_runner.mp3").path)
         pygame.mixer.music.set_volume(0.3)  # Set volume to 50%
 
     def update(self):

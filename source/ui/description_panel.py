@@ -17,7 +17,7 @@ class DescriptionPanel:
         self.height = SCREEN_HEIGHT * 25 // 32
         self.x = SCREEN_HEIGHT // 2 + 10
         
-        self.original_image = pygame.image.load(ResourcePath("assets/description_panel.png").path).convert_alpha()
+        self.original_image = pygame.image.load(ResourcePath("panels/description_panel.png").path).convert_alpha()
         self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
 
         self.setting_width = self.width * 5 // 6
@@ -74,17 +74,17 @@ class DescriptionPanel:
 
     def _create_sprite_elements(self):
         self.zombie_sprite_group = pygame.sprite.Group()
-        self.zombie_sprite_sheet_image = pygame.image.load(ResourcePath("assets/sprite_sheets/zombie_sprite_sheet.png").path).convert_alpha()
+        self.zombie_sprite_sheet_image = pygame.image.load(ResourcePath("sprite_sheets/zombie_sprite_sheet.png").path).convert_alpha()
         self.zombie_sprite_sheet = SpriteSheet(self.zombie_sprite_sheet_image)
 
         self.human_sprite_group = pygame.sprite.Group()      
-        self.consumer_sprite_sheet_image = pygame.image.load(ResourcePath("assets/sprite_sheets/consumer_sprite_sheet.png").path).convert_alpha()
+        self.consumer_sprite_sheet_image = pygame.image.load(ResourcePath("sprite_sheets/consumer_sprite_sheet.png").path).convert_alpha()
         self.consumer_sprite_sheet = SpriteSheet(self.consumer_sprite_sheet_image)
-        self.civilian_sprite_sheet_image = pygame.image.load(ResourcePath("assets/sprite_sheets/civilian_sprite_sheet.png").path).convert_alpha()
+        self.civilian_sprite_sheet_image = pygame.image.load(ResourcePath("sprite_sheets/civilian_sprite_sheet.png").path).convert_alpha()
         self.civilian_sprite_sheet = SpriteSheet(self.civilian_sprite_sheet_image)
-        self.military_sprite_sheet_image = pygame.image.load(ResourcePath("assets/sprite_sheets/military_sprite_sheet.png").path).convert_alpha()
+        self.military_sprite_sheet_image = pygame.image.load(ResourcePath("sprite_sheets/military_sprite_sheet.png").path).convert_alpha()
         self.military_sprite_sheet = SpriteSheet(self.military_sprite_sheet_image)
-        self.science_sprite_sheet_image = pygame.image.load(ResourcePath("assets/sprite_sheets/science_sprite_sheet.png").path).convert_alpha()
+        self.science_sprite_sheet_image = pygame.image.load(ResourcePath("sprite_sheets/science_sprite_sheet.png").path).convert_alpha()
         self.science_sprite_sheet = SpriteSheet(self.science_sprite_sheet_image)                             
 
     def _get_setting_image(self):
@@ -92,7 +92,7 @@ class DescriptionPanel:
         x, y = self.game.state.player.location
         current_block = self.game.state.city.block(x, y)        
         image_suffix = "inside" if self.game.state.player.inside else "outside"
-        image_path = ResourcePath(f"assets/{current_block.type.name.lower()}_{image_suffix}.png").path
+        image_path = ResourcePath(f"settings/{current_block.type.name.lower()}_{image_suffix}.png").path
 
         try:
             setting_image = pygame.image.load(image_path)

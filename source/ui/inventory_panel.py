@@ -13,9 +13,9 @@ class InventoryPanel:
         self.screen = screen
         self.width, self.height = (SCREEN_WIDTH * 7 // 16) + (SCREEN_HEIGHT * -7 // 32) - 20, SCREEN_HEIGHT * 31 // 160
         self.weapon_size = self.height
-        self.original_image = pygame.image.load(ResourcePath("assets/inventory_panel.png").path).convert_alpha()
+        self.original_image = pygame.image.load(ResourcePath("panels/inventory_panel.png").path).convert_alpha()
         self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
-        self.original_weapon_image = pygame.image.load(ResourcePath("assets/equipped_panel.png").path).convert_alpha()
+        self.original_weapon_image = pygame.image.load(ResourcePath("panels/equipped_panel.png").path).convert_alpha()
         self.weapon_image = pygame.transform.scale(self.original_weapon_image, (self.weapon_size, self.weapon_size))
         self.inventory_group = pygame.sprite.Group()
 

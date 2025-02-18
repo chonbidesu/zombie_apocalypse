@@ -291,7 +291,7 @@ class SkillSlot(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x, y, width, 30)
         self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
-        self.checkmark = pygame.image.load(ResourcePath("assets/checkmark.png").path).convert_alpha()
+        self.checkmark = pygame.image.load(ResourcePath("checkmark.png").path).convert_alpha()
         self.checkmark = pygame.transform.scale(self.checkmark, (16, 16))
 
     def update(self):

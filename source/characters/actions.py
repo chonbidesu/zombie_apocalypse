@@ -177,6 +177,11 @@ class ActionExecutor:
                 action_progress.start("Smashing", self.break_barricades, block)
             else:
                 return self.break_barricades(block)
+        elif action == Action.DUMP:
+            if self.actor == player:
+                action_progress.start("Dumping body", self.dump_body, block)
+            else:
+                return self.dump_body(block)
 
         # Inventory actions
         elif action == Action.EQUIP:
@@ -792,6 +797,10 @@ class ActionExecutor:
                     return ActionResult(False, "You need the Construction skill to repair ruins.")
             else:
                 return ActionResult(True, "You repaired the interior of the building and cleaned up the mess.")
+
+    def dump_body(self, block):
+        """Dump a body outside the building."""
+        properties = BLOCKS[block.type]
 
     def stand(self):
         """Actor stands up at full health."""

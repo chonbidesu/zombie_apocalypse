@@ -47,19 +47,19 @@ class GameInitializer:
     def load_sounds(self):
         """Load sound effects for actions."""
         self.sounds = {
-            #"attack": pygame.mixer.Sound("assets/sfx/attack.wav"),
-            #"damage": pygame.mixer.Sound("assets/sfx/damage.wav"),
-            "reload": pygame.mixer.Sound(ResourcePath("assets/sfx/reload.mp3").path),
-            "gun_shot": pygame.mixer.Sound(ResourcePath("assets/sfx/gun_shot.mp3").path),
-            "zombie_sounds": pygame.mixer.Sound(ResourcePath("assets/sfx/zombie_sounds.wav").path),
-            "search": pygame.mixer.Sound(ResourcePath("assets/sfx/search.wav").path),
-            "footsteps": pygame.mixer.Sound(ResourcePath("assets/sfx/footsteps.wav").path),
-            "door_open": pygame.mixer.Sound(ResourcePath("assets/sfx/door_open.wav").path),
-            "door_close": pygame.mixer.Sound(ResourcePath("assets/sfx/door_close.wav").path),
-            "decade": pygame.mixer.Sound(ResourcePath("assets/sfx/decade.wav").path),
-            "barricade": pygame.mixer.Sound(ResourcePath("assets/sfx/barricade.wav").path),
-            "human_death": pygame.mixer.Sound(ResourcePath("assets/sfx/human_death.wav").path),
-            "zombie_death": pygame.mixer.Sound(ResourcePath("assets/sfx/zombie_death.wav").path),
+            #"attack": pygame.mixer.Sound("sfx/attack.wav"),
+            #"damage": pygame.mixer.Sound("sfx/damage.wav"),
+            "reload": pygame.mixer.Sound(ResourcePath("sfx/reload.mp3").path),
+            "gun_shot": pygame.mixer.Sound(ResourcePath("sfx/gun_shot.mp3").path),
+            "zombie_sounds": pygame.mixer.Sound(ResourcePath("sfx/zombie_sounds.wav").path),
+            "search": pygame.mixer.Sound(ResourcePath("sfx/search.wav").path),
+            "footsteps": pygame.mixer.Sound(ResourcePath("sfx/footsteps.wav").path),
+            "door_open": pygame.mixer.Sound(ResourcePath("sfx/door_open.wav").path),
+            "door_close": pygame.mixer.Sound(ResourcePath("sfx/door_close.wav").path),
+            "decade": pygame.mixer.Sound(ResourcePath("sfx/decade.wav").path),
+            "barricade": pygame.mixer.Sound(ResourcePath("sfx/barricade.wav").path),
+            "human_death": pygame.mixer.Sound(ResourcePath("sfx/human_death.wav").path),
+            "zombie_death": pygame.mixer.Sound(ResourcePath("sfx/zombie_death.wav").path),
 
         }        
 
@@ -71,7 +71,7 @@ class GameInitializer:
     def initialize_simulation(self):
         """Generate a new simulation to test outcomes."""
         self.state = self._create_new_simulation()
-        self._create_resources(ResourcePath("assets/male1_sprite_sheet.png").path)
+        self._create_resources("sprite_sheets/male1_sprite_sheet.png")
 
     def _create_new_game(self, player):
         # Initialize city

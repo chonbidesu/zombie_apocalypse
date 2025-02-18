@@ -9,7 +9,7 @@ class Viewport:
     def __init__(self, game, screen):
         self.game = game
         self.screen = screen
-        self.frame = pygame.image.load(ResourcePath('assets/viewport_frame.png').path).convert_alpha()
+        self.frame = pygame.image.load(ResourcePath('panels/viewport_frame.png').path).convert_alpha()
         self.frame_size = SCREEN_HEIGHT // 2
         self.grid_topleft = (self.frame_size // 9) + 12
         self.viewport_group = self._create_viewport_group()

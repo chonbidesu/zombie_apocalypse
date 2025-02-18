@@ -19,14 +19,14 @@ class Button(pygame.sprite.Sprite):
         self.rect = pygame.Rect(0, 0, width, height)  # Initial rect size (scale later when image is loaded)
 
         if not is_pressable:
-            self._image = pygame.image.load(ResourcePath(f"assets/buttons/{self.name}.png").path).convert_alpha()
+            self._image = pygame.image.load(ResourcePath(f"buttons/{self.name}.png").path).convert_alpha()
             self._image = pygame.transform.scale(self._image, (width, height))  # Scale when loading
 
     @property
     def image_up(self):
         """Lazy load the 'up' image when first accessed."""
         if self._image_up is None:
-            self._image_up = pygame.image.load(ResourcePath(f"assets/buttons/{self.name}_up.png").path).convert_alpha()
+            self._image_up = pygame.image.load(ResourcePath(f"buttons/{self.name}_up.png").path).convert_alpha()
             self._image_up = pygame.transform.scale(self._image_up, (self.width, self.height))  # Scale when loading
         return self._image_up
 
@@ -34,7 +34,7 @@ class Button(pygame.sprite.Sprite):
     def image_down(self):
         """Lazy load the 'down' image when first accessed."""
         if self._image_down is None:
-            self._image_down = pygame.image.load(ResourcePath(f"assets/buttons/{self.name}_down.png").path).convert_alpha()
+            self._image_down = pygame.image.load(ResourcePath(f"buttons/{self.name}_down.png").path).convert_alpha()
             self._image_down = pygame.transform.scale(self._image_down, (self.width, self.height))  # Scale when loading
         return self._image_down
 
@@ -68,8 +68,8 @@ class Button(pygame.sprite.Sprite):
 class Cursor(object):
     def __init__(self):
         # Create the cursors
-        self.default_cursor = self._create_cursor(ResourcePath("assets/zombie_hand.png").path)
-        self.attack_cursor = self._create_cursor(ResourcePath("assets/crosshair.png").path)
+        self.default_cursor = self._create_cursor(ResourcePath("cursor/zombie_hand.png").path)
+        self.attack_cursor = self._create_cursor(ResourcePath("cursor/crosshair.png").path)
 
         pygame.mouse.set_cursor(self.default_cursor)
 

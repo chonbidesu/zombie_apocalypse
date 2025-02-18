@@ -7,7 +7,7 @@ from ui.utils import WrapText
 class ChatPanel:
     def __init__(self, screen):
         self.screen = screen
-        self.original_image = pygame.image.load(ResourcePath("assets/chat_panel.png").path).convert_alpha()
+        self.original_image = pygame.image.load(ResourcePath("panels/chat_panel.png").path).convert_alpha()
         self.width, self.height = SCREEN_HEIGHT // 2, SCREEN_HEIGHT * 3 // 10
         self.image = pygame.transform.scale(self.original_image, (self.width, self.height))
 

@@ -23,6 +23,7 @@ class Action(Enum):
     RANSACK = auto()                # Ransack a building
     ENTER = auto()                  # Enter a building
     LEAVE = auto()                  # Leave a building
+    DUMP = auto()                   # Dump a dead body outside
     STAND = auto()                  # Stand up after death or revivification
 
     # Player Movement

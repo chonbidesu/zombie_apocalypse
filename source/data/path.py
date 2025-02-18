@@ -6,6 +6,7 @@ import sys
 class ResourcePath:
     """Get the absolute path to a resource, working for both dev & PyInstaller."""
     def __init__(self, relative_path):
+        relative_path = os.path.join("assets", relative_path)
         self.path = self._get_path(relative_path)
 
     def _get_path(self, relative_path):
