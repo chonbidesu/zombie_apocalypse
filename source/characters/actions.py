@@ -728,6 +728,17 @@ class ActionExecutor:
                 block.ransack_level = 0
                 block.ruined = False
             return result
+        
+        elif item.type in [
+            ItemType.BEER, ItemType.WINE, ItemType.CANDY
+        ]:
+            result = self.consume_item(item)
+            if result.success:
+                self.actor.ap -= 1
+            return result
+
+        elif item.type == ItemType.CRUCIFIX:
+            return ActionResult(True, "You hold the crucifix out in front of you, hoping it will offer some protection.")
 
         elif item.type == ItemType.MAP:
             self.game.reading_map = True
@@ -752,6 +763,12 @@ class ActionExecutor:
         properties = ITEMS[item.type]
         self.actor.inventory.remove(item)
         return ActionResult(True, f"You drop {properties.description}.")
+
+    def consume_item(self, item):
+        properties = ITEMS[item.type]
+        self.actor.inventory.remove(item)
+        self.actor.heal(1)
+        return ActionResult(True, f"You consume {properties.description}.")
 
     def install_generator(self, block):
         properties = BLOCKS[block.type]

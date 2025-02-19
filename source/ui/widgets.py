@@ -4,7 +4,7 @@ import pygame
 import time
 
 from settings import *
-from data import ResourcePath
+from data import ResourcePath, ItemType
 
 class Button(pygame.sprite.Sprite):
     """A button that changes images on mouse events."""
@@ -67,34 +67,78 @@ class Button(pygame.sprite.Sprite):
 
 
 class Cursor(object):
-    def __init__(self):
+    def __init__(self, game):
+        self.game = game
+
         # Create the cursors
         self.default_cursor = self._create_cursor(ResourcePath("cursor/zombie_hand.png").path)
         self.attack_cursor = self._create_cursor(ResourcePath("cursor/crosshair.png").path)
+        self.heal_cursor = self._create_cursor(ResourcePath("items/first_aid_kit.png").path)
+        self.extract_cursor = self._create_cursor(ResourcePath("items/dna_extractor.png").path)
+        self.revivify_cursor = self._create_cursor(ResourcePath("items/syringe.png").path)
 
-        pygame.mouse.set_cursor(self.default_cursor)
+        self.set_default()
 
     def _create_cursor(self, image_path):
         image = pygame.image.load(image_path).convert_alpha()
         cursor = pygame.cursors.Cursor((0, 0), image)
         return cursor
 
-    def update(self, game_ui):
+    def update(self):
+        game_ui = self.game.game_ui
+        player = self.game.state.player
+        player_sprite = self.game.game_ui.status_panel.player_sprite
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
-        # Check collisions with zombie sprites
         cursor_changed = False    
+
+        # Check collisions with zombie sprites
         for zombie in game_ui.description_panel.zombie_sprite_group:
             if zombie.rect.collidepoint((mouse_x, mouse_y)):
-                pygame.mouse.set_cursor(self.attack_cursor)
+                if player.weapon:
+                    if player.weapon.type == ItemType.DNA_EXTRACTOR:
+                        self.set_extract()
+                        cursor_changed = True
+                        break
+                    elif player.weapon.type == ItemType.SYRINGE:
+                        self.set_revivify()
+                        cursor_changed = True
+                        break
+                self.set_attack()
                 cursor_changed = True
                 break
 
+        for human in game_ui.description_panel.human_sprite_group:
+            if human.rect.collidepoint((mouse_x, mouse_y)):
+                if player.weapon:
+                    if player.weapon.type == ItemType.FIRST_AID_KIT:
+                        self.set_heal()
+                        cursor_changed = True
+                        break
+
+        if player_sprite.rect.collidepoint((mouse_x, mouse_y)):
+            if player.weapon:
+                if player.weapon.type == ItemType.FIRST_AID_KIT:
+                    self.set_heal()
+                    cursor_changed = True
+
         if not cursor_changed:
-            pygame.mouse.set_cursor(self.default_cursor)
+            self.set_default()
 
     def set_default(self):
         pygame.mouse.set_cursor(self.default_cursor)
+
+    def set_attack(self):
+        pygame.mouse.set_cursor(self.attack_cursor)
+
+    def set_extract(self):
+        pygame.mouse.set_cursor(self.extract_cursor)
+
+    def set_revivify(self):
+        pygame.mouse.set_cursor(self.revivify_cursor)
+
+    def set_heal(self):
+        pygame.mouse.set_cursor(self.heal_cursor)
 
 class ClockHUD:
     """Displays and updates the in-game clock."""

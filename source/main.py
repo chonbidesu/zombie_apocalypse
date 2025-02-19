@@ -121,7 +121,7 @@ def main():
                         game.initialize_game()                                              
 
                 # Update the cursor
-                game.cursor.update(game.game_ui)
+                game.cursor.update()
 
         pygame.display.flip()
         clock.tick(FPS)

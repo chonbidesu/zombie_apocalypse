@@ -28,7 +28,7 @@ class GameInitializer:
     def __init__(self, screen):
         self.screen = screen
         self.state = None
-        self.cursor = ui.Cursor()
+        self.cursor = ui.Cursor(self)
         self.menu = menus.GameMenu(self)         
         self.paused = False
         self.newgame_menu = False

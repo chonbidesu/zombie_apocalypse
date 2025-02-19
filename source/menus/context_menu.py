@@ -40,13 +40,14 @@ class ContextMenu:
         if menu_type == 'item':
             item = self.sprite.item
             properties = ITEMS[item.type]
-            if properties.item_function == ItemFunction.MELEE or properties.item_function == ItemFunction.FIREARM:
+            if properties.item_function in [ItemFunction.MELEE, ItemFunction.FIREARM, ItemFunction.SCIENCE]:
                 if item == self.player.weapon:
                     menu_data = [properties.item_type, 'Unequip', 'Drop']
                 else:
                     menu_data = [properties.item_type, 'Equip', 'Drop']
-            elif item.type in [ItemType.MAP, ItemType.FIRST_AID_KIT, ItemType.FUEL_CAN, ItemType.TOOLBOX, 
-                               ItemType.SYRINGE, ItemType.DNA_EXTRACTOR, ItemType.BINOCULARS]:
+            elif item.type in [ItemType.MAP, ItemType.FUEL_CAN, ItemType.TOOLBOX, ItemType.BINOCULARS,
+                               ItemType.BEER, ItemType.WINE, ItemType.BOOK, ItemType.CANDY, ItemType.CRUCIFIX,
+                               ItemType.GPS_UNIT, ItemType.NEWSPAPER, ItemType.POETRY_BOOK]:
                 menu_data = [properties.item_type, 'Use', 'Drop']
             elif item.type == ItemType.PORTABLE_GENERATOR:
                 menu_data = [properties.item_type, 'Install', 'Drop']

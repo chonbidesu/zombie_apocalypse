@@ -15,6 +15,14 @@ class ItemType(Enum):
     BINOCULARS = auto()
     DNA_EXTRACTOR = auto()
     SYRINGE = auto()
+    BEER = auto()
+    WINE = auto()
+    BOOK = auto()
+    POETRY_BOOK = auto()
+    CANDY = auto()
+    CRUCIFIX = auto()
+    GPS_UNIT = auto()
+    NEWSPAPER = auto()
     SHOTGUN_SHELL = auto()
     PISTOL_CLIP = auto()
     KNIFE = auto()
@@ -34,6 +42,7 @@ class ItemFunction(Enum):
     AMMO = auto()
     MELEE = auto()
     FIREARM = auto()
+    SCIENCE = auto()
 
 
 ItemProperties = namedtuple(
@@ -43,14 +52,22 @@ ItemProperties = namedtuple(
 )
 
 ITEMS = {
-    ItemType.FIRST_AID_KIT: ItemProperties('First Aid Kit', 'a first aid kit', ItemFunction.ITEM, ResourcePath('items/first_aid_kit.png').path, None, None, None, None),
+    ItemType.FIRST_AID_KIT: ItemProperties('First Aid Kit', 'a first aid kit', ItemFunction.SCIENCE, ResourcePath('items/first_aid_kit.png').path, None, None, None, None),
     ItemType.PORTABLE_GENERATOR: ItemProperties('Portable Generator', 'a portable generator', ItemFunction.ITEM, ResourcePath('items/portable_generator.png').path, None, None, None, None),
     ItemType.FUEL_CAN: ItemProperties('Fuel Can', 'a fuel can', ItemFunction.ITEM, ResourcePath('items/fuel_can.png').path, None, None, None, None),
     ItemType.MAP: ItemProperties('Map', 'a map', ItemFunction.ITEM, ResourcePath('items/map.png').path, None, None, None, None),
     ItemType.TOOLBOX: ItemProperties('Toolbox', 'a toolbox', ItemFunction.ITEM, ResourcePath('items/toolbox.png').path, None, None, None, None),
     ItemType.BINOCULARS: ItemProperties('Binoculars', 'a pair of binoculars', ItemFunction.ITEM, ResourcePath('items/binoculars.png').path, None, None, None, None),
-    ItemType.DNA_EXTRACTOR: ItemProperties('DNA Extractor', 'a DNA extractor', ItemFunction.ITEM, ResourcePath('items/dna_extractor.png').path, None, None, None, None),
-    ItemType.SYRINGE: ItemProperties('NecroTech Syringe', 'a NecroTech revivification syringe', ItemFunction.ITEM, ResourcePath('items/syringe.png').path, None, None, None, None),
+    ItemType.DNA_EXTRACTOR: ItemProperties('DNA Extractor', 'a DNA extractor', ItemFunction.SCIENCE, ResourcePath('items/dna_extractor.png').path, None, None, None, None),
+    ItemType.SYRINGE: ItemProperties('NecroTech Syringe', 'a NecroTech revivification syringe', ItemFunction.SCIENCE, ResourcePath('items/syringe.png').path, None, None, None, None),
+    ItemType.BEER: ItemProperties('Beer', 'a can of beer', ItemFunction.ITEM, ResourcePath('items/beer.png').path, None, None, None, None),
+    ItemType.WINE: ItemProperties('Wine', 'a bottle of wine', ItemFunction.ITEM, ResourcePath('items/wine.png').path, None, None, None, None),
+    ItemType.BOOK: ItemProperties('Book', 'a book', ItemFunction.ITEM, ResourcePath('items/book.png').path, None, None, None, None),
+    ItemType.POETRY_BOOK: ItemProperties('Poetry Book', 'a book of poetry', ItemFunction.ITEM, ResourcePath('items/poetry_book.png').path, None, None, None, None),
+    ItemType.CANDY: ItemProperties('Candy', 'a stale piece of candy', ItemFunction.ITEM, ResourcePath('items/candy.png').path, None, None, None, None),
+    ItemType.CRUCIFIX: ItemProperties('Crucifix', 'a crucifix', ItemFunction.ITEM, ResourcePath('items/crucifix.png').path, None, None, None, None),
+    ItemType.GPS_UNIT: ItemProperties('GPS Unit', 'a GPS unit', ItemFunction.ITEM, ResourcePath('items/gps_unit.png').path, None, None, None, None),
+    ItemType.NEWSPAPER: ItemProperties('Newspaper', 'a newspaper', ItemFunction.ITEM, ResourcePath('items/newspaper.png').path, None, None, None, None),
     ItemType.SHOTGUN_SHELL: ItemProperties('Shotgun Shell', 'a shotgun shell', ItemFunction.AMMO, ResourcePath('items/shotgun_shell.png').path, None, None, None, None),
     ItemType.PISTOL_CLIP: ItemProperties('Pistol Clip', 'a pistol clip', ItemFunction.AMMO, ResourcePath('items/pistol_clip.png').path, None, None, None, None),
     ItemType.KNIFE: ItemProperties('Knife', 'a knife', ItemFunction.MELEE, ResourcePath('items/knife.png').path, 20, 2, 75, None),
