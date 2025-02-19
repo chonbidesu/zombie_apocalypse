@@ -54,15 +54,30 @@ class EventHandler:
 
     def handle_mousebuttondown(self, event):
         """Handle mouse button down events."""
+        player = self.game.state.player
+
         if event.button == 1:
             mouse_pos = pygame.mouse.get_pos()
             target = ClickTarget(self.game, mouse_pos)
-            if self.game.state.player.is_human and target.type == 'zombie':
+            if (player.is_human and target.type == 'zombie') or (not player.is_human and target.type == 'human'):
                 action = Action.ATTACK
                 self.act(action, target.sprite.npc)
             elif target.type == 'block' and not self.game.popup_menu:
                 action = Action.MOVE
                 self.act(action, target.sprite)  
+            elif player.is_human and target.type == 'human':
+                if player.weapon:
+                    if player.weapon.type == ItemType.FIRST_AID_KIT:
+                        action = Action.HEAL
+                        self.act(action, target.sprite.npc)
+                        return
+                action = Action.SPEAK
+                self.act(action, target.sprite.npc)       
+            elif player.is_human and target.type == 'self':
+                if player.weapon:
+                    if player.weapon.type == ItemType.FIRST_AID_KIT:
+                        action = Action.HEAL
+                        self.act(action, player)
             else:
                 skills_button = self.game.game_ui.status_panel.button_group.sprite
                 skills_button.handle_event(event)
@@ -150,6 +165,7 @@ class ClickTarget:
         self.zombie_sprite_group = game.game_ui.description_panel.zombie_sprite_group
         self.viewport_group = game.game_ui.viewport.viewport_group
         self.inventory_group = game.game_ui.inventory_panel.inventory_group
+        self.player_portrait = game.game_ui.status_panel.player_sprite
         
         self.get(mouse_pos)
 
@@ -171,6 +187,9 @@ class ClickTarget:
             if sprite.rect.collidepoint(mouse_pos):
                 self.sprite = sprite                
                 self.type = 'human'
+        if self.player_portrait.rect.collidepoint(mouse_pos):
+            self.sprite = self.player_portrait
+            self.type = 'self'
         if self.type == None:
             self.type = 'screen'
 

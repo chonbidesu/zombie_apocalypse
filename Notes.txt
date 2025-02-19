@@ -1,0 +1,33 @@
+Refactoring Plan
+1. Extract Action Handlers
+Split actions into separate handler classes based on categories:
+MovementHandler (enter, leave, stand)
+CombatHandler (attack, heal, dump_body)
+ItemHandler (use, equip, drop, consume_item)
+EnvironmentHandler (barricade, ransack, repair_building)
+Each handler takes game and actor as parameters.
+2. Introduce a Registry Pattern
+Replace the if-elif chains in execute() with a dictionary of action handlers:
+python
+Copy
+Edit
+class ActionExecutor:
+    def __init__(self, game, actor):
+        self.game = game
+        self.actor = actor
+        self.handlers = {
+            "enter": MovementHandler.enter,
+            "leave": MovementHandler.leave,
+            "attack": CombatHandler.attack,
+            "heal": CombatHandler.heal,
+            "use": ItemHandler.use,
+            "barricade": EnvironmentHandler.barricade,
+        }
+    
+    def execute(self, action, target=None):
+        if action in self.handlers:
+            return self.handlers[action](self, target)
+        return ActionResult(False, "Unknown action.")
+This makes it easy to add or remove actions dynamically.
+3. Reduce Code Duplication
+Methods like install_generator, fuel_generator, and repair_building share logic. Consolidate them into an EnvironmentHandler.

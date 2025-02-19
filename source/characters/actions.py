@@ -125,6 +125,9 @@ class ActionExecutor:
         elif action == Action.ATTACK:
             return self.attack(target, weapon)            
 
+        elif action == Action.HEAL:
+            return self.heal(target, weapon)
+
         # Building actions
         elif action == Action.CLOSE_DOORS:
             if self.actor == player:
@@ -211,8 +214,12 @@ class ActionExecutor:
         if weapon:
             properties = ITEMS[weapon.type]
 
+            
             if properties.item_function == ItemFunction.FIREARM and weapon.loaded_ammo == 0:
-                    return ActionResult(False, "Your firearm is out of ammo.")
+                return ActionResult(False, "Your firearm is out of ammo.")
+            elif properties.item_function == ItemFunction.SCIENCE:
+                result = self._science_attack(target, weapon)
+                return result
 
             # Base attack success rate
             attack_chance = properties.attack
@@ -352,6 +359,50 @@ class ActionExecutor:
             message = "Your attack misses."
             return ActionResult(False, message)
 
+    def _science_attack(self, target, weapon):
+        """Execute a science attack (extract DNA or inject syringe)."""
+        if weapon.type == ItemType.DNA_EXTRACTOR:
+            result = self._extract_DNA(target)
+            return result
+        elif weapon.type == ItemType.SYRINGE:
+            result = self._inject_syringe(target)
+            return result
+
+    def _extract_DNA(self, target):
+        return ActionResult(True, "You extract DNA from the zombie.")
+    
+    def _inject_syringe(self, target):
+        if target.is_human:
+            return ActionResult(False, "You cannot inject humans.")
+        else:
+            location = self.actor.location
+            city = self.game.state.city
+            block = city.block(location)
+
+            if self.actor.inside:
+                if block.lights_on:
+                    return self._inject_success(target)
+                else:
+                    success = random.randint(0, 1) == 1
+                    if success:
+                        return self._inject_success(target)
+                    else:
+                        return ActionResult(False, "While priming the needle, you happen to lose track of the zombie in the dark.")
+            else:
+                return self._inject_success(target)
+
+    def _inject_success(self, target):
+        target.revivify()
+        self.actor.ap -= 1
+
+        # Trigger NPC sprite animation if visible
+        sprites = list(self.game.game_ui.description_panel.human_sprite_group)
+        for sprite in sprites:
+            if target == sprite.npc:
+                sprite.set_action(2)
+
+        return ActionResult(True, "Following standard procedures, you press the syringe into the back of the zombie's neck and pump the glittering serum into its brain and spinal cord.")
+
     def _deplete_weapon(self, weapon, properties):
         """Reduce loaded ammo or durability, depending on weapon type."""
         if properties.item_function == ItemFunction.FIREARM:
@@ -384,7 +435,7 @@ class ActionExecutor:
         new_x, new_y = x + dx, y + dy
 
         # Check if the new coordinates are valid within the grid
-        if 0 < new_x < CITY_SIZE and 0 < new_y < CITY_SIZE:
+        if 0 <= new_x < CITY_SIZE and 0 <= new_y < CITY_SIZE:
             new_block = city.block(new_x, new_y)
             block_properties = BLOCKS[new_block.type]
             is_human = self.actor.is_human
@@ -685,25 +736,9 @@ class ActionExecutor:
     def use(self, item):
         x, y = self.actor.location
         block = self.game.state.city.block(x, y)
-        block_properties = BLOCKS[block.type]
         weapon = self.actor.weapon
-
-        if item.type == ItemType.FIRST_AID_KIT:
-            if SkillType.FIRST_AID in self.actor.human_skills:
-                heal_bonus = 5
-                if SkillType.SURGERY in self.actor.human_skills and block_properties.type == BlockType.HOSPITAL and block.lights_on:
-                    heal_bonus += 5
-            else:
-                heal_bonus = 0
-            if self.actor.hp < self.actor.max_hp:
-                self.actor.heal(5 + heal_bonus)
-                self.actor.inventory.remove(item)
-                self.actor.ap -= 1
-                return ActionResult(True, "You use a first aid kit, and feel a bit better.")
-            else:
-                return ActionResult(False, "You already feel healthy.")
-    
-        elif item.type == ItemType.PORTABLE_GENERATOR:
+  
+        if item.type == ItemType.PORTABLE_GENERATOR:
             
             result = self.install_generator(block)
             if result.success:
@@ -769,6 +804,33 @@ class ActionExecutor:
         self.actor.inventory.remove(item)
         self.actor.heal(1)
         return ActionResult(True, f"You consume {properties.description}.")
+
+    def heal(self, target, item):
+        player = self.game.state.player
+        x, y = self.actor.location
+        block = self.game.state.city.block(x, y)
+
+        block_properties = BLOCKS[block.type]
+        if SkillType.FIRST_AID in self.actor.human_skills:
+            heal_bonus = 5
+            if SkillType.SURGERY in self.actor.human_skills and block_properties.type == BlockType.HOSPITAL and block.lights_on:
+                heal_bonus += 5
+        else:
+            heal_bonus = 0
+        if target.hp < target.max_hp:
+            target.heal(5 + heal_bonus)
+            self.actor.inventory.remove(item)
+            self.actor.weapon = None
+            self.actor.ap -= 1
+            if target == self.actor:
+                return ActionResult(True, "You use a first aid kit on yourself, and feel a bit better.")
+            else:
+                return ActionResult(True, f"You use a first aid kit on {target.current_name}, and they gain some health.")
+        else:
+            if target == self.actor:
+                return ActionResult(False, "You already feel healthy.")
+            else:
+                return ActionResult(False, f"{target.current_name} already feels healthy.") 
 
     def install_generator(self, block):
         properties = BLOCKS[block.type]

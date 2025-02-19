@@ -81,6 +81,7 @@ class Cursor(object):
 
     def _create_cursor(self, image_path):
         image = pygame.image.load(image_path).convert_alpha()
+        image = pygame.transform.scale(image, (32, 32))
         cursor = pygame.cursors.Cursor((0, 0), image)
         return cursor
 

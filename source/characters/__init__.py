@@ -182,7 +182,7 @@ class Character:
             # Create a firearm
             weapon = Weapon(type=item_type)
             return weapon
-        elif properties.item_function == ItemFunction.ITEM or properties.item_function == ItemFunction.AMMO:
+        elif properties.item_function in [ItemFunction.ITEM, ItemFunction.AMMO, ItemFunction.SCIENCE]:
             # Create a regular item
             item = Item(type=item_type)
             return item

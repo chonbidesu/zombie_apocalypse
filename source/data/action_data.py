@@ -12,6 +12,8 @@ class Action(Enum):
     # Gameplay actions
     MOVE = auto()                   # Move to the target
     ATTACK = auto()                 # Attack a target enemy
+    HEAL = auto()                   # Heal a friendly NPC
+    SPEAK = auto()                  # Speak to a friendly NPC
     EXTRACT_DNA = auto()            # Extract DNA from a zombie
     REVIVIFY = auto()               # Revive a zombie to human form
     CLOSE_DOORS = auto()            # Close the doors of a building
@@ -19,7 +21,7 @@ class Action(Enum):
     BARRICADE = auto()              # Reinforce the barricades
     DECADE = auto()                 # Tear down the barricades
     SEARCH = auto()                 # Search for an item
-    REPAIR_BUILDING = auto()       # Repair a building    
+    REPAIR_BUILDING = auto()        # Repair a building    
     RANSACK = auto()                # Ransack a building
     ENTER = auto()                  # Enter a building
     LEAVE = auto()                  # Leave a building
