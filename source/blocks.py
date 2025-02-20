@@ -218,16 +218,19 @@ class BuildingBlock(CityBlock):
                         search_chances[item][building_type] = float(chance)
         return search_chances
 
-    def install_generator(self, actor):
+    def install_generator(self, actor, item):
         if not actor.inside:
             return ActionResult(False, "Generators need to be installed inside buildings.")
 
         if self.generator_installed:
             return ActionResult(False, "A generator is already installed.")
         else:
+            actor.ap -= 1
+            actor.inventory.remove(item)            
             return ActionResult(True, "You install a generator. It needs fuel to operate.")
+#############################
         
-    def fuel_generator(self, actor):
+    def fuel_generator(self, actor, item):
         if not actor.inside:
             return ActionResult(False, "You have to be inside a building to use this.")
 
@@ -238,21 +241,21 @@ class BuildingBlock(CityBlock):
         else:
             return ActionResult(True, "You fuel the generator. The lights are now on.")
         
-    def repair_building(self, actor):
+    def repair_building(self, actor, item):
         if not actor.inside:
             return ActionResult(False, "You have to be inside a building to use this.")
-        ###################################
-        if properties.is_building:
-            building = block
-            if building.ransack_level == 0:
-                return ActionResult(False, "This building does not need repairs.")
-            elif building.ruined:
-                if not building.lights_on:
-                    return ActionResult(False, "Ruined buildings need to be powered in order to be repaired.")
-                elif not SkillType.CONSTRUCTION in self.actor.human_skills:
-                    return ActionResult(False, "You need the Construction skill to repair ruins.")
-            else:
-                return ActionResult(True, "You repaired the interior of the building and cleaned up the mess.")
+
+        if self.ransack_level == 0:
+            return ActionResult(False, "This building does not need repairs.")
+
+        elif self.ruined:
+            if not self.lights_on:
+                return ActionResult(False, "Ruined buildings need to be powered in order to be repaired.")
+            elif not SkillType.CONSTRUCTION in self.actor.human_skills:
+                return ActionResult(False, "You need the Construction skill to repair ruins.")
+
+        else:
+            return ActionResult(True, "You repaired the interior of the building and cleaned up the mess.")
 
     def dump_body(self, block):
         """Dump a body outside the building."""

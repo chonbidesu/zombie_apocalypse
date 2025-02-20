@@ -387,7 +387,7 @@ class Character:
         }
   
         if item.type in usage:  
-            return usage[item.type](item)      
+            return usage[item.type](self, item)      
           
             result = block.install_generator()
             if result.success:
@@ -479,5 +479,12 @@ class Character:
                 return ActionResult(False, "You already feel healthy.")
             else:
                 return ActionResult(False, f"{target.current_name} already feels healthy.") 
+
+    def attack(self, target, weapon=None):
+        """Execute an attack depending on the attacker's state."""
+        if self.actor.is_human:
+            return self._human_attack(target, weapon)
+        else:
+            return self._zombie_attack(target)
 
     

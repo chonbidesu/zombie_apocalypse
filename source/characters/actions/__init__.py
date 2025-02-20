@@ -106,29 +106,6 @@ class ActionExecutor:
 
 
 
-        # Inventory actions
-        elif action == Action.EQUIP:
-            return self.equip(target)
-
-        elif action == Action.UNEQUIP:
-            return self.unequip(target)
-
-        elif action == Action.USE:
-            return self.use(target)
-     
-        elif action == Action.DROP:
-            return self.drop(target)
-
-        else:
-            return ActionResult(False, "No action available.")
-
-    def attack(self, target, weapon=None):
-        """Execute an attack depending on the attacker's state."""
-        if self.actor.is_human:
-            return self._human_attack(target, weapon)
-        else:
-            return self._zombie_attack(target)
-
     def _human_attack(self, target, weapon):
         if weapon:
             properties = ITEMS[weapon.type]
