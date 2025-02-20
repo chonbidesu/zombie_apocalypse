@@ -72,7 +72,9 @@ class Cursor(object):
 
         # Create the cursors
         self.default_cursor = self._create_cursor(ResourcePath("cursor/zombie_hand.png").path)
+        self.punch_cursor = self._create_cursor(ResourcePath("cursor/zombie_fist.png").path)
         self.attack_cursor = self._create_cursor(ResourcePath("cursor/crosshair.png").path)
+        self.speak_cursor = self._create_cursor(ResourcePath("cursor/mouth.png").path)
         self.heal_cursor = self._create_cursor(ResourcePath("items/first_aid_kit.png").path)
         self.extract_cursor = self._create_cursor(ResourcePath("items/dna_extractor.png").path)
         self.revivify_cursor = self._create_cursor(ResourcePath("items/syringe.png").path)

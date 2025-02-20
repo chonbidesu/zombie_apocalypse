@@ -85,7 +85,7 @@ class BuildingBlock(CityBlock):
         actor.ap -= 1
         return ActionResult(True, "You open the doors of the building.", sfx='door_open')
 
-    def barricade(self, actor):
+    def add_barricades(self, actor):
         block_npcs = actor.state.filter_characters_at_location(self.x, self.y, inside=True)
 
         success_chances = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6, 0.4, 0.2]
@@ -109,18 +109,18 @@ class BuildingBlock(CityBlock):
                 elif self.barricade.level == 4 and self.barricade.sublevel == 2:
                     actor.ap -= 1
                     message = "You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
-                    witness = f"{self.actor.current_name} reinforced the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
+                    witness = f"{actor.current_name} reinforced the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
                     return ActionResult(True, message, witness, sfx='barricade')
                 elif self.barricade.sublevel == 0:
                     barricade_description = self.barricade.get_barricade_description()
                     actor.ap -= 1         
                     message = f"You reinforce the barricade. The building is now {barricade_description}."   
-                    witness = f"{self.actor.current_name} reinforced the barricade. The building is now {barricade_description}."
+                    witness = f"{actor.current_name} reinforced the barricade. The building is now {barricade_description}."
                     return ActionResult(True, message, witness, sfx='barricade')
                 elif self.barricade.sublevel > 0:
                     actor.ap -= 1
                     message = "You reinforce the barricade."
-                    witness = f"{self.actor.current_name} reinforced the barricade."
+                    witness = f"{actor.current_name} reinforced the barricade."
                     return ActionResult(True, message, witness, sfx='barricade')
             else:
                 return ActionResult(False, "You can't find anything to reinforce the barricade.")
@@ -162,7 +162,7 @@ class BuildingBlock(CityBlock):
         """Search a building for items."""
         search_path = DataPath('tables/search.csv').path
         search_chances = self._load_search_chances(search_path)
-        items_held = len(self.actor.inventory)
+        items_held = len(actor.inventory)
   
         # Determine search success chance
         if self.ruined:
@@ -185,7 +185,7 @@ class BuildingBlock(CityBlock):
             return ActionResult(False, "You didn't find anything.")
         
         item_type = random.choices(items, weights=weights, k=1)[0]
-        item = self.actor.create_item(item_type)
+        item = actor.create_item(item_type)
         item_properties = ITEMS[item.type]
 
         # Check inventory capacity
@@ -195,13 +195,13 @@ class BuildingBlock(CityBlock):
 
         # Check for duplicate portable generator
         if item.type == ItemType.PORTABLE_GENERATOR:
-            for inventory_item in self.actor.inventory:
+            for inventory_item in actor.inventory:
                 if hasattr(inventory_item, 'type') and inventory_item.type == ItemType.PORTABLE_GENERATOR:
                     actor.ap -= 1
                     return ActionResult(False, "You found a portable generator, but you can only carry one at a time.")
  
         # Add the item to inventory
-        self.actor.inventory.append(item)
+        actor.inventory.append(item)
         actor.ap -= 1
         return ActionResult(True, f"You found {item_properties.description}!")
 
@@ -228,7 +228,6 @@ class BuildingBlock(CityBlock):
             actor.ap -= 1
             actor.inventory.remove(item)            
             return ActionResult(True, "You install a generator. It needs fuel to operate.")
-#############################
         
     def fuel_generator(self, actor, item):
         if not actor.inside:
@@ -239,6 +238,10 @@ class BuildingBlock(CityBlock):
         elif not self.generator_installed:
             return ActionResult(False, "You need to install a generator first.")
         else:
+            actor.ap -= 1
+            self.fuel_expiration = actor.game.ticker + FUEL_DURATION
+            self.lights_on = True
+            actor.inventory.remove(item)            
             return ActionResult(True, "You fuel the generator. The lights are now on.")
         
     def repair_building(self, actor, item):
@@ -248,26 +251,30 @@ class BuildingBlock(CityBlock):
         if self.ransack_level == 0:
             return ActionResult(False, "This building does not need repairs.")
 
-        elif self.ruined:
+        if self.ruined:
             if not self.lights_on:
                 return ActionResult(False, "Ruined buildings need to be powered in order to be repaired.")
-            elif not SkillType.CONSTRUCTION in self.actor.human_skills:
+            elif not SkillType.CONSTRUCTION in actor.human_skills:
                 return ActionResult(False, "You need the Construction skill to repair ruins.")
-
+            else:
+                message = "You repair the damage to the building, clearing the rubble and cleaning up the mess."
         else:
-            return ActionResult(True, "You repaired the interior of the building and cleaned up the mess.")
+            message = "You repaired the interior of the building and cleaned up the mess."
+        actor.ap -= 1
+        self.ransack_level = 0
+        self.ruined = False        
+        return ActionResult(True, message)
 
-    def dump_body(self, block):
+    def dump(self, actor):
         """Dump a body outside the building."""
-        x, y = self.actor.location
-        block_npcs = self.actor.state.filter_characters_at_location(x, y, self.actor.inside, include_player=True)
+        block_npcs = actor.state.filter_characters_at_location(self.x, self.y, actor.inside, include_player=True)
 
         if block_npcs.dead_bodies:
             dead_body = random.choice(block_npcs.dead_bodies)
             dead_body.inside = False
-            self.actor.ap -= 1
+            actor.ap -= 1
             message = "You dump a body outside."
-            witness = f"{self.actor.current_name} dumps a body outside."
+            witness = f"{actor.current_name} dumps a body outside."
             return ActionResult(True, message, witness)
 
 

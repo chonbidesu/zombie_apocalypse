@@ -317,7 +317,7 @@ class MenuEventHandler:
             if self.game.save_menu:
                 for slot in self.game.menu.save_menu.slots:
                     if slot.rect.collidepoint(event.pos):
-                        self.game.save_game(slot.index)
+                        self.act(Action.SAVE, slot.index)
                         slot.update_image()
 
                 back_button = self.game.menu.save_menu.back_button
@@ -328,7 +328,7 @@ class MenuEventHandler:
                 for slot in self.game.menu.load_menu.slots:
                     if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
                         self.game.pause_game()
-                        self.game.load_game(slot.index)
+                        self.act(Action.LOAD, slot.index)
 
                 back_button = self.game.menu.load_menu.back_button
                 if back_button.sprite.rect.collidepoint(event.pos):
@@ -339,7 +339,7 @@ class MenuEventHandler:
                 for button in newgame_menu.buttons:
                     action = button.handle_event(event)
                     if action == "menu_start":
-                        newgame_menu.start_game()
+                        self.act(Action.START_GAME)
                     elif action == "menu_back":
                         self.act(Action.BACK)            
 
@@ -372,9 +372,9 @@ class MenuEventHandler:
                     if skills_menu.gain_button_rect.collidepoint(event.pos):
                         skills_menu._gain_skill()               
 
-    def act(self, action):
+    def act(self, action, target=None):
         """Evoke the Action Executor to handle actions."""
-        self.action.execute(action)          
+        self.action.execute(action, target)          
 
 class TitleEventHandler:
     def __init__(self, game):
@@ -458,7 +458,7 @@ class TitleEventHandler:
             for button in newgame_menu.buttons:
                 action = button.handle_event(event)
                 if action == "menu_start":
-                    newgame_menu.start_game()
+                    self.act(Action.START_GAME)
                 elif action == "menu_back":
                     self.act(Action.BACK)   
 

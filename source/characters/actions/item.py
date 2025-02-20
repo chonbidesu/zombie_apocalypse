@@ -2,18 +2,18 @@
 
 class ItemHandler:
         
-    @classmethod
-    def equip(executor, target):
-        return executor.actor.equip(target)
+    @staticmethod
+    def equip(executor, item):
+        return executor.actor.state.equip(item)
 
-    @classmethod
-    def unequip(executor, target):
-        return executor.actor.unequip(target)
+    @staticmethod
+    def unequip(executor, item):
+        return executor.actor.state.unequip(item)
 
-    @classmethod
-    def use(executor, target):
-        return executor.actor.use(target)
+    @staticmethod
+    def use(executor, item):
+        return executor.actor.state.use(item)
 
-    @classmethod
-    def drop(executor, target):     
-        return executor.actor.drop(target)    
+    @staticmethod
+    def drop(executor, item):     
+        return executor.actor.state.drop(item)    

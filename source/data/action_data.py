@@ -20,7 +20,7 @@ class Action(Enum):
     HEAL = auto()                   # Heal a friendly NPC
     SPEAK = auto()                  # Speak to a friendly NPC
     EXTRACT_DNA = auto()            # Extract DNA from a zombie
-    REVIVIFY = auto()               # Revive a zombie to human form
+    INJECT = auto()                 # Inject a zombie with a revivification syringe
 
     # Environment Actions
     CLOSE_DOORS = auto()            # Close the doors of a building
@@ -45,7 +45,6 @@ class Action(Enum):
     ENTER = auto()                  # Enter a building
     LEAVE = auto()                  # Leave a building
     STAND = auto()                  # Stand up after death or revivification
-    PURSUE = auto()                 # Pursue an enemy character based on last known location
     WANDER = auto()                 # Move randomly    
 
     # Inventory actions
@@ -58,7 +57,7 @@ class Action(Enum):
     QUIT = auto()
     PAUSE = auto()
     OPTIONS = auto()
-    NEW_GAME = auto()
+    START_GAME = auto()
     NEWGAME_MENU = auto()
     SAVE = auto()
     SAVE_MENU = auto()

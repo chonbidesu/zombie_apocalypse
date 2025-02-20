@@ -7,16 +7,32 @@ class SystemHandler:
         executor.game.quit_game()
 
     @staticmethod
+    def options(executor, target):
+        pass # NEED TO SET THIS UP
+
+    @staticmethod
     def save_menu(executor, target):
         executor.game.save_menu = True
+
+    @staticmethod
+    def save(executor, target):
+        executor.game.save_game(target)
 
     @staticmethod
     def load_menu(executor, target):
         executor.game.load_menu = True
 
     @staticmethod
+    def load(executor, target):
+        executor.game.load_game(target)
+
+    @staticmethod
     def newgame_menu(executor, target):
         executor.game.newgame_menu = True
+
+    @staticmethod
+    def start_game(executor, target):
+        executor.game.start_game()
 
     @staticmethod
     def skills_menu(executor, target):

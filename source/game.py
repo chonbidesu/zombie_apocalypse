@@ -96,6 +96,36 @@ class GameInitializer:
 
         print("New game created.")
         return GameState(player, city, npcs)
+    
+    def start_game(self):
+        """Start the game with the chosen settings."""
+        first_name = self.menu.newgame_menu.text_inputs["first_name"].text
+        last_name = self.menu.newgame_menu.text_inputs["last_name"].text
+        dead_word = self.menu.newgame_menu.text_inputs["dead_word"].text
+        portrait_index = self.menu.newgame_menu.selected_portrait
+        occupation = self.menu.newgame_menu.selected_occupation
+
+        # Validate user input
+        if not first_name or not last_name or not dead_word:
+            self.menu.newgame_menu.display_warning("Please enter a first and last name, and an adjective that describes your corpse.")
+            return  
+        if occupation is None:
+            self.menu.newgame_menu.display_warning("Please select an occupation.")
+            return
+        if portrait_index is None:
+            self.menu.newgame_menu.display_warning("Please select a player portrait.")
+            return
+        
+        portrait = list(self.menu.newgame_menu.portrait_sprites)[portrait_index]
+        character_name = CharacterName(first_name, last_name, dead_word)
+        is_human = False if occupation == Occupation.CORPSE else True
+
+        player = Character(self, character_name, occupation, 50, 50, is_human)
+        
+        # Disable menus and initialize game
+        self.title_screen = False
+        self.newgame_menu = False
+        self.initialize_game(player, portrait.portrait_path)    
 
     def save_game(self, index):
         """Save the game state to a file."""

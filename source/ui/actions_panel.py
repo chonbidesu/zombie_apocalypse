@@ -63,22 +63,27 @@ class ActionsPanel:
             buttons.append(self.stand_button)
         else:
             if player.inside:
-                if SkillType.CONSTRUCTION in player.human_skills:
+                if player.has_skill(SkillType.CONSTRUCTION):
                     buttons.append(self.barricade_button)
+
                 buttons.append(self.search_button)
+
                 if block.barricade.level == 0:
                     if player.is_human:
                         if block.doors_closed:
                             buttons.append(self.open_doors_button)
                         else:
-                            buttons.append(self.close_doors_button)                
+                            buttons.append(self.close_doors_button)  
+
                 buttons.append(self.leave_button)   
+
                 if player.is_human:
                     if len(block_npcs.dead_bodies) > 0:
                         buttons.append(self.dump_button)             
                 else:
-                    if SkillType.RANSACK in player.zombie_skills:
+                    if player.has_skill(SkillType.RANSACK):
                         buttons.append(self.ransack_button)
+                        
             else:
                 if properties.is_building:
                     buttons.append(self.enter_button)

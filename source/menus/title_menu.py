@@ -64,8 +64,8 @@ class TitleAction:
         elif action == Action.NEWGAME_MENU:
             self.game.newgame_menu = True
 
-        elif action == Action.NEW_GAME:
-            self.game.start_new_game = True
+        elif action == Action.START_GAME:
+            self.game.start_game()
 
         elif action == Action.LOAD_MENU:
             self.game.load_menu = True

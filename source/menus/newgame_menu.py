@@ -198,36 +198,6 @@ class NewGameMenu:
         self.warning_lines = wrapped_text
         self.warning_timer = pygame.time.get_ticks() + (duration * 1000)  # Expiration time
 
-    def start_game(self):
-        """Start the game with the chosen settings."""
-        first_name = self.text_inputs["first_name"].text
-        last_name = self.text_inputs["last_name"].text
-        dead_word = self.text_inputs["dead_word"].text
-        portrait_index = self.selected_portrait
-        occupation = self.selected_occupation
-
-        # Validate user input
-        if not first_name or not last_name or not dead_word:
-            self.display_warning("Please enter a first and last name, and an adjective that describes your corpse.")
-            return  
-        if occupation is None:
-            self.display_warning("Please select an occupation.")
-            return
-        if portrait_index is None:
-            self.display_warning("Please select a player portrait.")
-            return
-        
-        portrait = list(self.portrait_sprites)[portrait_index]
-        character_name = CharacterName(first_name, last_name, dead_word)
-        is_human = False if occupation == Occupation.CORPSE else True
-
-        player = Character(self.game, character_name, occupation, 50, 50, is_human)
-        
-        # Disable menus and initialize game
-        self.game.title_screen = False
-        self.game.newgame_menu = False
-        self.game.initialize_game(player, portrait.portrait_path)
-
 class PortraitSprite(pygame.sprite.Sprite):
     """A selectable portrait sprite."""
     def __init__(self, image_path, x, y):
