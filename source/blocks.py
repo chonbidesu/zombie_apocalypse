@@ -5,7 +5,7 @@ from collections import defaultdict
 import csv
 
 from settings import *
-from data import BLOCKS, BarricadeState, BARRICADE_DESCRIPTIONS, ActionResult, ITEMS, ItemType
+from data import BLOCKS, BarricadeState, BARRICADE_DESCRIPTIONS, ActionResult, ITEMS, ItemType, SkillType
 
 class CityBlock:
     """Base class for a city block."""
@@ -217,6 +217,55 @@ class BuildingBlock(CityBlock):
                     if building_type != 'Item':  # Skip the 'Item' column
                         search_chances[item][building_type] = float(chance)
         return search_chances
+
+    def install_generator(self, actor):
+        if not actor.inside:
+            return ActionResult(False, "Generators need to be installed inside buildings.")
+
+        if self.generator_installed:
+            return ActionResult(False, "A generator is already installed.")
+        else:
+            return ActionResult(True, "You install a generator. It needs fuel to operate.")
+        
+    def fuel_generator(self, actor):
+        if not actor.inside:
+            return ActionResult(False, "You have to be inside a building to use this.")
+
+        if self.lights_on:
+            return ActionResult(False, "Generator already has fuel.")
+        elif not self.generator_installed:
+            return ActionResult(False, "You need to install a generator first.")
+        else:
+            return ActionResult(True, "You fuel the generator. The lights are now on.")
+        
+    def repair_building(self, actor):
+        if not actor.inside:
+            return ActionResult(False, "You have to be inside a building to use this.")
+        ###################################
+        if properties.is_building:
+            building = block
+            if building.ransack_level == 0:
+                return ActionResult(False, "This building does not need repairs.")
+            elif building.ruined:
+                if not building.lights_on:
+                    return ActionResult(False, "Ruined buildings need to be powered in order to be repaired.")
+                elif not SkillType.CONSTRUCTION in self.actor.human_skills:
+                    return ActionResult(False, "You need the Construction skill to repair ruins.")
+            else:
+                return ActionResult(True, "You repaired the interior of the building and cleaned up the mess.")
+
+    def dump_body(self, block):
+        """Dump a body outside the building."""
+        x, y = self.actor.location
+        block_npcs = self.actor.state.filter_characters_at_location(x, y, self.actor.inside, include_player=True)
+
+        if block_npcs.dead_bodies:
+            dead_body = random.choice(block_npcs.dead_bodies)
+            dead_body.inside = False
+            self.actor.ap -= 1
+            message = "You dump a body outside."
+            witness = f"{self.actor.current_name} dumps a body outside."
+            return ActionResult(True, message, witness)
 
 
     class BarricadeLevel:
