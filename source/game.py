@@ -140,17 +140,6 @@ class GameInitializer:
         if self.load_menu:
             self.load_menu = False          
 
-    def pause_game(self):
-        """Toggle game pause state."""
-        if not self.paused:
-            print("Pausing game")
-            self.paused = True
-        elif self.paused:
-            print("Unpausing game")
-            self.paused = False
-            self.save_menu = False
-            self.load_menu = False
-
     def quit_game(self):
         """Handle cleanup and save the game on exit."""
         pygame.quit()

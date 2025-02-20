@@ -1,34 +1,39 @@
 # action_data.py
 
 from enum import Enum, auto
+from dataclasses import dataclass
 
+@dataclass
+class ActionResult:
+    success: bool
+    message: str = ""
+    witness: str = ""
+    attacked: str = ""
+    sfx: str = ""
 
 class Action(Enum):
     # NPC actions
     GIVE_QUEST = auto()             # Provide a quest to the player
-    PURSUE = auto()                 # Pursue an enemy character based on last known location
-    WANDER = auto()                 # Move randomly
 
-    # Gameplay actions
-    MOVE = auto()                   # Move to the target
+    # Combat Actions
     ATTACK = auto()                 # Attack a target enemy
     HEAL = auto()                   # Heal a friendly NPC
     SPEAK = auto()                  # Speak to a friendly NPC
     EXTRACT_DNA = auto()            # Extract DNA from a zombie
     REVIVIFY = auto()               # Revive a zombie to human form
+
+    # Environment Actions
     CLOSE_DOORS = auto()            # Close the doors of a building
     OPEN_DOORS = auto()             # Open the doors of a building
     BARRICADE = auto()              # Reinforce the barricades
     DECADE = auto()                 # Tear down the barricades
     SEARCH = auto()                 # Search for an item
     REPAIR_BUILDING = auto()        # Repair a building    
-    RANSACK = auto()                # Ransack a building
-    ENTER = auto()                  # Enter a building
-    LEAVE = auto()                  # Leave a building
+    RANSACK = auto()                # Ransack a building 
     DUMP = auto()                   # Dump a dead body outside
-    STAND = auto()                  # Stand up after death or revivification
 
     # Player Movement
+    MOVE = auto()                   # Move to the target
     MOVE_UP = auto()
     MOVE_DOWN = auto()
     MOVE_LEFT = auto()
@@ -37,6 +42,11 @@ class Action(Enum):
     MOVE_UPRIGHT = auto()
     MOVE_DOWNLEFT = auto()
     MOVE_DOWNRIGHT = auto()
+    ENTER = auto()                  # Enter a building
+    LEAVE = auto()                  # Leave a building
+    STAND = auto()                  # Stand up after death or revivification
+    PURSUE = auto()                 # Pursue an enemy character based on last known location
+    WANDER = auto()                 # Move randomly    
 
     # Inventory actions
     EQUIP = auto()
@@ -56,7 +66,6 @@ class Action(Enum):
     LOAD_MENU = auto()
     SKILLS_MENU = auto()
     BACK = auto()
-    CLOSE_MAP = auto()
     ZOOM_IN = auto()
     ZOOM_OUT = auto()
     RESTART = auto()
