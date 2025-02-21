@@ -34,10 +34,12 @@ class Character:
         self.is_human = is_human
         self.inside = inside
         self.inventory = []
-        self.weapon = None
+        self.equipped = None
         self.human_skills = set()
         self.zombie_skills = set()
         self.action = ActionExecutor(game, self)
+        self.safehouse = None
+        self.current_goal = None
 
         self.get_state()
         self.add_starting_skill()

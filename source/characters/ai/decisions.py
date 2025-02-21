@@ -1,4 +1,4 @@
-# commands.py
+# decisions.py
 
 from data import Action, ItemType
 
@@ -15,7 +15,7 @@ class DecisionCommand:
         raise NotImplementedError("Subclasses must implement execute().")
 
 
-class ScoutSafehouse(DecisionCommand):
+class ScoutSafehouseDecision(DecisionCommand):
     """Find a suitable safehouse based on NPC occupation."""
 
     def is_valid(self, character):
@@ -27,7 +27,7 @@ class ScoutSafehouse(DecisionCommand):
         pass
 
 
-class EnterSafehouse(DecisionCommand):
+class EnterSafehouseDecision(DecisionCommand):
     """Enters the safehouse if standing outside of it."""
 
     def is_valid(self, character):
@@ -38,7 +38,7 @@ class EnterSafehouse(DecisionCommand):
         return executor.execute(Action.ENTER)
     
 
-class SecureSafehouse(DecisionCommand):
+class SecureSafehouseDecision(DecisionCommand):
     """Closes the doors after entering the safehouse."""
 
     def is_valid(self, character):
@@ -50,7 +50,7 @@ class SecureSafehouse(DecisionCommand):
         return executor.execute(Action.CLOSE_DOORS)
     
 
-class SeekFAK(DecisionCommand):
+class SeekFAKDecision(DecisionCommand):
     """Searches for a First Aid Kit if health is low."""
 
     def is_valid(self, character):
@@ -62,7 +62,7 @@ class SeekFAK(DecisionCommand):
         return executor.execute(Action.SEARCH)
     
 
-class HealThyself(DecisionCommand):
+class HealThyselfDecision(DecisionCommand):
     """Uses a First Aid Kit to heal when available."""
 
     def is_valid(self, character):

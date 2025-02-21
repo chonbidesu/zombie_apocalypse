@@ -1,6 +1,7 @@
 # state.py
 
 from data import BLOCKS, BlockNPCs, Action
+from ai import GoalManager
 
 
 class State:
@@ -8,16 +9,17 @@ class State:
     def __init__(self, character):
         self.game = character.game
         self.character = character # Reference the parent character
-        self.current_target = None
-        self.next_decision = None
-        self.selected_skill = None
-
-    def get_decision(self):
-        """Determines next behaviour and stores the action."""
-        self.next_decision = self._determine_behaviour()
 
     def act(self):
         """Execute AI behaviour."""
+
+        # Evaluate the current goal
+        self.character.current_goal = GoalManager.evaluate_goal(self.character)
+
+        # Execute the goal
+        return self.character.current_goal.execute(self.character)
+
+        """
         if self.next_decision:
             action_result = self.next_decision.execute(self.character)
 
@@ -35,7 +37,8 @@ class State:
                         self.game.chat_history.append(witness)                       
                     else:
                         if action == Action.DECADE:
-                            self.game.chat_history.append(witness)                            
+                            self.game.chat_history.append(witness)   
+        """
 
     def filter_characters_at_location(self, x, y, inside=False, include_player=True):
         """Retrieve all characters at a given location and categorize them."""

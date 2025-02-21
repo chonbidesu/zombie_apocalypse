@@ -1,7 +1,7 @@
 # decision_manager.py
 
 from data import Goal
-from ai.commands import ScoutSafehouse, EnterSafehouse, SecureSafehouse, SeekFAK, HealThyself
+from characters.ai.decisions import ScoutSafehouse, EnterSafehouse, SecureSafehouse, SeekFAK, HealThyself
 
 
 class DecisionManager:
