@@ -3,13 +3,6 @@
 from enum import Enum, auto
 from dataclasses import dataclass
 
-@dataclass
-class ActionResult:
-    success: bool
-    message: str = ""
-    witness: str = ""
-    attacked: str = ""
-    sfx: str = ""
 
 class Action(Enum):
     # NPC actions
@@ -68,3 +61,14 @@ class Action(Enum):
     ZOOM_IN = auto()
     ZOOM_OUT = auto()
     RESTART = auto()
+
+
+@dataclass
+class ActionResult:
+    action: Action
+    success: bool
+    target: object = None
+    message: str = ""
+    witness: str = ""
+    attacked: str = ""
+    sfx: str = ""    

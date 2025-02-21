@@ -1,7 +1,7 @@
 # __init__.py
 
 from .barricade_data import BarricadeState, BARRICADE_DESCRIPTIONS
-from .block_data import BlockType, BlockProperties, BLOCKS
+from .block_data import BlockType, BlockProperties, BLOCKS, BlockNPCs
 from .item_data import ItemType, ItemFunction, ItemProperties, ITEMS
 from .neighbourhood_data import NEIGHBOURHOODS
 from .path import ResourcePath, DataPath, SaveLoadPath

@@ -2,6 +2,7 @@
 
 from enum import Enum, auto
 from collections import namedtuple
+from dataclasses import dataclass
 
 from data.path import ResourcePath
 
@@ -69,3 +70,14 @@ BLOCKS = {
     BlockType.MONUMENT: BlockProperties("a monument", False, ResourcePath("blocks/monument.bmp").path),
     BlockType.CARPARK: BlockProperties("a carpark", False, ResourcePath("blocks/carpark.bmp").path),
 }
+
+@dataclass
+class BlockNPCs:
+    x: int
+    y: int
+    inside: bool
+    living_humans: list
+    living_zombies: list
+    dead_bodies: list
+    dead_zombies: list
+    revivifying_bodies: list

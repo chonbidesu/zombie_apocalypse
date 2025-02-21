@@ -58,14 +58,10 @@ class State:
                     self.game.chat_history.append(action_result.attacked)
                 elif action_result.witness and self.character.location == self.game.state.player.location:
                     if self.character.inside == self.game.state.player.inside:
-                        self.game.chat_history.append(action_result.witness) 
-                        if action_result.sfx:
-                            pygame.mixer.Sound.play(self.game.sounds[action_result.sfx])                        
+                        self.game.chat_history.append(action_result.witness)                       
                     else:
-                        if self.next_action.action == Action.DECADE or self.next_action.action == Action.ENTER:
-                            self.game.chat_history.append(action_result.witness)
-                            if action_result.sfx:
-                                pygame.mixer.Sound.play(self.game.sounds[action_result.sfx])                               
+                        if self.next_action.action == Action.DECADE:
+                            self.game.chat_history.append(action_result.witness)                            
 
     def filter_characters_at_location(self, x, y, inside=False, include_player=True):
         """Retrieve all characters at a given location and categorize them."""
