@@ -3,7 +3,7 @@
 import random
 
 from settings import *
-from data import Action, ActionResult, BLOCKS, BlockType, Occupation, OccupationCategory, OCCUPATIONS, ITEMS, ItemType, ItemFunction, SkillType
+from data import Goal, Action, ActionResult, BLOCKS, BlockType, Occupation, OccupationCategory, OCCUPATIONS, ITEMS, ItemType, ItemFunction, SkillType
 from characters.state import State, MoveTarget, BehaviourResult
 
 
@@ -11,7 +11,22 @@ class Human(State):
     """Represents the human state."""
     def __init__(self, character):
         super().__init__(character)
+        self.has_safehouse = False
+        self.has_weapon = False
+        self.has_ammo = False
+        self.needs_skill = False
+        self.needs_xp = False
 
+    def update_goal(self):
+        """Evaluates if the NPC should change goals based on current conditions."""
+        if not self.has_safehouse:
+            self.current_goal = Goal.SECURE_SHELTER
+        elif self.character.hp < 25:
+            self.current_goal = Goal.SURVIVE
+        elif self.has_weapon and self.needs_xp:
+            self.current_goal = Goal.LEVEL_UP
+        elif self.needs_skill:
+            self.current_goal = Goal.LEARN_SKILL        
 
     def update_name(self):
         """Updates the character's name."""
@@ -23,7 +38,6 @@ class Human(State):
         city = self.game.state.city
         x, y = self.character.location[0], self.character.location[1]
         block = city.block(x, y)        
-        properties = BLOCKS[block.type]        
 
         # Get character properties
         occupation = self.character.occupation
