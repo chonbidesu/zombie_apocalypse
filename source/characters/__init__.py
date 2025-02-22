@@ -111,11 +111,12 @@ class Character:
         """Heals the character by the given amount up to max health."""
         self.hp = min(self.hp + amount, self.max_hp)
 
-    def revivify(self):
+    def revive(self):
         """Revives the character to human state."""
         self.is_dead = True
         self.is_human = True
         self.get_state()
+
         for skill in self.zombie_skills:
             self.apply_skill_effect(skill, remove=True)
         for skill in self.human_skills:
@@ -174,11 +175,17 @@ class Character:
     def leave(self):
         self.inside = False
 
+    def move(self, x, y):
+        self.location = (x, y)
+
     def fall(self):
         """Character falls from a building, taking damage."""
         self.take_damage(5, fatal=False)
         if self == self.game.state.player:
             self.game.chat_history.append("You fall from the crumbling building, injuring yourself.")             
+
+    def stand(self):
+        self.is_dead = False
 
     def die(self):
         """Handles the character's death."""
@@ -193,4 +200,4 @@ class Character:
             for skill in self.human_skills:
                 self.apply_skill_effect(skill, remove=True)
             for skill in self.zombie_skills:
-                self.apply_skill_effect(skill)            
+                self.apply_skill_effect(skill)                
