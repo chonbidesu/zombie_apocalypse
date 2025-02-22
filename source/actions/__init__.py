@@ -2,29 +2,12 @@
 
 from settings import *
 
-
-class ActionExecutor:
-    """Handles executing actions for both player and AI characters."""
-
-    def __init__(self, game, character):
-        self.game = game
-        self.character = character  # Define the acting character
-        self.is_player = character == game.state.player
-        self.action_progress = game.game_ui.action_progress
-
-    def execute(self, action, target=None):
-        """Execute an ActionCommand instance."""
-
-        if isinstance(action, ActionCommand):
-            return action.execute(self, target)
-
-        print(f"Unknown action: {action}  Target: {target}")
-
-    
+   
 class ActionCommand:
     """Base class for all actions."""
-    def __init__(self):
-        self.action = None
+    def __init__(self, character):
+        self.character = character
+        self.is_player = character == character.game.state.player
         self.success = False
         self.target = None
         self.message = ""
@@ -32,9 +15,20 @@ class ActionCommand:
         self.attacked = ""
         self.sfx = ""  
     
-    def execute(self, executor, target=None):
+    def execute(self, target=None):
         """Executes the action. Subclasses must implement this."""
         raise NotImplementedError("Subclasses must implement execute()")
+    
+    def get_block(self):
+        x, y = self.character.location
+        city = self.character.game.state.city
+        block = city.block(x, y)
+        return block            
+    
+    def get_block_npcs(self):
+        x, y = self.character.location
+        block_npcs = self.character.state.filter_characters_at_location(x, y, inside=True)    
+        return block_npcs        
 
 
 

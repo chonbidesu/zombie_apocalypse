@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from settings import *
 from data import ITEMS, ItemType, ItemFunction, SKILLS, SkillType, SkillCategory, OCCUPATIONS
-from characters.items import Item, Weapon
+from items import Item, Weapon
 from characters.human_state import Human
 from characters.zombie_state import Zombie
 
@@ -160,7 +160,10 @@ class Character:
             # Create a regular item
             item = Item(type=item_type)
             return item
-        
+
+    def equip(self, item):
+        self.equipped = item
+
     def deplete_weapon(self):
         """Reduce loaded ammo or durability, depending on weapon type."""
         properties = ITEMS[self.weapon.type]
