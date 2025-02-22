@@ -20,8 +20,7 @@ class Action(Enum):
     OPEN_DOORS = auto()             # Open the doors of a building
     BARRICADE = auto()              # Reinforce the barricades
     DECADE = auto()                 # Tear down the barricades
-    SEARCH = auto()                 # Search for an item
-    REPAIR_BUILDING = auto()        # Repair a building    
+    SEARCH = auto()                 # Search for an item 
     RANSACK = auto()                # Ransack a building 
     DUMP = auto()                   # Dump a dead body outside
 
@@ -61,14 +60,3 @@ class Action(Enum):
     ZOOM_IN = auto()
     ZOOM_OUT = auto()
     RESTART = auto()
-
-
-@dataclass
-class ActionResult:
-    action: Action
-    success: bool
-    target: object = None
-    message: str = ""
-    witness: str = ""
-    attacked: str = ""
-    sfx: str = ""    

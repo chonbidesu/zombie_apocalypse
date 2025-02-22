@@ -7,7 +7,6 @@ from data import ITEMS, ItemType, ItemFunction, SKILLS, SkillType, SkillCategory
 from characters.items import Item, Weapon
 from characters.human_state import Human
 from characters.zombie_state import Zombie
-from characters.actions import ActionExecutor
 
 
 @dataclass
@@ -37,7 +36,6 @@ class Character:
         self.equipped = None
         self.human_skills = set()
         self.zombie_skills = set()
-        self.action = ActionExecutor(game, self)
         self.safehouse = None
         self.current_goal = None
 
@@ -123,6 +121,14 @@ class Character:
         for skill in self.human_skills:
             self.apply_skill_effect(skill)    
 
+    def gain_ap(self, ap):
+        """Gain a certain amount of action points."""
+        self.ap += ap
+
+    def lose_ap(self, ap):
+        """Lose a certain amount of action points."""
+        self.ap -= ap        
+
     def gain_xp(self, xp):
         """Gain a certain amount of experience points."""
         self.xp += xp
@@ -154,3 +160,32 @@ class Character:
             # Create a regular item
             item = Item(type=item_type)
             return item
+        
+    def deplete_weapon(self):
+        """Reduce loaded ammo or durability, depending on weapon type."""
+        properties = ITEMS[self.weapon.type]
+        if properties.item_function == ItemFunction.FIREARM:
+            self.weapon.loaded_ammo -= 1
+        elif properties.item_function == ItemFunction.MELEE:
+            self.weapon.durability -= 1
+            if self.weapon.durability <= 0:
+                self.inventory.remove(self.weapon)
+                self.weapon = None  
+
+    def fall(self):
+        """Character falls from a building, taking damage."""
+        self.take_damage(5, fatal=False)
+        if self == self.game.state.player:
+            self.game.chat_history.append("You fall from the crumbling building, injuring yourself.")             
+
+    def die(self):
+        """Handles the character's death."""
+        self.is_dead = True
+        self.is_human = False
+        self.get_state()
+
+        # Reassign passive skill effects
+        for skill in self.human_skills:
+            self.apply_skill_effect(skill, remove=True)
+        for skill in self.zombie_skills:
+            self.apply_skill_effect(skill)            
