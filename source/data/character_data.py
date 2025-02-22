@@ -4,6 +4,7 @@ from collections import namedtuple
 from enum import Enum, auto
 from data.skill_data import SkillType
 
+
 class Occupation(Enum):
     # Military occupations
     PRIVATE = auto()

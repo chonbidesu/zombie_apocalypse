@@ -6,7 +6,7 @@ from settings import *
 from data import ITEMS, ItemType, ItemFunction, SKILLS, SkillType, SkillCategory, OCCUPATIONS
 from items import Item, Weapon
 from characters.human_state import Human
-from characters.zombie_state import Zombie
+from characters.zombie_state import Zombie, ZombieWeapon
 
 
 @dataclass
@@ -147,19 +147,12 @@ class Character:
         """Create an item based on its type."""
         # Check if the item is a weapon
         item_type = getattr(ItemType, type)
-        properties = ITEMS[item_type]
-        if properties.item_function == ItemFunction.MELEE:
-            # Create a melee weapon
-            weapon = Weapon(type=item_type)
-            return weapon
-        elif properties.item_function == ItemFunction.FIREARM:
-            # Create a firearm
-            weapon = Weapon(type=item_type)
-            return weapon
-        elif properties.item_function in [ItemFunction.ITEM, ItemFunction.AMMO, ItemFunction.SCIENCE]:
-            # Create a regular item
-            item = Item(type=item_type)
-            return item
+        if item_type in [ItemType.BEER, ItemType.WINE, ItemType.CANDY]:
+            item = ITEMS[item_type](self, item_type)
+        else:
+            item = ITEMS[item_type](self)
+
+        return item
 
     def equip(self, item):
         self.equipped = item
@@ -175,6 +168,12 @@ class Character:
                 self.inventory.remove(self.weapon)
                 self.weapon = None  
 
+    def enter(self):
+        self.inside = True
+
+    def leave(self):
+        self.inside = False
+
     def fall(self):
         """Character falls from a building, taking damage."""
         self.take_damage(5, fatal=False)
@@ -183,12 +182,15 @@ class Character:
 
     def die(self):
         """Handles the character's death."""
+        zombified = self.is_human
         self.is_dead = True
         self.is_human = False
-        self.get_state()
 
-        # Reassign passive skill effects
-        for skill in self.human_skills:
-            self.apply_skill_effect(skill, remove=True)
-        for skill in self.zombie_skills:
-            self.apply_skill_effect(skill)            
+        if zombified:
+            self.get_state()
+
+            # Reassign passive skill effects
+            for skill in self.human_skills:
+                self.apply_skill_effect(skill, remove=True)
+            for skill in self.zombie_skills:
+                self.apply_skill_effect(skill)            
