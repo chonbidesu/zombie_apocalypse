@@ -18,7 +18,7 @@ class OpenSaveMenu(ActionCommand):
         self.game = game
 
     def execute(self):
-        self.game.save_menu = True
+        self.game.open_save_menu()
 
 
 class SaveGame(ActionCommand):
@@ -36,7 +36,7 @@ class OpenLoadMenu(ActionCommand):
         self.game = game
 
     def execute(self):
-        self.game.load_menu = True
+        self.game.open_load_menu()
 
 
 class LoadGame(ActionCommand):
@@ -54,7 +54,7 @@ class OpenNewgameMenu(ActionCommand):
         self.game = game
 
     def execute(self):
-        self.game.newgame_menu = True
+        self.game.open_newgame_menu()
 
 
 class StartGame(ActionCommand):
@@ -72,7 +72,7 @@ class OpenSkillsMenu(ActionCommand):
         self.game = game
 
     def execute(self):
-        self.game.skills_menu = True
+        self.game.open_skills_menu()
 
 
 class Back(ActionCommand):
@@ -81,11 +81,7 @@ class Back(ActionCommand):
         self.game = game
 
     def execute(self):
-        self.game.newgame_menu = False
-        self.game.save_menu = False
-        self.game.load_menu = False
-        self.game.skills_menu = False
-        self.game.reading_map = False
+        self.game.back()
 
 
 class Pause(ActionCommand):
@@ -95,12 +91,7 @@ class Pause(ActionCommand):
 
     def execute(self):
         """Toggle game pause state."""
-        if self.game.paused:
-            self.game.paused = False            
-        else:
-            self.game.paused = True
-        self.game.save_menu = False
-        self.game.load_menu = False              
+        self.game.pause()            
 
 
 class ZoomIn(ActionCommand):
@@ -109,7 +100,7 @@ class ZoomIn(ActionCommand):
         self.game = game
 
     def execute(self):
-        self.game.game_ui.map.zoom_in = True
+        self.game.zoom_in()
 
 
 class ZoomOut(ActionCommand):
@@ -118,4 +109,4 @@ class ZoomOut(ActionCommand):
         self.game = game
 
     def execute(self):
-        self.game.game_ui.map.zoom_in = False
+        self.game.zoom_out()

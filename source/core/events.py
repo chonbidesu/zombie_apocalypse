@@ -138,11 +138,8 @@ class EventHandler:
             # Handle the skills menu
             else:
                 skills_button = self.game.game_ui.status_panel.button_group.sprite
-                status_panel_x, status_panel_y = self.game.game_ui.status_panel.x, self.game.game_ui.status_panel.y
-                button_abs_rect = skills_button.rect.move(status_panel_x, status_panel_y)
-                if button_abs_rect.collidepoint(event.pos):
-                    print("Opening skills menu")
-                    action = OpenSkillsMenu(player)
+                if skills_button.rect.collidepoint(event.pos):
+                    action = OpenSkillsMenu(self.game)
                     action.execute()                    
 
         # Handle actions for button clicks
@@ -238,7 +235,7 @@ class MapEventHandler:
 
         for event in events:
             if event.type == pygame.QUIT:
-                Quit(player).execute()
+                Quit(self.game).execute()
 
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event)
@@ -267,7 +264,7 @@ class MenuEventHandler:
 
         for event in events:
             if event.type == pygame.QUIT:
-                Quit(player).execute()
+                Quit(self.game).execute()
 
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event)
@@ -420,7 +417,7 @@ class TitleEventHandler:
 
         for event in events:
             if event.type == pygame.QUIT:
-                self.game.quit_game()
+                Quit(self.game).execute()
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.handle_mousebuttondown(event)

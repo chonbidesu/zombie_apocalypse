@@ -168,6 +168,39 @@ class GameInitializer:
         if self.load_menu:
             self.load_menu = False          
 
+    def open_skills_menu(self):
+        self.skills_menu = True
+
+    def open_save_menu(self):
+        self.save_menu = True
+
+    def open_load_menu(self):
+        self.load_menu = True
+
+    def open_newgame_menu(self):
+        self.newgame_menu = True
+
+    def pause(self):
+        if self.paused:
+            self.paused = False            
+        else:
+            self.paused = True
+        self.save_menu = False
+        self.load_menu = False  
+
+    def back(self):
+        self.newgame_menu = False
+        self.save_menu = False
+        self.load_menu = False
+        self.skills_menu = False
+        self.reading_map = False
+
+    def zoom_in(self):
+        self.game_ui.map.zoom_in = True
+
+    def zoom_out(self):
+        self.game_ui.map.zoom_in = False
+
     def quit_game(self):
         """Handle cleanup and save the game on exit."""
         pygame.quit()
