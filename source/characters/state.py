@@ -8,16 +8,7 @@ from settings import *
 from ai import GoalManager
 
 
-@dataclass
-class MoveTarget:
-    dx: int = 0
-    dy: int = 0
 
-
-@dataclass
-class BehaviourResult:
-    action: Action
-    target: object = None
 
 
 @dataclass

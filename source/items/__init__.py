@@ -27,6 +27,7 @@ class Item:
         self.character.inventory.remove(self)
         if self.character.equipped == self:
             self.character.equipped = None
+        return True, f"You drop {self.description}."
 
     def equip(self):
         """Equipable items override this method."""

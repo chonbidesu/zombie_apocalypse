@@ -1,4 +1,4 @@
-# movement.py
+# character.py
 
 import random
 
@@ -6,7 +6,23 @@ from actions import ActionCommand
 from data import BLOCKS, SkillType
 from settings import *
              
-    
+
+class Use(ActionCommand):
+    def __init__(self, character):
+        super().__init__(character)
+
+    def execute(self, target):
+        self.success, self.message = target.use()
+
+
+class Drop(ActionCommand):
+    def __init__(self, character):
+        super().__init__(character)
+
+    def execute(self, target):
+        self.success, self.message = target.drop()        
+
+
 class Move(ActionCommand):
     def __init__(self, character):
         super().__init__(character)

@@ -1,10 +1,6 @@
 # human_state.py
 
-import random
-
-from settings import *
-from data import Goal, Action, ActionResult, BLOCKS, BlockType, Occupation, OccupationCategory, OCCUPATIONS, ITEMS, ItemType, ItemFunction, SkillType
-from characters.state import State, MoveTarget, BehaviourResult
+from characters.state import State
 
 
 class Human(State):
