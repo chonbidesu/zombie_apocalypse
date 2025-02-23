@@ -63,6 +63,9 @@ class EventHandler:
             target = MoveTarget(dx, dy)             # Create a movement target
             move_command = Move(player)             # Create move command
             move_command.execute(target)            # Execute the movement
+        if event.key == pygame.K_ESCAPE:
+            command = Pause(self.game)
+            command.execute()
 
     def handle_mousebuttondown(self, event):
         """Handle mouse button down events."""
@@ -73,7 +76,12 @@ class EventHandler:
             mouse_pos = pygame.mouse.get_pos()
             target = ClickTarget(self.game, mouse_pos)
             if (player.is_human and target.type == 'zombie') or (not player.is_human and target.type == 'human'):
-                action = Attack(player)
+                if player.equipped and player.equipped.type == ItemType.DNA_EXTRACTOR:
+                    action = ExtractDNA(player)
+                elif player.equipped and player.equipped.type == ItemType.SYRINGE:
+                    action = Inject(player)
+                else:
+                    action = Attack(player)
                 action.execute(target.sprite.npc)
 
             elif target.type == 'block' and not self.game.popup_menu:
@@ -134,6 +142,7 @@ class EventHandler:
                 status_panel_x, status_panel_y = self.game.game_ui.status_panel.x, self.game.game_ui.status_panel.y
                 button_abs_rect = skills_button.rect.move(status_panel_x, status_panel_y)
                 if button_abs_rect.collidepoint(event.pos):
+                    print("Opening skills menu")
                     action = OpenSkillsMenu(player)
                     action.execute()                    
 
@@ -356,7 +365,7 @@ class MenuEventHandler:
                         
             elif self.game.load_menu:
                 for slot in self.game.menu.load_menu.slots:
-                    if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
+                    if slot.rect.collidepoint(event.pos) and slot.player_name not in ["<<empty>>", "<<incompatible save>>", "<<corrupted save>>"]:
                         Pause(self.game).execute()
                         LoadGame(self.game).execute(slot.index)
 
@@ -473,7 +482,7 @@ class TitleEventHandler:
         if self.game.load_menu:
             load_menu = self.game.menu.load_menu
             for slot in load_menu.slots:
-                if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
+                if slot.rect.collidepoint(event.pos) and slot.player_name not in ["<<empty>>", "<<incompatible save>>", "<<corrupted save>>"]:
                     self.game.load_game(slot.index)
                     self.game.title_screen = False
 

@@ -25,9 +25,7 @@ class Item:
     
     def drop(self):
         """Drop the item."""
-        self.character.inventory.remove(self)
-        if self.character.equipped == self:
-            self.character.equipped = None
+        self.character.drop(self)
         return True, f"You drop {self.description}."
 
     def _can_reload(self, equipped):
@@ -46,7 +44,11 @@ class Item:
         x, y = self.character.location
         city = self.character.game.state.city
         block = city.block(x, y)
-        return block     
+        return block    
+
+    def get_attributes(self):
+        """Returns item-specific attributes for saving."""
+        return {}  # Default: No special attributes     
 
 
 class Weapon(Item):
@@ -79,6 +81,9 @@ class Firearm(Weapon):
         else:
             self.loaded_ammo = self.max_ammo
 
+    def get_attributes(self):
+        """Returns firearm-specific attributes, including ammo count."""
+        return {"loaded_ammo": self.loaded_ammo}
 
 class Melee(Weapon):
     """Base class for all weapons."""
@@ -86,3 +91,7 @@ class Melee(Weapon):
         super().__init__(character, type, name, description, image_file, attack, damage, durability, max_ammo=None)
         self.item_function = ItemFunction.MELEE
         self.durability = durability
+
+    def get_attributes(self):
+        """Returns weapon-specific attributes."""
+        return {"durability": self.durability}        

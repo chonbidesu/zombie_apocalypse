@@ -16,6 +16,7 @@ class City:
 
         self._load_block_names()
         self.grid = self._generate_city()
+        self.necronet = set()
 
     def block(self, x, y):
         """Retrieve a block at coordinates."""

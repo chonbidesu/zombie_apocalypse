@@ -3,9 +3,18 @@
 from dataclasses import dataclass
 import random
 
-from data import SKILLS, SkillCategory, OCCUPATIONS, OccupationCategory
+from data import ItemType, SKILLS, SkillType, SkillCategory, OCCUPATIONS, OccupationCategory
 from core.settings import *
-from ai import GoalManager
+from items import (FirstAidKit, PortableGenerator, FuelCan, Map, Toolbox, Binoculars, DNAExtractor, Syringe, Consumable, Book, PoetryBook, Crucifix, GPSUnit, Newspaper, 
+                    ShotgunShell, PistolClip, Shotgun, Pistol, Knife, Crowbar, FireAxe, Shovel, BaseballBat, GolfClub, HockeyStick, TennisRacket
+)
+
+
+@dataclass
+class CharacterName:
+    first_name: str
+    last_name: str
+    zombie_adjective: str
 
 
 @dataclass
@@ -20,21 +29,32 @@ class BlockNPCs:
     revivifying_bodies: list
 
 
-class State:
-    """Represents an NPC state."""
+@dataclass
+class ZombieWeapon:
+    name: str
+    attack: int
+    damage: int
+
+    @classmethod
+    def choose(cls):
+        """Randomly select hands or teeth and return a ZombieWeapon instance."""
+        attack_type, stats = random.choice(list(ZOMBIE_ATTACKS.items()))
+        return cls(name=attack_type, attack=stats["attack"], damage=stats["damage"])
+
+
+class CharacterHelper:
+    """Helper for the CharacterClass."""
     def __init__(self, character):
         self.game = character.game
         self.character = character # Reference the parent character
+   
+    def update_name(self):
+        """Updates the character's name."""
+        if self.character.is_human:
+            self.character.current_name = f"{self.character.name.first_name} {self.character.name.last_name}"
+        else:
+            self.character.current_name = f"{self.character.name.zombie_adjective} {self.character.name.first_name}"
 
-    def act(self):
-        """Execute AI behaviour."""
-
-        # Evaluate the current goal
-        self.character.current_goal = GoalManager.evaluate_goal(self.character)
-
-        # Execute the goal
-        return self.character.current_goal.execute(self.character)
-    
     def filter_characters_at_location(self, x, y, inside=False, include_player=True):
         """Retrieve all characters at a given location and categorize them."""
         player = self.game.state.player
@@ -138,7 +158,92 @@ class State:
             return 100
             
         elif skill_category == SkillCategory.ZOMBIE:
-            return 100 # Fixed cost for zombie skills     
+            return 100 # Fixed cost for zombie skills            
+
+    def add_starting_skill(self):
+        """Adds a starting skill depending on player's occupation."""
+        occupation_properties = OCCUPATIONS[self.character.occupation]
+        starting_skill = occupation_properties.starting_skill
+        self.add_skill(starting_skill)
+
+    def add_starting_items(self):
+        """Adds starting items depending on player's occupation."""
+        occupation_properties = OCCUPATIONS[self.character.occupation]
+        starting_items = occupation_properties.starting_items
+        for item_type in starting_items:
+            item = self.create_item(item_type)
+            self.character.inventory.append(item)
+
+    def add_skill(self, skill):
+        """Add a skill to the character's skill set."""
+        if skill in SKILLS:
+            skill_category = SKILLS[skill].skill_category
+
+            if skill_category == SkillCategory.ZOMBIE:
+                self.character.zombie_skills.add(skill)
+            else:
+                self.character.human_skills.add(skill)
+
+            self.apply_skill_effect(skill)
+            self.character.gain_level()
+
+    def has_skill(self, skill):
+        """Check if a character has a particular skill."""
+        return skill in self.character.human_skills or skill in self.character.zombie_skills
+
+    def apply_skill_effect(self, skill, remove=False):
+        """Apply or remove the passive effects of a skill."""
+        if remove:
+            modifier = -1
+        else:
+            modifier = 1
+
+        if skill == SkillType.BODY_BUILDING:
+            self.character.max_hp += 10 * modifier
+        elif skill == SkillType.FLESH_ROT:
+            self.character.max_hp += 10 * modifier
+
+    def create_item(self, type):
+        """Create an item based on its type."""
+        item_classes = {
+            ItemType.FIRST_AID_KIT: FirstAidKit,
+            ItemType.PORTABLE_GENERATOR: PortableGenerator,
+            ItemType.FUEL_CAN: FuelCan,
+            ItemType.MAP: Map,
+            ItemType.TOOLBOX: Toolbox,
+            ItemType.BINOCULARS: Binoculars,
+            ItemType.DNA_EXTRACTOR: DNAExtractor,
+            ItemType.SYRINGE: Syringe,
+            ItemType.BEER: Consumable,
+            ItemType.WINE: Consumable,
+            ItemType.BOOK: Book,
+            ItemType.POETRY_BOOK: PoetryBook,
+            ItemType.CANDY: Consumable,
+            ItemType.CRUCIFIX: Crucifix,
+            ItemType.GPS_UNIT: GPSUnit,
+            ItemType.NEWSPAPER: Newspaper,
+            ItemType.SHOTGUN_SHELL: ShotgunShell,
+            ItemType.PISTOL_CLIP: PistolClip,
+            ItemType.KNIFE: Knife,
+            ItemType.CROWBAR: Crowbar,
+            ItemType.FIRE_AXE: FireAxe,
+            ItemType.SHOVEL: Shovel,
+            ItemType.BASEBALL_BAT: BaseballBat,
+            ItemType.GOLF_CLUB: GolfClub,
+            ItemType.HOCKEY_STICK: HockeyStick,
+            ItemType.TENNIS_RACKET: TennisRacket,
+            ItemType.SHOTGUN: Shotgun,
+            ItemType.PISTOL: Pistol,
+        }
+
+        # Check if the item is a weapon
+        item_type = getattr(ItemType, type)
+        if item_type in [ItemType.BEER, ItemType.WINE, ItemType.CANDY]:
+            item = item_classes[item_type](self.character, item_type)
+        else:
+            item = item_classes[item_type](self.character)
+
+        return item            
 
 
 

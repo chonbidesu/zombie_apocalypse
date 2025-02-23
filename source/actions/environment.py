@@ -200,7 +200,7 @@ class Search(ActionCommand):
             return False
         
         item_type = random.choices(items, weights=weights, k=1)[0]
-        item = self.character.create_item(item_type)
+        item = self.character.helper.create_item(item_type)
 
         # Check inventory capacity
         if items_held >= MAX_ITEMS:

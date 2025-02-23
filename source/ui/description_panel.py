@@ -184,7 +184,7 @@ class DescriptionPanel:
                 current_observations += f'You are standing in {properties.description}. '
 
         # Add observations for NPCs and dead bodies
-        block_characters = player.state.filter_characters_at_location(x, y, player.inside, include_player=False)
+        block_characters = player.helper.filter_characters_at_location(x, y, player.inside, include_player=False)
 
         if block_characters.living_zombies:
             if len(block_characters.living_zombies) == 1:
@@ -233,7 +233,7 @@ class DescriptionPanel:
         x, y = player.location        
 
         # Keep track of NPCs currently at the player's location
-        block_characters = player.state.filter_characters_at_location(x, y, player.inside, include_player=False)
+        block_characters = player.helper.filter_characters_at_location(x, y, player.inside, include_player=False)
 
         # Update existing sprites or create new ones if necessary
         updated_sprites = []

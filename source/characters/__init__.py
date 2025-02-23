@@ -3,19 +3,9 @@
 from dataclasses import dataclass
 
 from core.settings import *
-from data import ItemType, SKILLS, SkillType, SkillCategory, OCCUPATIONS
-from characters.human_state import Human
-from characters.zombie_state import Zombie, ZombieWeapon
-from items import (FirstAidKit, PortableGenerator, FuelCan, Map, Toolbox, Binoculars, DNAExtractor, Syringe, Consumable, Book, PoetryBook, Crucifix, GPSUnit, Newspaper, 
-                    ShotgunShell, PistolClip, Shotgun, Pistol, Knife, Crowbar, FireAxe, Shovel, BaseballBat, GolfClub, HockeyStick, TennisRacket, ItemFunction
-)
+from items import ItemFunction
+from characters.helper import CharacterHelper, ZombieWeapon, CharacterName
 
-
-@dataclass
-class CharacterName:
-    first_name: str
-    last_name: str
-    zombie_adjective: str
 
 
 class Character:
@@ -23,6 +13,7 @@ class Character:
     def __init__(self, game, name, occupation, x, y, is_human, inside=False):
         self.game = game
         self.name = name
+        self.current_name = "John Doe"
         self.occupation = occupation
         self.location = (x, y)
         self.max_hp = MAX_HP
@@ -40,62 +31,12 @@ class Character:
         self.zombie_skills = set()
         self.safehouse = None
         self.current_goal = None
+        self.tagged = False
 
-        self.get_state()
-        self.add_starting_skill()
-        self.add_starting_items()
-
-
-    def get_state(self):
-        """Set state based on is_human."""
-        if self.is_human:
-            self.state = Human(self)
-        else:
-            self.state = Zombie(self)
-        self.state.update_name()
-
-    def add_starting_skill(self):
-        """Adds a starting skill depending on player's occupation."""
-        occupation_properties = OCCUPATIONS[self.occupation]
-        starting_skill = occupation_properties.starting_skill
-        self.add_skill(starting_skill)
-
-    def add_starting_items(self):
-        """Adds starting items depending on player's occupation."""
-        occupation_properties = OCCUPATIONS[self.occupation]
-        starting_items = occupation_properties.starting_items
-        for item_type in starting_items:
-            item = self.create_item(item_type)
-            self.inventory.append(item)
-
-    def add_skill(self, skill):
-        """Add a skill to the character's skill set."""
-        if skill in SKILLS:
-            skill_category = SKILLS[skill].skill_category
-
-            if skill_category == SkillCategory.ZOMBIE:
-                self.zombie_skills.add(skill)
-            else:
-                self.human_skills.add(skill)
-
-            self.apply_skill_effect(skill)
-            self.level += 1
-
-    def has_skill(self, skill):
-        """Check if a character has a particular skill."""
-        return skill in self.human_skills or skill in self.zombie_skills
-
-    def apply_skill_effect(self, skill, remove=False):
-        """Apply or remove the passive effects of a skill."""
-        if remove:
-            modifier = -1
-        else:
-            modifier = 1
-
-        if skill == SkillType.BODY_BUILDING:
-            self.max_hp += 10 * modifier
-        elif skill == SkillType.FLESH_ROT:
-            self.max_hp += 10 * modifier
+        self.helper = CharacterHelper(self)
+        self.helper.update_name()    
+        self.helper.add_starting_skill()
+        self.helper.add_starting_items() 
 
     def take_damage(self, amount, fatal=True):
         """Reduces the character's health by the given amount."""
@@ -117,12 +58,11 @@ class Character:
         """Revives the character to human state."""
         self.is_dead = True
         self.is_human = True
-        self.get_state()
 
         for skill in self.zombie_skills:
-            self.apply_skill_effect(skill, remove=True)
+            self.helper.apply_skill_effect(skill, remove=True)
         for skill in self.human_skills:
-            self.apply_skill_effect(skill)    
+            self.helper.apply_skill_effect(skill)    
 
     def gain_ap(self, ap):
         """Gain a certain amount of action points."""
@@ -136,6 +76,10 @@ class Character:
         """Gain a certain amount of experience points."""
         self.xp += xp
 
+    def gain_level(self):
+        """Gain a level."""
+        self.level += 1
+
     def status(self):
         """Returns the character's current status."""
         status = {
@@ -146,53 +90,16 @@ class Character:
         }
         return status
     
-    def create_item(self, type):
-        """Create an item based on its type."""
-        item_classes = {
-            ItemType.FIRST_AID_KIT: FirstAidKit,
-            ItemType.PORTABLE_GENERATOR: PortableGenerator,
-            ItemType.FUEL_CAN: FuelCan,
-            ItemType.MAP: Map,
-            ItemType.TOOLBOX: Toolbox,
-            ItemType.BINOCULARS: Binoculars,
-            ItemType.DNA_EXTRACTOR: DNAExtractor,
-            ItemType.SYRINGE: Syringe,
-            ItemType.BEER: Consumable,
-            ItemType.WINE: Consumable,
-            ItemType.BOOK: Book,
-            ItemType.POETRY_BOOK: PoetryBook,
-            ItemType.CANDY: Consumable,
-            ItemType.CRUCIFIX: Crucifix,
-            ItemType.GPS_UNIT: GPSUnit,
-            ItemType.NEWSPAPER: Newspaper,
-            ItemType.SHOTGUN_SHELL: ShotgunShell,
-            ItemType.PISTOL_CLIP: PistolClip,
-            ItemType.KNIFE: Knife,
-            ItemType.CROWBAR: Crowbar,
-            ItemType.FIRE_AXE: FireAxe,
-            ItemType.SHOVEL: Shovel,
-            ItemType.BASEBALL_BAT: BaseballBat,
-            ItemType.GOLF_CLUB: GolfClub,
-            ItemType.HOCKEY_STICK: HockeyStick,
-            ItemType.TENNIS_RACKET: TennisRacket,
-            ItemType.SHOTGUN: Shotgun,
-            ItemType.PISTOL: Pistol,
-        }
-
-        # Check if the item is a weapon
-        item_type = getattr(ItemType, type)
-        if item_type in [ItemType.BEER, ItemType.WINE, ItemType.CANDY]:
-            item = item_classes[item_type](self, item_type)
-        else:
-            item = item_classes[item_type](self)
-
-        return item
-
     def equip(self, item):
         self.equipped = item
 
     def unequip(self):
-        self.equipped = None        
+        self.equipped = None   
+
+    def drop(self, item):
+        self.inventory.remove(item)
+        if item == self.equipped:
+            self.equipped = None
 
     def deplete_weapon(self):
         """Reduce loaded ammo or durability, depending on weapon type."""

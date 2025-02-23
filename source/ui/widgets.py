@@ -107,7 +107,10 @@ class Cursor(object):
                         self.set_revivify()
                         cursor_changed = True
                         break
-                self.set_attack()
+                    else:
+                        self.set_attack()
+                else:
+                    self.set_punch()
                 cursor_changed = True
                 break
 
@@ -133,6 +136,9 @@ class Cursor(object):
 
     def set_attack(self):
         pygame.mouse.set_cursor(self.attack_cursor)
+
+    def set_punch(self):
+        pygame.mouse.set_cursor(self.punch_cursor)
 
     def set_extract(self):
         pygame.mouse.set_cursor(self.extract_cursor)

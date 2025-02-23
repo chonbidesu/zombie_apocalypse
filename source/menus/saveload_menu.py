@@ -66,6 +66,27 @@ class SaveSlot(pygame.sprite.Sprite):
         y = ((SCREEN_HEIGHT // 2) - (height * 3 // 2)) + self.index * height
         self.rect.topleft = (x, y)
 
+    def _load_save_metadata(self, save_path):
+        """Loads the metadata from save files."""
+        try:
+            with open(save_path, "rb") as f:
+                save_data = pickle.load(f)
+
+                # Check if the save has a version number
+                saved_version = save_data.game_version if hasattr(save_data, "game_version") else "Unknown"
+                if saved_version != GAME_VERSION:
+                    return "<<incompatible save>>"
+                
+                # Extract player name from save file
+                player_data = save_data.player_data
+                if player_data.get("is_human"):
+                    return f"{player_data.get('first_name', 'Unknown')} {player_data.get('last_name', '')}"
+                else:
+                    return f"{player_data.get('zombie_adjective', 'Unknown')} {player_data.get('first_name', '')}"
+
+        except (FileNotFoundError, pickle.UnpicklingError, KeyError):
+            return "<<corrupted save>>"
+
     def update_image(self):
         # Clear the image
         self.image.fill((0, 0, 0, 0))
@@ -81,14 +102,10 @@ class SaveSlot(pygame.sprite.Sprite):
         # Determine the slot label and player name
         slot_label = f"SLOT {chr(65 + self.index)}"
         save_path = SaveLoadPath(f"save_{self.index}.pkl").path
+
         if os.path.exists(save_path):
-            with open(save_path, 'rb') as f:
-                game_state = pickle.load(f)
-                is_human = game_state.player_data["is_human"]
-                if is_human:
-                    self.player_name = f"{game_state.player_data["first_name"]} {game_state.player_data["last_name"]}"
-                else:
-                    self.player_name = f"{game_state.player_data["zombie_adjective"]} {game_state.player_data["first_name"]}"                   
+            self.player_name = self._load_save_metadata(save_path)
+
         else:
             self.player_name = "<<empty>>"
 

@@ -10,6 +10,7 @@ from items import ItemFunction
 
 class GameData:
     def __init__(self, game):
+        self.game_version = GAME_VERSION
         self.city_data = self._serialize_city(game.state.city)
         self.player_data = self._serialize_player(game.state.player)
         self.npc_data = self._serialize_npcs(game.state.npcs)
@@ -187,7 +188,7 @@ class GameData:
         # Reconstruct inventory
         for item_data in self.player_data["inventory"]:
             # Create item using the predefined method
-            item = player.create_item(item_data["type"].name)
+            item = player.helper.create_item(item_data["type"].name)
 
             # Restore additional attributes
             if item.item_function == ItemFunction.MELEE:  # For weapons, set weapon-specific attributes
@@ -240,7 +241,7 @@ class GameData:
             # Reconstruct inventory
             for item_data in npc_data["inventory"]:
                 # Create item using the predefined method
-                item = npc.create_item(item_data["type"].name)
+                item = npc.helper.create_item(item_data["type"].name)
 
                 # Restore additional attributes
                 if item.item_function == ItemFunction.MELEE:  # For weapons, set weapon-specific attributes

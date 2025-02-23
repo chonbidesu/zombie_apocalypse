@@ -56,14 +56,14 @@ class ActionsPanel:
         x, y = player.location[0], player.location[1]
         block = self.game.state.city.block(x, y)
         properties = BLOCKS[block.type]
-        block_npcs = player.state.filter_characters_at_location(x, y, player.inside, include_player=False)
+        block_npcs = player.helper.filter_characters_at_location(x, y, player.inside, include_player=False)
         buttons = []
 
         if player.is_dead:
             buttons.append(self.stand_button)
         else:
             if player.inside:
-                if player.has_skill(SkillType.CONSTRUCTION):
+                if player.helper.has_skill(SkillType.CONSTRUCTION):
                     buttons.append(self.barricade_button)
 
                 buttons.append(self.search_button)
@@ -81,7 +81,7 @@ class ActionsPanel:
                     if len(block_npcs.dead_bodies) > 0:
                         buttons.append(self.dump_button)             
                 else:
-                    if player.has_skill(SkillType.RANSACK):
+                    if player.helper.has_skill(SkillType.RANSACK):
                         buttons.append(self.ransack_button)
                         
             else:

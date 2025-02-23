@@ -3,8 +3,8 @@
 import pygame
 from data import DataPath
 
-# Saved game file
-SAVE_FILE = "savegame.pkl"
+# Game Version
+GAME_VERSION = 'v0.5.0'
 
 # Screen dimensions
 SCREEN_WIDTH = 1200

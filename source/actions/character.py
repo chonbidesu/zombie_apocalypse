@@ -20,7 +20,7 @@ class Drop(ActionCommand):
         super().__init__(character)
 
     def execute(self, target):
-        self.success, self.message = target.drop()        
+        self.success, self.message = target.item.drop()        
 
 
 class Move(ActionCommand):
@@ -43,21 +43,21 @@ class Move(ActionCommand):
 
             if self.character.is_human:
                 if block_properties.is_building:
-                    if self.character.has_skill(SkillType.FREE_RUNNING):
+                    if self.character.helper.has_skill(SkillType.FREE_RUNNING):
                         if new_block.ruined:
                             self.character.inside = False
                             self.character.fall()                    
                     else:
                         self.character.inside = False                        
                 else:
-                    self.inside = False
+                    self.character.inside = False
 
                 self.success = True
                 self.character.lose_ap(1)
 
             else:
                 self.character.inside = False
-                if self.character.has_skill(SkillType.LURCHING_GAIT):
+                if self.character.helper.has_skill(SkillType.LURCHING_GAIT):
                     self.character.lose_ap(1)
                 else:
                     self.character.lose_ap(2)
@@ -84,7 +84,7 @@ class Enter(ActionCommand):
 
             else:
                 if building.doors_closed:
-                    if self.character.has_skill(SkillType.MEMORIES_OF_LIFE):
+                    if self.character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
                         building.open_doors()
                         self.character.lose_ap(1)
                         self.success = True
@@ -138,7 +138,7 @@ class Leave(ActionCommand):
                 self.sfx = 'footsteps'
             else:
                 if building.doors_closed:
-                    if self.character.has_skill(SkillType.MEMORIES_OF_LIFE):
+                    if self.character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
                         building.open_doors()
                         self.character.leave()
                         self.character.lose_ap(1)
@@ -185,7 +185,7 @@ class Stand(ActionCommand):
         if not self.character.permadeath:
             self.success = True
             self.character.heal(self.character.max_hp // 2)
-            if self.character.has_skill(SkillType.ANKLE_GRAB):
+            if self.character.helper.has_skill(SkillType.ANKLE_GRAB):
                 self.character.lose_ap(1)
             else:
                 self.character.lose_ap(STAND_AP)    

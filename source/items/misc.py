@@ -118,7 +118,7 @@ class Consumable(Item):
             self.description = 'a bottle of wine'
         elif self.type == ItemType.CANDY:
             self.name = 'Stale Candy'
-            self.description = 'a stale piece of candy'
+            self.description = 'a stale piece of candy'        
 
 
 class Map(Item):
@@ -128,6 +128,7 @@ class Map(Item):
 
     def use(self):
         self.character.game.reading_map = True
+        return True, "You open the map."
 
 class Binoculars(Item):
     """A pair of binoculars."""
@@ -135,7 +136,7 @@ class Binoculars(Item):
         super().__init__(character, ItemType.BINOCULARS, "Binoculars", "a pair of binoculars", ItemFunction.MISC, ResourcePath('items/binoculars.png').path)  
 
     def use(self):
-        pass     
+        return True, "You use the binoculars."
 
 
 class Book(Item):
@@ -144,7 +145,7 @@ class Book(Item):
         super().__init__(character, ItemType.BOOK, "Book", "a book", ItemFunction.MISC, ResourcePath('items/book.png').path)
 
     def use(self):
-        pass           
+        return True, "You read the book."          
 
 class PoetryBook(Item):
     """A book of poetry."""
@@ -152,7 +153,7 @@ class PoetryBook(Item):
         super().__init__(character, ItemType.POETRY_BOOK, "Book of Poetry", "a book of poetry", ItemFunction.MISC, ResourcePath('items/poetry_book.png').path)
 
     def use(self):
-        pass        
+        return True, "You read the book of poetry."       
 
 class Crucifix(Item):
     """A wooden cross with a figure of Jesus in suffering."""
@@ -160,7 +161,7 @@ class Crucifix(Item):
         super().__init__(character, ItemType.CRUCIFIX, "Crucifix", "a crucifix", ItemFunction.MISC, ResourcePath('items/crucifix.png').path)
 
     def use(self):
-        pass      
+        return True, "You hold the crucifix in front of you, in hopes it offers some protection."    
 
 class GPSUnit(Item):
     """A GPS unit, showing the character's coordinates."""
@@ -168,7 +169,7 @@ class GPSUnit(Item):
         super().__init__(character, ItemType.GPS_UNIT, "GPS Unit", "a GPS unit", ItemFunction.MISC, ResourcePath('items/gps_unit.png').path)
 
     def use(self):
-        pass      
+        return True, "You use the GPS unit."   
 
 class Newspaper(Item):
     """A daily newspaper."""
@@ -176,4 +177,4 @@ class Newspaper(Item):
         super().__init__(character, ItemType.NEWSPAPER, "Newspaper", "a daily newspaper", ItemFunction.MISC, ResourcePath('items/newspaper.png').path)
 
     def use(self):
-        pass  
+        return True, "You read the newspaper."

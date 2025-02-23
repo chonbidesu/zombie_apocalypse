@@ -39,24 +39,24 @@ class Attack(ActionCommand):
 
             # Apply skill bonuses
             if weapon.item_function == ItemFunction.FIREARM:
-                if self.character.has_skill(SkillType.BASIC_FIREARMS_TRAINING):
+                if self.character.helper.has_skill(SkillType.BASIC_FIREARMS_TRAINING):
                     attack_chance += 25
                 if weapon.type == ItemType.PISTOL:
-                    if self.character.has_skill(SkillType.PISTOL_TRAINING):
+                    if self.character.helper.has_skill(SkillType.PISTOL_TRAINING):
                         attack_chance += 25
-                    if self.character.has_skill(SkillType.ADV_PISTOL_TRAINING):
+                    if self.character.helper.has_skill(SkillType.ADV_PISTOL_TRAINING):
                         attack_chance += 10
                 if weapon.type == ItemType.SHOTGUN:
-                    if self.character.has_skill(SkillType.SHOTGUN_TRAINING):
+                    if self.character.helper.has_skill(SkillType.SHOTGUN_TRAINING):
                         attack_chance += 25
-                    if self.character.has_skill(SkillType.ADV_SHOTGUN_TRAINING):
+                    if self.character.helper.has_skill(SkillType.ADV_SHOTGUN_TRAINING):
                         attack_chance += 10
             if weapon.item_function == ItemFunction.MELEE:
-                if self.character.has_skill(SkillType.HAND_TO_HAND):
+                if self.character.helper.has_skill(SkillType.HAND_TO_HAND):
                     attack_chance += 15
-                if weapon.type == ItemType.KNIFE and self.character.has_skill(SkillType.KNIFE_COMBAT):
+                if weapon.type == ItemType.KNIFE and self.character.helper.has_skill(SkillType.KNIFE_COMBAT):
                         attack_chance += 15
-                if weapon.type == ItemType.FIRE_AXE and self.character.has_skill(SkillType.AXE_PROFICIENCY):
+                if weapon.type == ItemType.FIRE_AXE and self.character.helper.has_skill(SkillType.AXE_PROFICIENCY):
                         attack_chance += 15
             
             roll = random.randint(1, 100)
@@ -81,7 +81,7 @@ class Attack(ActionCommand):
                             sprite.set_action(3)
 
 
-                if target.is_dead and self.character.has_skill(SkillType.HEADSHOT):
+                if target.is_dead and self.character.helper.has_skill(SkillType.HEADSHOT):
                     target.permadeath = True
                     if self.character.equipped:
                         self.message = f"You deal a headshot for {weapon.damage} damage."
@@ -106,7 +106,7 @@ class Attack(ActionCommand):
         else: # If no weapon equipped, punch the enemy.
             attack_chance = 10
 
-            if self.character.has_skill(SkillType.HAND_TO_HAND):
+            if self.character.helper.has_skill(SkillType.HAND_TO_HAND):
                 attack_chance += 15
 
             roll = random.randint(1, 100)
@@ -145,13 +145,13 @@ class Attack(ActionCommand):
         bonus_damage = 0
 
         # Apply skill bonuses
-        if self.character.has_skill(SkillType.VIGOUR_MORTIS):
+        if self.character.helper.has_skill(SkillType.VIGOUR_MORTIS):
             attack_chance += 10
-        if weapon.name == 'hands' and self.character.has_skill(SkillType.DEATH_GRIP):
+        if weapon.name == 'hands' and self.character.helper.has_skill(SkillType.DEATH_GRIP):
             attack_chance += 15
-            if self.character.has_skill(SkillType.REND_FLESH):
+            if self.character.helper.has_skill(SkillType.REND_FLESH):
                 bonus_damage = 1
-        if weapon.name == 'teeth' and self.character.has_skill(SkillType.NECK_LURCH):
+        if weapon.name == 'teeth' and self.character.helper.has_skill(SkillType.NECK_LURCH):
             attack_chance += 10
 
         roll = random.randint(1, 100)
@@ -190,9 +190,9 @@ class Heal(ActionCommand):
         block = self.get_block()
 
         block_properties = BLOCKS[block.type]
-        if self.character.has_skill(SkillType.FIRST_AID):
+        if self.character.helper.has_skill(SkillType.FIRST_AID):
             heal_bonus = 5
-            if self.character.has_skill(SkillType.SURGERY) and block_properties.type == BlockType.HOSPITAL and block.lights_on:
+            if self.character.helper.has_skill(SkillType.SURGERY) and block_properties.type == BlockType.HOSPITAL and block.lights_on:
                 heal_bonus += 5
         else:
             heal_bonus = 0
@@ -214,7 +214,7 @@ class Heal(ActionCommand):
                 self.message = f"{target.current_name} already feels healthy."
 
 class Inject(ActionCommand):
-    """Handles attacking enemies."""
+    """Handles reviving zombies."""
     def __init__(self, character):
         super().__init__(character)
 
@@ -238,7 +238,7 @@ class Inject(ActionCommand):
                 self._inject_success(target)
 
     def _inject_success(self, target):
-        target.revivify()
+        target.revive()
         self.character.lose_ap(10)
 
         # Trigger NPC sprite animation if visible
@@ -250,3 +250,29 @@ class Inject(ActionCommand):
         self.success = True
         self.message = "Following standard procedures, you press the syringe into the back of the zombie's neck and pump the glittering serum into its brain and spinal cord."
             
+
+class ExtractDNA(ActionCommand):
+    """Handles extracting DNA from zombies."""
+    def __init__(self, character):
+        super().__init__(character)
+
+    def execute(self, target):
+        if target.is_human:
+            self.character.lose_ap(1)
+            message = "NecroTech needs DNA samples from the dead, not the living."
+            return
+        
+        if not target.tagged:
+            self.character.gain_xp(4)
+
+        self.extract_dna(target)
+        self.character.lose_ap(1)
+        self.success = True
+        self.message = f"You extract DNA from the zombie and upload the data to the NecroNet."
+
+    def extract_dna(self, target):
+        city = self.character.game.state.city
+
+        target.tagged = True
+        city.necronet.add(target)
+        
