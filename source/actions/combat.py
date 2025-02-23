@@ -101,6 +101,8 @@ class Attack(ActionCommand):
                         self.witness = f"{self.character.current_name} attacks {target.current_name} with {weapon.description}."
                         self.success = True
             else:
+                if self.character.equipped.item_function == ItemFunction.FIREARM:
+                    self.character.deplete_weapon()
                 self.message = "Your attack misses."
 
         else: # If no weapon equipped, punch the enemy.

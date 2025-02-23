@@ -1,6 +1,7 @@
 # base_classes.py
 
 from enum import Enum, auto
+from data import ItemType
 
 class ItemFunction(Enum):
     MISC = auto()
@@ -37,6 +38,9 @@ class Item:
         
         if equipped.loaded_ammo >= equipped.max_ammo:
             return False, "Your weapon is already fully loaded."    
+        
+        if (self.type == ItemType.SHOTGUN_SHELL and equipped.type == ItemType.PISTOL) or (self.type == ItemType.PISTOL_CLIP and equipped.type == ItemType.SHOTGUN):
+            return False, "This is the wrong type of ammo for this weapon."
         
         return True, ""      
     

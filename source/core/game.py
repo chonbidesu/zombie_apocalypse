@@ -4,10 +4,12 @@ import pygame
 import sys
 from pygame.locals import *
 from dataclasses import dataclass
+from collections import deque
 
 import menus
 import core.events as events
 import core.saveload as saveload
+from core.settings import *
 import ui
 from world import City, GenerateNPCs, CityBlock, BuildingBlock
 from characters import Character, CharacterName
@@ -167,6 +169,113 @@ class GameInitializer:
 
         if self.load_menu:
             self.load_menu = False          
+
+    def handle_events(self, events):
+        """Handles all event processing, including menus and gameplay."""
+        if self.title_screen:
+            self.title_event_handler.handle_events(events)
+        elif self.paused:
+            self.menu_event_handler.handle_events(events)
+        elif self.skills_menu:
+            self.menu_event_handler.handle_events(events)
+        elif self.reading_map:
+            self.map_event_handler.handle_events(events)
+        else:
+            self.event_handler.handle_events(events)
+
+        if self.popup_menu:
+            self.popup_menu.handle_events(events)
+
+    def update_game_state(self):
+        """Handles updating NPCs, processing actions, and checking player status."""
+        
+        if self.state:
+            # Process NPC actions
+            self.process_npcs()
+
+            # Handle player death
+            if self.state.player.is_dead:
+                self.game_ui.death_screen.handle_events(pygame.event.get())
+                self.game_ui.death_screen.draw()
+                if self.game_ui.death_screen.restart:
+                    self.initialize_game()
+
+    def process_npcs(self):
+        """Processes NPC actions in batches to optimize performance."""
+        # Set up AI action queue
+        action_timer = 0
+        action_queue = deque()
+        actions_per_frame = 100
+        clock = pygame.time.Clock()
+
+        action_timer += clock.get_time()
+        if action_timer >= ACTION_INTERVAL:
+            self.state.npcs.gain_ap() # Grant AP to all NPCs
+            action_queue = deque(self.state.npcs.list) # Load all NPCs into the queue
+            action_timer = 0
+            self.ticker += 1
+            
+            # Check buildings for fuel expiry
+            for row in self.state.city.grid:
+                for block in row:
+                    if hasattr(block, 'fuel_expiration') and block.fuel_expiration < self.ticker:
+                        if block.lights_on:
+                            block.lights_on = False         
+
+        # Process the action queue in batches
+        for _ in range(min(actions_per_frame, len(action_queue))):
+            npc = action_queue.popleft() # Get next npc
+            """
+            NPC DECISION MAKING GOES HERE
+            npc.gain_skill()
+            """
+            
+    def update_screen(self):
+        """Handles drawing game elements and updating UI."""
+        
+        if self.title_screen:
+            if self.newgame_menu:
+                self.menu.newgame_menu.draw(self.screen)
+            elif self.load_menu:
+                self.menu.load_menu.draw(self.screen)
+            elif self.start_new_game:
+                self.initialize_game()
+                self.start_new_game = False
+                self.title_screen = False
+            else:
+                self.menu.title_menu.draw(self.screen)
+
+        elif self.paused:
+            if self.save_menu:
+                self.menu.save_menu.draw(self.screen)
+            elif self.load_menu:
+                self.menu.load_menu.draw(self.screen)
+            elif self.newgame_menu:
+                self.menu.newgame_menu.draw(self.screen)
+            elif self.start_new_game:
+                self.initialize_game()
+                self.start_new_game = False
+                self.pause_game()
+            else:
+                self.menu.pause_menu.draw(self.screen)
+
+        elif self.skills_menu:
+            self.menu.skills_menu.draw(self.screen)
+
+        elif self.reading_map:
+            self.game_ui.map.draw()
+
+        else:
+            # Draw game elements
+            self.game_ui.update()
+            self.game_ui.draw(self.chat_history)
+
+            # Draw right-click menu if active
+            if self.popup_menu:
+                self.popup_menu.draw()
+
+            # Update cursor
+            self.cursor.update()
 
     def open_skills_menu(self):
         self.skills_menu = True
