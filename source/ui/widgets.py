@@ -98,12 +98,12 @@ class Cursor(object):
         # Check collisions with zombie sprites
         for zombie in game_ui.description_panel.zombie_sprite_group:
             if zombie.rect.collidepoint((mouse_x, mouse_y)):
-                if player.weapon:
-                    if player.weapon.type == ItemType.DNA_EXTRACTOR:
+                if player.equipped:
+                    if player.equipped.type == ItemType.DNA_EXTRACTOR:
                         self.set_extract()
                         cursor_changed = True
                         break
-                    elif player.weapon.type == ItemType.SYRINGE:
+                    elif player.equipped.type == ItemType.SYRINGE:
                         self.set_revivify()
                         cursor_changed = True
                         break
@@ -113,15 +113,15 @@ class Cursor(object):
 
         for human in game_ui.description_panel.human_sprite_group:
             if human.rect.collidepoint((mouse_x, mouse_y)):
-                if player.weapon:
-                    if player.weapon.type == ItemType.FIRST_AID_KIT:
+                if player.equipped:
+                    if player.equipped.type == ItemType.FIRST_AID_KIT:
                         self.set_heal()
                         cursor_changed = True
                         break
 
         if player_sprite.rect.collidepoint((mouse_x, mouse_y)):
-            if player.weapon:
-                if player.weapon.type == ItemType.FIRST_AID_KIT:
+            if player.equipped:
+                if player.equipped.type == ItemType.FIRST_AID_KIT:
                     self.set_heal()
                     cursor_changed = True
 

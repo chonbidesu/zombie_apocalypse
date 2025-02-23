@@ -12,7 +12,7 @@ class Use(ActionCommand):
         super().__init__(character)
 
     def execute(self, target):
-        self.success, self.message = target.use()
+        self.success, self.message = target.item.use()
 
 
 class Drop(ActionCommand):
@@ -28,7 +28,7 @@ class Move(ActionCommand):
         super().__init__(character)
 
     def execute(self, target=None):
-        city = self.game.state.city        
+        city = self.character.game.state.city        
         x, y = self.character.location
         if target:
             dx, dy = target.dx, target.dy

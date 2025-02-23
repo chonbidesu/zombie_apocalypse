@@ -191,6 +191,9 @@ class Character:
     def equip(self, item):
         self.equipped = item
 
+    def unequip(self):
+        self.equipped = None        
+
     def deplete_weapon(self):
         """Reduce loaded ammo or durability, depending on weapon type."""
         if self.equipped.item_function == ItemFunction.FIREARM:

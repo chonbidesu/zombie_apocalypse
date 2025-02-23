@@ -83,7 +83,7 @@ class AddBarricades(ActionCommand):
                 self.witness = f"{self.character.current_name} reinforced the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
             
             elif self.barricade.sublevel == 0:
-                barricade_description = block.barricade.get_barricade_description()
+                barricade_description = block.barricade.get_description()
                 self.message = f"You reinforce the barricade. The building is now {barricade_description}."   
                 self.witness = f"{self.character.current_name} reinforced the barricade. The building is now {barricade_description}."
             
@@ -187,15 +187,17 @@ class Search(ActionCommand):
         # Roll for success
         if random.random() >= search_chance:
             self.character.lose_ap(1)
-            return False, "You didn't find anything."
+            self.message = "You didn't find anything."
+            return False
 
         # If successful, determine the found item
         items = list(search_chances)
-        weights = [search_chances[item].get(self.type.name, 0.0) for item in items]
+        weights = [search_chances[item].get(block.type.name, 0.0) for item in items]
 
         if not any(weights):
             self.character.lose_ap(1)
-            return False, "You didn't find anything."
+            self.message = "You didn't find anything."
+            return False
         
         item_type = random.choices(items, weights=weights, k=1)[0]
         item = self.character.create_item(item_type)
@@ -203,19 +205,22 @@ class Search(ActionCommand):
         # Check inventory capacity
         if items_held >= MAX_ITEMS:
             self.character.lose_ap(1)
-            return False, f"You found {item.description}, but you are carrying too much!"
+            self.message = f"You found {item.description}, but you are carrying too much!"
+            return False
 
         # Check for duplicate portable generator
         if item.type == ItemType.PORTABLE_GENERATOR:
             for inventory_item in self.character.inventory:
                 if hasattr(inventory_item, 'type') and inventory_item.type == ItemType.PORTABLE_GENERATOR:
                     self.character.lose_ap(1)
-                    return False, "You found a portable generator, but you can only carry one at a time."
+                    self.message = "You found a portable generator, but you can only carry one at a time."
+                    return False
  
         # Add the item to inventory
         self.character.inventory.append(item)
         self.character.lose_ap(1)
-        return True, f"You found {item.description}!"
+        self.message = f"You found {item.description}!"        
+        return True
 
 
     def _load_search_chances(self, file_path):

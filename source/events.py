@@ -153,9 +153,10 @@ class EventHandler:
                     'break_cades': Decade,
                     'stand': Stand,
                 }
-                action = button_to_action.get(action_name)
-                if action:
-                    action(player).execute()
+                action_class = button_to_action.get(action_name)
+                if action_class:
+                    action = action_class(player)
+                    action.execute()
                     if action.message:
                         self.handle_feedback(action.message)                    
 
@@ -171,9 +172,10 @@ class EventHandler:
             'Reload': Use,
             'Drop': Drop,
         }
-        action = menu_to_action.get(action_type)
-        if action:
-            action(player).execute(target)
+        action_class = menu_to_action.get(action_type)
+        if action_class:
+            action = action_class(player)
+            action.execute(target)
             if action.message:
                 self.handle_feedback(action.message)
 

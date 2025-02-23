@@ -30,14 +30,6 @@ class Item:
             self.character.equipped = None
         return True, f"You drop {self.description}."
 
-    def equip(self):
-        """Equipable items override this method."""
-        raise NotImplementedError("This item cannot be equipped.")    
-    
-    def unequip(self):
-        """Equipable items override this method."""
-        raise NotImplementedError("This item cannot be unequipped.")        
-
     def _can_reload(self, equipped):
         if not equipped:
             return False, "You need to equip a firearm to reload."
@@ -64,18 +56,19 @@ class Weapon(Item):
         self.attack = attack
         self.damage = damage
 
-    def equip(self):
-        """Using a weapon equips it to the character."""
-        self.character.equip(self)
-
-    def unequip(self):
-        self.character.unequip(self)
+    def use(self):
+        if self.character.equipped != self:
+            self.character.equip(self)
+            return True, f"You equipped {self.description}."
+        else:
+            self.character.unequip()
+            return True, f"You unequipped {self.description}."
 
 
 class Firearm(Weapon):
     """Base class for all weapons."""
     def __init__(self, character, type, name, description, image_file, attack, damage, max_ammo):
-        super().__init__(character, type, name, description, image_file, attack, damage, max_ammo, durability=None)
+        super().__init__(character, type, name, description, image_file, attack, damage, durability=None, max_ammo=max_ammo)
         self.item_function = ItemFunction.FIREARM
         self.loaded_ammo = max_ammo
         self.max_ammo = max_ammo

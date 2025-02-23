@@ -149,7 +149,7 @@ class GameData:
                 block.lights_on = block_data["lights_on"]
                 block.generator_installed = block_data["generator_installed"]
                 block.fuel_expiration = block_data["fuel_expiration"]
-                block.barricade.set_barricade_level(block_data["barricade_level"])
+                block.barricade.set_level(block_data["barricade_level"])
                 block.barricade.sublevel = block_data["barricade_sublevel"]
                 block.ransack_level = block_data["ransack_level"]
                 block.ruined = block_data["ruined"]

@@ -144,7 +144,7 @@ class DescriptionPanel:
             current_observations += f'You are standing inside {current_block.name}. '
             if not current_block.lights_on:
                 current_observations += 'With the lights out, you can hardly see anything. '
-            current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
+            current_observations += f"The building is {current_block.barricade.get_description()}. "
             if current_block.barricade.level == 0:
                 if current_block.doors_closed:
                     current_observations += "The doors have been closed. "
@@ -172,7 +172,7 @@ class DescriptionPanel:
                 properties = BLOCKS[current_block.type]
             if properties.is_building:
                 current_observations += f'You are standing outside {properties.description}. A sign reads "{current_block.name}". '
-                current_observations += f"The building is {current_block.barricade.get_barricade_description()}. "
+                current_observations += f"The building is {current_block.barricade.get_description()}. "
                 if current_block.barricade.level == 0:
                     if current_block.doors_closed:
                         current_observations += "The doors have been closed. "
