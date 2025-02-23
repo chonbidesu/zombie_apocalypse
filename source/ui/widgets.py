@@ -98,7 +98,7 @@ class Cursor(object):
         # Check collisions with zombie sprites
         for zombie in game_ui.description_panel.zombie_sprite_group:
             if zombie.rect.collidepoint((mouse_x, mouse_y)):
-                if player.equipped:
+                if player.equipped and player.equipped.type != ItemType.FIRST_AID_KIT:
                     if player.equipped.type == ItemType.DNA_EXTRACTOR:
                         self.set_extract()
                         cursor_changed = True
