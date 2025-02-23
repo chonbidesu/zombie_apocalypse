@@ -20,11 +20,10 @@ class EventHandler:
 
     def handle_events(self, events):
         """Handle all game events."""
-        player = self.game.state.player
 
         for event in events:
             if event.type == pygame.QUIT:
-                Quit(player).execute()
+                Quit(self.game).execute()
 
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event)
