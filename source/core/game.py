@@ -6,13 +6,11 @@ from pygame.locals import *
 from dataclasses import dataclass
 
 import menus
-import events
-import saveload
+import core.events as events
+import core.saveload as saveload
 import ui
-from city import City
+from world import City, GenerateNPCs, CityBlock, BuildingBlock
 from characters import Character, CharacterName
-from populate import GenerateNPCs
-from blocks import CityBlock, BuildingBlock
 from data import Occupation, ResourcePath
 
 

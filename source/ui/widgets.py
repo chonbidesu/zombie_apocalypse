@@ -3,7 +3,7 @@
 import pygame
 import time
 
-from settings import *
+from core.settings import *
 from data import ResourcePath, ItemType
 
 class Button(pygame.sprite.Sprite):
@@ -175,5 +175,5 @@ class ClockHUD:
 
         time_surface = font_xl.render(time_str, True, colour)
         time_shadow = font_xl.render(time_str, True, BLACK)
-        screen.blit(time_shadow, (x + 1, y + 1))  # Drop shadow
+        screen.blit(time_shadow, (x + 2, y + 2))  # Drop shadow
         screen.blit(time_surface, (x, y))  # Display in centre of setting image

@@ -1,6 +1,6 @@
 # pause_menu.py
 
-from settings import *
+from core.settings import *
 from ui.widgets import Button
 
 

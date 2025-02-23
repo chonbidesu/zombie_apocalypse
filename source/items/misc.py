@@ -2,7 +2,7 @@
 
 from data import ResourcePath, SkillType, ItemType
 from items.base_classes import Item, ItemFunction
-from settings import *
+from core.settings import *
 
 
 class PortableGenerator(Item):
@@ -81,6 +81,20 @@ class Toolbox(Item):
                 return True, "You repaired the interior of the building and cleaned up the mess."
         else:
             return False, "You have to be inside a building to use this."        
+        
+
+class FirstAidKit(Item):
+    """A first-aid kit, capable of healing wounds."""
+    def __init__(self, character):
+        super().__init__(character, ItemType.FIRST_AID_KIT, "First-Aid Kit", "a first-aid kit", ItemFunction.MISC, ResourcePath('items/first_aid_kit.png').path)  
+
+    def use(self):
+        if self.character.equipped != self:
+            self.character.equip(self)
+            return True, f"You equipped {self.description}."
+        else:
+            self.character.unequip()
+            return True, f"You unequipped {self.description}."
         
 
 class Consumable(Item):

@@ -4,8 +4,8 @@ import pygame
 import sys
 from collections import deque
 
-from settings import *
-from game import GameInitializer
+from core.settings import *
+from core import GameInitializer
 
 # Main game loop
 def main():

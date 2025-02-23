@@ -1,6 +1,6 @@
 # status_panel.py
 
-from settings import *
+from core.settings import *
 from ui.utils import SpriteSheet
 from ui.widgets import Button
 from data import ResourcePath

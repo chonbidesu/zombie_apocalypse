@@ -4,7 +4,7 @@ import random
 import csv
 
 from characters import Character, CharacterName
-from settings import *
+from core.settings import *
 from data import Occupation, OCCUPATIONS
 
 

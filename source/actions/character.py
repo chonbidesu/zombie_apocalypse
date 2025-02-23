@@ -4,7 +4,7 @@ import random
 
 from actions.base_command import ActionCommand
 from data import BLOCKS, SkillType
-from settings import *
+from core.settings import *
              
 
 class Use(ActionCommand):

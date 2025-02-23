@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import random
 
 from data import SKILLS, SkillCategory, OCCUPATIONS, OccupationCategory
-from settings import *
+from core.settings import *
 from ai import GoalManager
 
 

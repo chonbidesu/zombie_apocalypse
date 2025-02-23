@@ -5,8 +5,8 @@ from collections import defaultdict
 from pathlib import Path
 
 
-from blocks import CityBlock, BuildingBlock
-from settings import *
+from .blocks import CityBlock, BuildingBlock
+from core.settings import *
 from data import BLOCKS, BlockType, NEIGHBOURHOODS
 
 class City:

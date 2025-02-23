@@ -3,7 +3,7 @@
 import pygame
 from dataclasses import dataclass
 
-from data import Action, ItemType
+from data import ItemType
 from menus import ContextMenu
 from actions import *
 

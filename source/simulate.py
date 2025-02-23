@@ -5,7 +5,7 @@ import logging
 import pygame
 
 from main import GameInitializer  # Import the game setup
-from settings import *
+from core.settings import *
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 

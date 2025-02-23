@@ -2,7 +2,7 @@
 
 import pygame
 
-from settings import *
+from core.settings import *
 from data import OCCUPATIONS, Occupation, OccupationCategory, ResourcePath
 from ui import Button, WrapText
 from characters import CharacterName, Character

@@ -2,7 +2,7 @@
 
 import pygame
 
-from settings import *
+from core.settings import *
 from ui.widgets import Button
 from data import BLOCKS, SKILLS, SkillType
 

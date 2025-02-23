@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from actions.base_command import ActionCommand
 from data import ItemType
-from settings import *
+from core.settings import *
 
 
 class CloseDoors(ActionCommand):

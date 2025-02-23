@@ -2,9 +2,8 @@
 
 import random
 from collections import defaultdict
-import csv
 
-from settings import *
+from core.settings import *
 from data import BarricadeState, BARRICADE_DESCRIPTIONS
 
 class CityBlock:

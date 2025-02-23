@@ -1,7 +1,7 @@
 # effects.py
 
 import pygame
-from settings import *
+from core.settings import *
 
 class ScreenTransition:
     """Handles screen transition effects."""

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from settings import *
+from core.settings import *
 from data import ItemType, SKILLS, SkillType, SkillCategory, OCCUPATIONS
 from characters.human_state import Human
 from characters.zombie_state import Zombie, ZombieWeapon
@@ -103,7 +103,7 @@ class Character:
         if self.hp <= 0:
             if fatal:
                 self.hp = 0
-                self.state.die()
+                self.die()
             else:
                 self.hp = 1
         elif self == self.game.state.player:  # Trigger red flicker effect for the player only

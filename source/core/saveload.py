@@ -3,7 +3,7 @@
 import pickle
 import os
 
-from settings import *
+from core.settings import *
 from data import BLOCKS, SaveLoadPath
 from characters import CharacterName
 from items import ItemFunction

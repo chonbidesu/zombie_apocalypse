@@ -2,7 +2,7 @@
 
 import random
 
-from settings import *
+from core.settings import *
 from ui.utils import WrapText, SpriteSheet
 from data import BLOCKS, BlockType, SkillType, OCCUPATIONS, ResourcePath
 from ui.widgets import ClockHUD

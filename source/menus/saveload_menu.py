@@ -4,7 +4,7 @@ import os
 import pickle
 import pygame
 
-from settings import *
+from core.settings import *
 from ui import Button
 from data import SaveLoadPath
 

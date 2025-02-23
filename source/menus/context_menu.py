@@ -3,7 +3,7 @@
 import pygame
 from pygame import Color, Rect, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, USEREVENT
 
-from settings import *
+from core.settings import *
 from data import ItemType, BLOCKS
 from items import ItemFunction
 
@@ -40,7 +40,8 @@ class ContextMenu:
     def get_menu_data(self, menu_type):
         if menu_type == 'item':
             item = self.sprite.item
-            if item.item_function in [ItemFunction.MELEE, ItemFunction.FIREARM, ItemFunction.SCIENCE]:
+            if item.item_function in [ItemFunction.MELEE, ItemFunction.FIREARM, ItemFunction.SCIENCE] or \
+                item.type == ItemType.FIRST_AID_KIT:
                 if item == self.player.equipped:
                     menu_data = [item.name, 'Unequip', 'Drop']
                 else:

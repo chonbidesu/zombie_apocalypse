@@ -1,7 +1,7 @@
 import pygame
 import random
 
-from settings import *
+from core.settings import *
 from data import BLOCKS, BlockType, SkillType, ResourcePath
 from ui.utils import WrapText
 

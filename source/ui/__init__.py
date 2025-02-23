@@ -1,4 +1,4 @@
-from settings import *
+from core.settings import *
 from ui.status_panel import StatusPanel
 from ui.chat_panel import ChatPanel
 from ui.actions_panel import ActionsPanel 

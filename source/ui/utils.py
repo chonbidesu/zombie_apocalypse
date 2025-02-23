@@ -4,7 +4,7 @@
 import pygame
 import sys
 
-from settings import *
+from core.settings import *
 from data import ResourcePath
 
 

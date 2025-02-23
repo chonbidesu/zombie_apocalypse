@@ -20,7 +20,11 @@ class Attack(ActionCommand):
             return self._zombie_attack(target)
 
     def _human_attack(self, target):
-        weapon = self.character.equipped
+        equipped = self.character.equipped
+        if equipped and equipped.item_function in [ItemFunction.FIREARM, ItemFunction.MELEE, ItemFunction.SCIENCE]:
+            weapon = equipped
+        else:
+            weapon = None
 
         if weapon:           
             if weapon.item_function == ItemFunction.FIREARM and weapon.loaded_ammo == 0:
@@ -79,7 +83,7 @@ class Attack(ActionCommand):
 
                 if target.is_dead and self.character.has_skill(SkillType.HEADSHOT):
                     target.permadeath = True
-                    if self.character.weapon:
+                    if self.character.equipped:
                         self.message = f"You deal a headshot for {weapon.damage} damage."
                         self.witness = f"{self.character.current_name} deals a headshot against {target.current_name} with {weapon.description}."
                         self.success = True
@@ -88,7 +92,7 @@ class Attack(ActionCommand):
                         self.witness = f"{self.character.current_name} deals a headshot against {target.current_name} with {weapon.description}."
                         self.success = True
                 else:
-                    if self.character.weapon:
+                    if self.character.equipped:
                         self.message = f"Your attack hits for {weapon.damage} damage."
                         self.witness = f"{self.character.current_name} attacks {target.current_name} with {weapon.description}."
                         self.success = True
@@ -117,7 +121,7 @@ class Attack(ActionCommand):
                     self.character.gain_xp(10)                
 
                 # Trigger NPC sprite animation if visible
-                sprites = list(self.game.game_ui.description_panel.zombie_sprite_group)
+                sprites = list(self.character.game.game_ui.description_panel.zombie_sprite_group)
                 for sprite in sprites:
                     if target == sprite.npc:
                         if target.is_dead:
@@ -161,7 +165,7 @@ class Attack(ActionCommand):
                 self.character.gain_xp(10)
 
             # Trigger NPC sprite animation if visible
-            sprites = list(self.game.game_ui.description_panel.human_sprite_group)
+            sprites = list(self.character.game.game_ui.description_panel.human_sprite_group)
             for sprite in sprites:
                 if target == sprite.npc:
                     if target.is_dead:

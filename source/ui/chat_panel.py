@@ -1,6 +1,6 @@
 # chat_panel.py
 
-from settings import *
+from core.settings import *
 from ui.utils import WrapText
 from data import ResourcePath
 

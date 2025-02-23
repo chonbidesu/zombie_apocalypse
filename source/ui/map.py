@@ -3,7 +3,7 @@
 import pygame
 import random
 
-from settings import *
+from core.settings import *
 from ui.utils import WrapText
 from data import BLOCKS, BlockType, NEIGHBOURHOODS
 

@@ -4,7 +4,7 @@ import random
 from dataclasses import dataclass
 
 from characters.state import State
-from settings import *
+from core.settings import *
 
 
 @dataclass

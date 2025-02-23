@@ -1,7 +1,7 @@
 # title_menu.py
 
 import pygame
-from settings import *
+from core.settings import *
 from ui import Button
 from data import Action, ResourcePath
 
