@@ -1,7 +1,7 @@
 # ammo.py
 
-from data import ResourcePath, ItemType, ItemFunction
-from items import Item
+from data import ResourcePath, ItemType
+from items.base_classes import Item, ItemFunction
 
 
 class ShotgunShell(Item):

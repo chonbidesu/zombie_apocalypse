@@ -2,7 +2,7 @@
 
 import random
 
-from actions import ActionCommand
+from actions.base_command import ActionCommand
 from data import BLOCKS, SkillType
 from settings import *
              

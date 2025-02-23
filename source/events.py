@@ -270,7 +270,6 @@ class MenuEventHandler:
 
     def handle_keydown(self, event):
         """Handle key press events."""
-        player = self.game.state.player
 
         if self.game.skills_menu:
             key_to_action = {
@@ -278,7 +277,7 @@ class MenuEventHandler:
             }
             action = key_to_action.get(event.key)
             if action:
-                action(player).execute()  
+                action(self.game).execute()  
 
         elif self.game.newgame_menu:
             newgame_menu = self.game.menu.newgame_menu  
@@ -299,7 +298,7 @@ class MenuEventHandler:
             }
             action = key_to_action.get(event.key)
             if action:
-                action(player).execute()   
+                action(self.game).execute()   
 
 
     def handle_mousebuttondown(self, event):
@@ -339,7 +338,6 @@ class MenuEventHandler:
 
     def handle_mousebuttonup(self, event):
         """Handle mouse button up events."""
-        player = self.game.state.player
 
         if self.game.paused:
 
@@ -347,31 +345,31 @@ class MenuEventHandler:
             if self.game.save_menu:
                 for slot in self.game.menu.save_menu.slots:
                     if slot.rect.collidepoint(event.pos):
-                        SaveGame(player).execute(slot.index)
+                        SaveGame(self.game).execute(slot.index)
                         slot.update_image()
 
                 back_button = self.game.menu.save_menu.back_button
                 if back_button.sprite.rect.collidepoint(event.pos):
-                    Back(player).execute()
+                    Back(self.game).execute()
                         
             elif self.game.load_menu:
                 for slot in self.game.menu.load_menu.slots:
                     if slot.rect.collidepoint(event.pos) and not slot.player_name == "<<empty>>":
-                        Pause(player).execute()
-                        LoadGame(player).execute(slot.index)
+                        Pause(self.game).execute()
+                        LoadGame(self.game).execute(slot.index)
 
                 back_button = self.game.menu.load_menu.back_button
                 if back_button.sprite.rect.collidepoint(event.pos):
-                    Back(player).execute()            
+                    Back(self.game).execute()            
 
             elif self.game.newgame_menu:
                 newgame_menu = self.game.menu.newgame_menu
                 for button in newgame_menu.buttons:
                     action = button.handle_event(event)
                     if action == "menu_start":
-                        StartGame(player).execute()
+                        StartGame(self.game).execute()
                     elif action == "menu_back":
-                        Back(player).execute()            
+                        Back(self.game).execute()            
 
             # Handle general UI buttons
             else:
@@ -387,7 +385,7 @@ class MenuEventHandler:
                         }
                         action = button_to_action.get(action_name)
                         if action:
-                            action(player).execute()
+                            action(self.game).execute()
 
         else:
             # Handle the skills menu
@@ -396,7 +394,7 @@ class MenuEventHandler:
                 back_button = self.game.menu.skills_menu.back_button
 
                 if back_button.sprite.rect.collidepoint(event.pos):
-                    Back(player).execute()
+                    Back(self.game).execute()
 
                 if skills_menu.selected_skill and hasattr(skills_menu, 'gain_button_rect'):
                     if skills_menu.gain_button_rect.collidepoint(event.pos):
@@ -409,11 +407,10 @@ class TitleEventHandler:
 
     def handle_events(self, events):
         """Handle all game events."""
-        player = self.game.state.player
 
         for event in events:
             if event.type == pygame.QUIT:
-                Quit(player).execute()
+                self.game.quit_game()
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.handle_mousebuttondown(event)
@@ -469,7 +466,6 @@ class TitleEventHandler:
 
     def handle_mousebuttonup(self, event):
         """Handle mouse button up events."""
-        player = self.game.state.player
 
         # Handle saving and loading from the pause menu                  
         if self.game.load_menu:
@@ -481,16 +477,16 @@ class TitleEventHandler:
 
             back_button = load_menu.back_button
             if back_button.sprite.rect.collidepoint(event.pos):
-                Back(player).execute()            
+                Back(self.game).execute()            
 
         elif self.game.newgame_menu:
             newgame_menu = self.game.menu.newgame_menu
             for button in newgame_menu.buttons:
                 action = button.handle_event(event)
                 if action == "menu_start":
-                    StartGame(player).execute()
+                    StartGame(self.game).execute()
                 elif action == "menu_back":
-                    Back(player).execute()
+                    Back(self.game).execute()
 
         # Handle actions for button clicks
         else:
@@ -505,4 +501,4 @@ class TitleEventHandler:
                     }
                     action = button_to_action.get(action_name)
                     if action:
-                        action(player).execute()                               
+                        action(self.game).execute()                               

@@ -2,10 +2,10 @@
 
 from .barricade_data import BarricadeState, BARRICADE_DESCRIPTIONS
 from .block_data import BlockType, BlockProperties, BLOCKS, BlockNPCs
-from .item_data import ItemType, ItemFunction, ItemProperties, ITEMS
+from .item_data import ItemType
 from .neighbourhood_data import NEIGHBOURHOODS
 from .path import ResourcePath, DataPath, SaveLoadPath
-from .action_data import Action, ActionResult
+from .action_data import Action
 from .decision_data import Decision
 from .goal_data import Goal
 from .character_data import Occupation, OccupationProperties, OccupationCategory, OCCUPATIONS

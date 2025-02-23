@@ -90,6 +90,7 @@ def main():
                     game.popup_menu.handle_events(events)
                     game.popup_menu.draw()
 
+                """
                 # Restart NPC action queue every action interval
                 action_timer += clock.get_time()
                 if action_timer >= action_interval:
@@ -111,7 +112,8 @@ def main():
                     npc.state.get_action()
                     npc.state.act()
                     npc.state.gain_skill()
-
+                """
+                    
                 # Handle player death
                 if game.state.player.is_dead:
                     game.game_ui.death_screen.handle_events(events)

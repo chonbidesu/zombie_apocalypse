@@ -1,7 +1,6 @@
 # goals.py
 
 from ai.decisions import ScoutSafehouseDecision, EnterSafehouseDecision, SecureSafehouseDecision, SeekFAKDecision, HealThyselfDecision
-from ai.goal_manager import GoalManager
 from data import ItemType
 
 
@@ -61,4 +60,4 @@ class SurviveGoal(GoalCommand):
             return HealThyselfDecision() # Heal using a FAK
         
         # Once healing is done, return to previous goal
-        return GoalManager.resume_goal(character)
+        #return GoalManager.resume_goal(character)

@@ -1,7 +1,7 @@
 # science.py
 
-from data import ItemType, ItemFunction, ResourcePath, SkillType, BLOCKS, BlockType
-from items import Item
+from data import ItemType, ResourcePath, SkillType, BLOCKS, BlockType
+from items.base_classes import Item, ItemFunction
 
 
 class DNAExtractor(Item):

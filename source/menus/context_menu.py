@@ -4,7 +4,8 @@ import pygame
 from pygame import Color, Rect, MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION, USEREVENT
 
 from settings import *
-from data import ITEMS, ItemType, ItemFunction, BLOCKS
+from data import ItemType, BLOCKS
+from items import ItemFunction
 
 # pygame must be initialized before we can create a Font.
 pygame.init()
@@ -39,20 +40,19 @@ class ContextMenu:
     def get_menu_data(self, menu_type):
         if menu_type == 'item':
             item = self.sprite.item
-            properties = ITEMS[item.type]
-            if properties.item_function in [ItemFunction.MELEE, ItemFunction.FIREARM, ItemFunction.SCIENCE]:
-                if item == self.player.weapon:
-                    menu_data = [properties.item_type, 'Unequip', 'Drop']
+            if item.item_function in [ItemFunction.MELEE, ItemFunction.FIREARM, ItemFunction.SCIENCE]:
+                if item == self.player.equipped:
+                    menu_data = [item.name, 'Unequip', 'Drop']
                 else:
-                    menu_data = [properties.item_type, 'Equip', 'Drop']
+                    menu_data = [item.name, 'Equip', 'Drop']
             elif item.type in [ItemType.MAP, ItemType.FUEL_CAN, ItemType.TOOLBOX, ItemType.BINOCULARS,
                                ItemType.BEER, ItemType.WINE, ItemType.BOOK, ItemType.CANDY, ItemType.CRUCIFIX,
                                ItemType.GPS_UNIT, ItemType.NEWSPAPER, ItemType.POETRY_BOOK]:
-                menu_data = [properties.item_type, 'Use', 'Drop']
+                menu_data = [item.name, 'Use', 'Drop']
             elif item.type == ItemType.PORTABLE_GENERATOR:
-                menu_data = [properties.item_type, 'Install', 'Drop']
-            elif properties.item_function == ItemFunction.AMMO:
-                menu_data = [properties.item_type, 'Reload', 'Drop']
+                menu_data = [item.name, 'Install', 'Drop']
+            elif item.item_function == ItemFunction.AMMO:
+                menu_data = [item.name, 'Reload', 'Drop']
         
         elif menu_type == 'center block':
             properties = BLOCKS[self.sprite.block.type]

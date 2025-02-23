@@ -1,7 +1,7 @@
 # melee.py
 
 from data import ResourcePath, ItemType
-from items import Melee
+from items.base_classes import Melee
 
 
 class Knife(Melee):

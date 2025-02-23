@@ -1,7 +1,7 @@
 # misc.py
 
 from data import ResourcePath, SkillType, ItemType
-from items import Item, ItemFunction
+from items.base_classes import Item, ItemFunction
 from settings import *
 
 

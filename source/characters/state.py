@@ -3,12 +3,9 @@
 from dataclasses import dataclass
 import random
 
-from data import Action, ActionResult, SKILLS, SkillType, SkillCategory, OCCUPATIONS, OccupationCategory, ITEMS, ItemType, ItemFunction, BLOCKS, BlockType
+from data import SKILLS, SkillCategory, OCCUPATIONS, OccupationCategory
 from settings import *
 from ai import GoalManager
-
-
-
 
 
 @dataclass

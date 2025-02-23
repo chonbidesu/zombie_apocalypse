@@ -1,7 +1,7 @@
 # firearm.py
 
 from data import ResourcePath, ItemType
-from items import Firearm
+from items.base_classes import Firearm
 
 
 class Shotgun(Firearm):

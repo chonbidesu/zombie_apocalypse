@@ -1,12 +1,20 @@
 # items.py
 
-from data import ItemFunction
-from ammo import ShotgunShell, PistolClip
-from firearm import Shotgun, Pistol
-from melee import Knife, Crowbar, FireAxe, Shovel, BaseballBat, GolfClub, HockeyStick, TennisRacket
-from misc import PortableGenerator, FuelCan, Toolbox, Consumable, Map, Binoculars, Book, PoetryBook, Crucifix, GPSUnit, Newspaper
-from science import DNAExtractor, Syringe, FirstAidKit
+from enum import Enum, auto
 
+from items.ammo import ShotgunShell, PistolClip
+from items.firearm import Shotgun, Pistol
+from items.melee import Knife, Crowbar, FireAxe, Shovel, BaseballBat, GolfClub, HockeyStick, TennisRacket
+from items.misc import PortableGenerator, FuelCan, Toolbox, Consumable, Map, Binoculars, Book, PoetryBook, Crucifix, GPSUnit, Newspaper
+from items.science import DNAExtractor, Syringe, FirstAidKit
+
+
+class ItemFunction(Enum):
+    MISC = auto()
+    AMMO = auto()
+    MELEE = auto()
+    FIREARM = auto()
+    SCIENCE = auto()
 
 class Item:
     """Base class for all items."""

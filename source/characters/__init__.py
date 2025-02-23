@@ -3,10 +3,12 @@
 from dataclasses import dataclass
 
 from settings import *
-from data import ITEMS, ItemType, ItemFunction, SKILLS, SkillType, SkillCategory, OCCUPATIONS
-from items import Item, Weapon
+from data import ItemType, SKILLS, SkillType, SkillCategory, OCCUPATIONS
 from characters.human_state import Human
 from characters.zombie_state import Zombie, ZombieWeapon
+from items import (FirstAidKit, PortableGenerator, FuelCan, Map, Toolbox, Binoculars, DNAExtractor, Syringe, Consumable, Book, PoetryBook, Crucifix, GPSUnit, Newspaper, 
+                    ShotgunShell, PistolClip, Shotgun, Pistol, Knife, Crowbar, FireAxe, Shovel, BaseballBat, GolfClub, HockeyStick, TennisRacket, ItemFunction
+)
 
 
 @dataclass
@@ -146,12 +148,43 @@ class Character:
     
     def create_item(self, type):
         """Create an item based on its type."""
+        item_classes = {
+            ItemType.FIRST_AID_KIT: FirstAidKit,
+            ItemType.PORTABLE_GENERATOR: PortableGenerator,
+            ItemType.FUEL_CAN: FuelCan,
+            ItemType.MAP: Map,
+            ItemType.TOOLBOX: Toolbox,
+            ItemType.BINOCULARS: Binoculars,
+            ItemType.DNA_EXTRACTOR: DNAExtractor,
+            ItemType.SYRINGE: Syringe,
+            ItemType.BEER: Consumable,
+            ItemType.WINE: Consumable,
+            ItemType.BOOK: Book,
+            ItemType.POETRY_BOOK: PoetryBook,
+            ItemType.CANDY: Consumable,
+            ItemType.CRUCIFIX: Crucifix,
+            ItemType.GPS_UNIT: GPSUnit,
+            ItemType.NEWSPAPER: Newspaper,
+            ItemType.SHOTGUN_SHELL: ShotgunShell,
+            ItemType.PISTOL_CLIP: PistolClip,
+            ItemType.KNIFE: Knife,
+            ItemType.CROWBAR: Crowbar,
+            ItemType.FIRE_AXE: FireAxe,
+            ItemType.SHOVEL: Shovel,
+            ItemType.BASEBALL_BAT: BaseballBat,
+            ItemType.GOLF_CLUB: GolfClub,
+            ItemType.HOCKEY_STICK: HockeyStick,
+            ItemType.TENNIS_RACKET: TennisRacket,
+            ItemType.SHOTGUN: Shotgun,
+            ItemType.PISTOL: Pistol,
+        }
+
         # Check if the item is a weapon
         item_type = getattr(ItemType, type)
         if item_type in [ItemType.BEER, ItemType.WINE, ItemType.CANDY]:
-            item = ITEMS[item_type](self, item_type)
+            item = item_classes[item_type](self, item_type)
         else:
-            item = ITEMS[item_type](self)
+            item = item_classes[item_type](self)
 
         return item
 
@@ -160,14 +193,13 @@ class Character:
 
     def deplete_weapon(self):
         """Reduce loaded ammo or durability, depending on weapon type."""
-        properties = ITEMS[self.weapon.type]
-        if properties.item_function == ItemFunction.FIREARM:
-            self.weapon.loaded_ammo -= 1
-        elif properties.item_function == ItemFunction.MELEE:
-            self.weapon.durability -= 1
-            if self.weapon.durability <= 0:
-                self.inventory.remove(self.weapon)
-                self.weapon = None  
+        if self.equipped.item_function == ItemFunction.FIREARM:
+            self.equipped.loaded_ammo -= 1
+        elif self.equipped.item_function == ItemFunction.MELEE:
+            self.equipped.durability -= 1
+            if self.equipped.durability <= 0:
+                self.inventory.remove(self.equipped)
+                self.equipped = None  
 
     def enter(self):
         self.inside = True

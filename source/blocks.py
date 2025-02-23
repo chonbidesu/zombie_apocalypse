@@ -5,7 +5,7 @@ from collections import defaultdict
 import csv
 
 from settings import *
-from data import BLOCKS, BarricadeState, BARRICADE_DESCRIPTIONS, ActionResult, ITEMS, ItemType, SkillType
+from data import BarricadeState, BARRICADE_DESCRIPTIONS
 
 class CityBlock:
     """Base class for a city block."""

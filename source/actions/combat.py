@@ -2,9 +2,10 @@
 
 import random
 
-from actions import ActionCommand
-from data import ItemType, ItemFunction, SkillType, BLOCKS, BlockType
+from actions.base_command import ActionCommand
+from data import ItemType, SkillType, BLOCKS, BlockType
 from characters import ZombieWeapon
+from items import ItemFunction
 
 
 class Attack(ActionCommand):

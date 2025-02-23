@@ -4,7 +4,7 @@ import random
 import csv
 from collections import defaultdict
 
-from actions import ActionCommand
+from actions.base_command import ActionCommand
 from data import ItemType
 from settings import *
 

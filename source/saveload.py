@@ -4,8 +4,9 @@ import pickle
 import os
 
 from settings import *
-from data import BLOCKS, ITEMS, ItemFunction, SaveLoadPath
+from data import BLOCKS, SaveLoadPath
 from characters import CharacterName
+from items import ItemFunction
 
 class GameData:
     def __init__(self, game):
@@ -63,7 +64,7 @@ class GameData:
             "inventory": [
                 {
                     "type": item.type,
-                    "is_equipped": item == player.weapon,
+                    "is_equipped": item == player.equipped,
                     **item.get_attributes()
                 }
                 for item in player.inventory
@@ -93,7 +94,7 @@ class GameData:
             "inventory": [
                 {
                     "type": item.type,
-                    "is_equipped": item == npc.weapon,
+                    "is_equipped": item == npc.equipped,
                     **item.get_attributes()
                 }
                 for item in npc.inventory
@@ -189,10 +190,9 @@ class GameData:
             item = player.create_item(item_data["type"].name)
 
             # Restore additional attributes
-            item_properties = ITEMS[item.type]
-            if item_properties.item_function == ItemFunction.MELEE:  # For weapons, set weapon-specific attributes
+            if item.item_function == ItemFunction.MELEE:  # For weapons, set weapon-specific attributes
                 item.durability = item_data.get("durability", item.durability)
-            if item_properties.item_function == ItemFunction.FIREARM:
+            if item.item_function == ItemFunction.FIREARM:
                 item.loaded_ammo = item_data.get("loaded_ammo", item.loaded_ammo)
 
             # Add item to the player's inventory
@@ -200,7 +200,7 @@ class GameData:
 
             # Check if the item is equipped
             if item_data.get("is_equipped", False):
-                player.weapon = item
+                player.equipped = item
 
         for skill in self.player_data["human_skills"]:
             player.human_skills.add(skill)
@@ -243,10 +243,9 @@ class GameData:
                 item = npc.create_item(item_data["type"].name)
 
                 # Restore additional attributes
-                item_properties = ITEMS[item.type]
-                if item_properties.item_function == ItemFunction.MELEE:  # For weapons, set weapon-specific attributes
+                if item.item_function == ItemFunction.MELEE:  # For weapons, set weapon-specific attributes
                     item.durability = item_data.get("durability", item.durability)
-                if item_properties.item_function == ItemFunction.FIREARM:
+                if item.item_function == ItemFunction.FIREARM:
                     item.loaded_ammo = item_data.get("loaded_ammo", item.loaded_ammo)
 
                 # Add item to the player's inventory
@@ -254,7 +253,7 @@ class GameData:
 
                 # Check if the item is equipped
                 if item_data.get("is_equipped", False):
-                    npc.weapon = item
+                    npc.equipped = item
 
             for skill in npc_data["human_skills"]:
                 npc.human_skills.add(skill)

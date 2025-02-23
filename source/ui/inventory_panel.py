@@ -3,7 +3,8 @@
 import pygame
 
 from settings import *
-from data import ITEMS, ItemFunction, ResourcePath
+from data import ResourcePath
+from items import ItemFunction
 
 
 class InventoryPanel:
@@ -33,6 +34,7 @@ class InventoryPanel:
 
     def _draw_items(self, x, y):
         """Inventory item scaling, positioning and drawing."""
+        player = self.game.state.player
         item_width = int(self.width * 0.14)
         item_height = int(self.height * 0.32)
         highlight = pygame.Surface((item_width, item_height), pygame.SRCALPHA)
@@ -46,7 +48,7 @@ class InventoryPanel:
         updated_sprites = []
 
         # Scale each inventory item image before drawing
-        for index, item in enumerate(list(self.game.state.player.inventory)[:MAX_ITEMS]):
+        for index, item in enumerate(list(player.inventory)[:MAX_ITEMS]):
             row = index // MAX_ITEMS_PER_ROW
             col = index % MAX_ITEMS_PER_ROW
 
@@ -67,12 +69,11 @@ class InventoryPanel:
                 sprite = new_sprite
 
             # Highlight the item's slot if the item is equipped
-            if item == self.game.state.player.weapon:
+            if item == player.equipped:
                 highlight.fill((TRANS_YELLOW))
                 self.screen.blit(highlight, sprite.rect.topleft)
 
                 # Draw enlarged equipped item
-                weapon_properties = ITEMS[item.type]
                 weapon_item_size = self.weapon_size * 3 // 5
                 enlarged_weapon_image = pygame.transform.scale(sprite.image, (weapon_item_size, weapon_item_size))
                 weapon_item_x = x - (self.weapon_size // 2) - (weapon_item_size // 2)
@@ -80,14 +81,14 @@ class InventoryPanel:
                 self.screen.blit(enlarged_weapon_image, (weapon_item_x, weapon_item_y))
 
                 # Draw equipped item label
-                weapon_text = font_large.render(weapon_properties.item_type, True, ORANGE)
-                weapon_text_shadow = font_large.render(weapon_properties.item_type, True, BLACK)                
+                weapon_text = font_large.render(item.name, True, ORANGE)
+                weapon_text_shadow = font_large.render(item.name, True, BLACK)                
                 text_width = weapon_text.get_width()
                 self.screen.blit(weapon_text_shadow, (weapon_item_x + (weapon_item_size // 2) - (text_width // 2) + 1, weapon_item_y + weapon_item_size + 8))                
                 self.screen.blit(weapon_text, (weapon_item_x + (weapon_item_size // 2) - (text_width // 2), weapon_item_y + weapon_item_size + 7))
 
                 # Draw currently loaded ammo
-                if weapon_properties.item_function == ItemFunction.FIREARM:
+                if item.item_function == ItemFunction.FIREARM:
                     label_x = weapon_item_x + weapon_item_size - 20
                     label_y = weapon_item_y + weapon_item_size - 20
                     pygame.draw.rect(self.screen, WHITE, (label_x, label_y, 20, 20))
