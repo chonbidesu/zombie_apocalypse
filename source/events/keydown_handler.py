@@ -15,8 +15,8 @@ class KeydownHandler:
         """Processes keyboard inputs based on the current game state."""
         if self.game.title_screen:
             self.handle_title(event)
-        elif self.game.paused:
-            self.handle_pause(event)
+        elif self.game.paused or self.game.skills_menu:
+            self.handle_menu(event)
         elif self.game.reading_map:
             self.handle_map(event)
         else:
@@ -36,10 +36,36 @@ class KeydownHandler:
                 elif event.unicode.isprintable() and len(text_input.text) < text_input.max_length:
                     text_input.text += event.unicode
 
-    def handle_pause(self, event):
+    def handle_menu(self, event):
         """Handles key presses when the game is paused."""
-        if event.key == pygame.K_ESCAPE:
-            Pause(self.game).execute()
+        if self.game.skills_menu:
+            key_to_action = {
+                pygame.K_ESCAPE: Back,
+            }
+            action = key_to_action.get(event.key)
+            if action:
+                action(self.game).execute()  
+
+        elif self.game.newgame_menu:
+            newgame_menu = self.game.menu.newgame_menu  
+            for _, text_input in newgame_menu.text_inputs.items():
+                if text_input.active:
+                    if event.key == pygame.K_RETURN:
+                        text_input.active = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        text_input.text = text_input.text[:-1]
+                    elif event.key == pygame.K_TAB:
+                        newgame_menu.cycle_text_input()
+                    elif event.unicode.isprintable() and len(text_input.text) < text_input.max_length:
+                        text_input.text += event.unicode
+
+        else:
+            key_to_action = {
+                pygame.K_ESCAPE: Pause,
+            }
+            action = key_to_action.get(event.key)
+            if action:
+                action(self.game).execute()  
 
     def handle_map(self, event):
         """Handle key press events."""
