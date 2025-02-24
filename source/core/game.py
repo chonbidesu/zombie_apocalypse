@@ -297,6 +297,9 @@ class GameInitializer:
     def zoom_out(self):
         self.game_ui.map.zoom_in = False
 
+    def close_popup(self):
+        self.popup_menu = None
+
     def quit_game(self):
         """Handle cleanup and save the game on exit."""
         pygame.quit()

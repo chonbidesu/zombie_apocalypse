@@ -131,4 +131,9 @@ class MouseButtonDownHandler:
         # Handle graphical changes for button clicks
         for button in self.game.game_ui.actions_panel.button_group:
             button.handle_event(event)
+
+
+    def handle_feedback(self, message):
+        """Handle feedback messages from actions."""
+        self.game.chat_history.append(message)            
               

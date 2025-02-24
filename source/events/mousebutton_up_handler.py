@@ -172,4 +172,9 @@ class MouseButtonUpHandler:
                     action = action_class(player)
                     action.execute()
                     if action.message:
-                        self.handle_feedback(action.message)         
+                        self.handle_feedback(action.message)      
+
+
+    def handle_feedback(self, message):
+        """Handle feedback messages from actions."""
+        self.game.chat_history.append(message)                           
