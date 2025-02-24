@@ -26,17 +26,30 @@ class MouseButtonUpHandler:
 
     def handle_title(self, event):
         """Handles mouse releases on the title screen."""
-        title_menu = self.game.menu.title_menu
-        newgame_menu = self.game.menu.newgame_menu
+        # Handle saving and loading from the pause menu                  
+        if self.game.load_menu:
+            load_menu = self.game.menu.load_menu
+            for slot in load_menu.slots:
+                if slot.rect.collidepoint(event.pos) and slot.player_name not in ["<<empty>>", "<<incompatible save>>", "<<corrupted save>>"]:
+                    self.game.load_game(slot.index)
+                    self.game.title_screen = False
 
-        if self.game.newgame_menu:
+            back_button = load_menu.back_button
+            if back_button.sprite.rect.collidepoint(event.pos):
+                Back(self.game).execute()            
+
+        elif self.game.newgame_menu:
+            newgame_menu = self.game.menu.newgame_menu
             for button in newgame_menu.buttons:
                 action = button.handle_event(event)
                 if action == "menu_start":
                     StartGame(self.game).execute()
                 elif action == "menu_back":
                     Back(self.game).execute()
+
+        # Handle actions for button clicks
         else:
+            title_menu = self.game.menu.title_menu
             for button in title_menu.buttons:
                 action_name = button.handle_event(event)
                 if action_name:
@@ -47,7 +60,7 @@ class MouseButtonUpHandler:
                     }
                     action = button_to_action.get(action_name)
                     if action:
-                        action(self.game).execute()
+                        action(self.game).execute()  
 
     def handle_menu(self, event):
         if self.game.paused:

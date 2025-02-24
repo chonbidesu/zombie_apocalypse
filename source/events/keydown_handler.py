@@ -24,17 +24,19 @@ class KeydownHandler:
 
     def handle_title(self, event):
         """Handles key presses on the title screen."""
-        newgame_menu = self.game.menu.newgame_menu  
-        for _, text_input in newgame_menu.text_inputs.items():
-            if text_input.active:
-                if event.key == pygame.K_RETURN:
-                    text_input.active = False
-                elif event.key == pygame.K_BACKSPACE:
-                    text_input.text = text_input.text[:-1]
-                elif event.key == pygame.K_TAB:
-                    newgame_menu.cycle_text_input()
-                elif event.unicode.isprintable() and len(text_input.text) < text_input.max_length:
-                    text_input.text += event.unicode
+        if self.game.newgame_menu:
+            newgame_menu = self.game.menu.newgame_menu  
+            for _, text_input in newgame_menu.text_inputs.items():
+                if text_input.active:
+                    if event.key == pygame.K_RETURN:
+                        text_input.active = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        text_input.text = text_input.text[:-1]
+                    elif event.key == pygame.K_TAB:
+                        newgame_menu.cycle_text_input() 
+                        return
+                    elif event.unicode.isprintable() and len(text_input.text) < text_input.max_length:
+                        text_input.text += event.unicode
 
     def handle_menu(self, event):
         """Handles key presses when the game is paused."""

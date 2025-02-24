@@ -30,9 +30,24 @@ class MouseButtonDownHandler:
         if self.game.newgame_menu:
             for button in newgame_menu.buttons:
                 button.handle_event(event)
+
+            # Handle portrait selection
+            for i, sprite in enumerate(newgame_menu.portrait_sprites):
+                if sprite.rect.collidepoint(event.pos):
+                    newgame_menu.selected_portrait = i if not sprite.selected else None
+                
+            # Handle occupation selection
+            for slot in newgame_menu.occupation_slots:
+                if slot.rect.collidepoint(event.pos):
+                    newgame_menu.selected_occupation = slot.occupation if not slot.selected else None
+                    newgame_menu.occupation_slots.update(newgame_menu.selected_occupation)
+
+            for text_input in newgame_menu.text_inputs.values():
+                text_input.active = text_input.rect.collidepoint(event.pos)  
+
         else:
             for button in title_menu.buttons:
-                button.handle_event(event)
+                button.handle_event(event) 
 
     def handle_menu(self, event):
         if self.game.paused:

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from collections import deque
 
 import menus
-import events as events
+from events import EventHandler
 import core.saveload as saveload
 from core.settings import *
 import ui
@@ -39,7 +39,7 @@ class GameInitializer:
         self.ticker = 0
         self.reading_map = False
         self.start_new_game = False
-        self.title_event_handler = events.TitleEventHandler(self) 
+        self.event_handler = EventHandler(self) 
         self.title_screen = True
         pygame.mixer.init()  # Initialize the mixer
         self.load_sounds()    # Load sound effects
@@ -144,10 +144,6 @@ class GameInitializer:
 
     def _create_resources(self, portrait, set_time=None):
         """Create or reinitialize game resources."""
-        # Initialize event handlers
-        self.event_handler = events.EventHandler(self) 
-        self.map_event_handler = events.MapEventHandler(self)
-        self.menu_event_handler = events.MenuEventHandler(self) 
 
         # Initialize chat history
         self.chat_history = [
@@ -172,16 +168,7 @@ class GameInitializer:
 
     def handle_events(self, events):
         """Handles all event processing, including menus and gameplay."""
-        if self.title_screen:
-            self.title_event_handler.handle_events(events)
-        elif self.paused:
-            self.menu_event_handler.handle_events(events)
-        elif self.skills_menu:
-            self.menu_event_handler.handle_events(events)
-        elif self.reading_map:
-            self.map_event_handler.handle_events(events)
-        else:
-            self.event_handler.handle_events(events)
+        self.event_handler.handle_events(events)
 
         if self.popup_menu:
             self.popup_menu.handle_events(events)
