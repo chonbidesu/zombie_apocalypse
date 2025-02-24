@@ -84,7 +84,7 @@ class SaveSlot(pygame.sprite.Sprite):
                 else:
                     return f"{player_data.get('zombie_adjective', 'Unknown')} {player_data.get('first_name', '')}"
 
-        except (FileNotFoundError, pickle.UnpicklingError, KeyError):
+        except (FileNotFoundError, pickle.UnpicklingError, KeyError, AttributeError, ModuleNotFoundError):
             return "<<corrupted save>>"
 
     def update_image(self):
