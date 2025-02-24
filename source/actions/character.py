@@ -1,11 +1,18 @@
 # character.py
 
 import random
+from dataclasses import dataclass
 
 from actions.base_command import ActionCommand
 from data import BLOCKS, SkillType
 from core.settings import *
              
+
+@dataclass
+class MoveTarget:
+    dx: int = 0
+    dy: int = 0
+
 
 class Use(ActionCommand):
     def __init__(self, character):

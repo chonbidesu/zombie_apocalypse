@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from collections import deque
 
 import menus
-import core.events as events
+import events as events
 import core.saveload as saveload
 from core.settings import *
 import ui
