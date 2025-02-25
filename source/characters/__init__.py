@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from core.settings import *
 from items import ItemFunction
 from characters.helper import CharacterHelper, ZombieWeapon, CharacterName
-
+from ai import GoalManager
 
 
 class Character:
@@ -30,8 +30,9 @@ class Character:
         self.human_skills = set()
         self.zombie_skills = set()
         self.safehouse = None
-        self.current_goal = None
         self.tagged = False
+
+        self.goal_manager = GoalManager(self)
 
         self.helper = CharacterHelper(self)
         self.helper.update_name()    
@@ -136,10 +137,10 @@ class Character:
         self.is_human = False
 
         if zombified:
-            self.get_state()
+            self.helper.update_name()
 
             # Reassign passive skill effects
             for skill in self.human_skills:
-                self.apply_skill_effect(skill, remove=True)
+                self.helper.apply_skill_effect(skill, remove=True)
             for skill in self.zombie_skills:
-                self.apply_skill_effect(skill)                
+                self.helper.apply_skill_effect(skill)                

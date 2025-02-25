@@ -14,6 +14,7 @@ import ui
 from world import City, GenerateNPCs, CityBlock, BuildingBlock
 from characters import Character, CharacterName
 from data import Occupation, ResourcePath
+from actions import Stand
 
 
 @dataclass
@@ -25,8 +26,9 @@ class GameState:
 
 class GameInitializer:
     """Initialize the game, centralizing resources."""
-    def __init__(self, screen):
+    def __init__(self, screen, clock):
         self.screen = screen
+        self.clock = clock
         self.state = None
         self.cursor = ui.Cursor(self)
         self.menu = menus.GameMenu(self)         
@@ -37,6 +39,8 @@ class GameInitializer:
         self.skills_menu = False
         self.popup_menu = None
         self.ticker = 0
+        self.action_timer = 0
+        self.action_queue = deque()
         self.reading_map = False
         self.start_new_game = False
         self.event_handler = EventHandler(self) 
@@ -184,22 +188,19 @@ class GameInitializer:
             if self.state.player.is_dead:
                 self.game_ui.death_screen.handle_events(pygame.event.get())
                 self.game_ui.death_screen.draw()
-                if self.game_ui.death_screen.restart:
-                    self.initialize_game()
+                if self.game_ui.death_screen.stand:
+                    Stand(self.state.player).execute()
 
     def process_npcs(self):
         """Processes NPC actions in batches to optimize performance."""
         # Set up AI action queue
-        action_timer = 0
-        action_queue = deque()
         actions_per_frame = 100
-        clock = pygame.time.Clock()
 
-        action_timer += clock.get_time()
-        if action_timer >= ACTION_INTERVAL:
+        self.action_timer += self.clock.get_time()
+        if self.action_timer >= ACTION_INTERVAL:
             self.state.npcs.gain_ap() # Grant AP to all NPCs
-            action_queue = deque(self.state.npcs.list) # Load all NPCs into the queue
-            action_timer = 0
+            self.action_queue = deque(self.state.npcs.list) # Load all NPCs into the queue
+            self.action_timer = 0
             self.ticker += 1
             
             # Check buildings for fuel expiry
@@ -210,8 +211,10 @@ class GameInitializer:
                             block.lights_on = False         
 
         # Process the action queue in batches
-        for _ in range(min(actions_per_frame, len(action_queue))):
-            npc = action_queue.popleft() # Get next npc
+        for _ in range(min(actions_per_frame, len(self.action_queue))):
+            npc = self.action_queue.popleft() # Get next npc
+            npc.goal_manager.evaluate_goal()          
+            npc.goal_manager.current_goal.execute() if bool(npc.goal_manager.current_goal) else False
             """
             NPC DECISION MAKING GOES HERE
             npc.gain_skill()

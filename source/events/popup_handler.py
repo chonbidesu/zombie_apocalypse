@@ -25,6 +25,7 @@ class PopupHandler:
         if action_class:
             action = action_class(player)
             action.execute(target)
+            self.game.close_popup()
             if action.message:
                 self.handle_feedback(action.message)
 

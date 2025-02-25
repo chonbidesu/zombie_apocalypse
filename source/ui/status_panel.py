@@ -91,6 +91,9 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.start_frame = 0
         self.current_frame = 0
 
+        self.death_frame = self.frame_count * 3
+        self.zombie_start_frame = self.death_frame + 1
+
         self.update_animation_set()
         self.image = self.sprite_sheet.get_image(
             frame=self.current_frame,
@@ -105,7 +108,11 @@ class PlayerSprite(pygame.sprite.Sprite):
         """Update the animation frame range based on player's HP."""
         previous_start_frame = self.start_frame
 
-        if self.player.hp > self.player.max_hp * 0.7:
+        if self.player.hp <= 0:
+            self.start_frame = self.death_frame
+        elif not self.player.is_human:
+            self.start_frame = self.zombie_start_frame
+        elif self.player.hp > self.player.max_hp * 0.7:
             self.start_frame = 0  # Normal animation
         elif self.player.hp > self.player.max_hp * 0.3:
             self.start_frame = self.frame_count  # Use the second set of frames
@@ -115,18 +122,25 @@ class PlayerSprite(pygame.sprite.Sprite):
         if self.start_frame != previous_start_frame:
             self.current_frame = self.start_frame
 
+    def get_current_image(self):
+        return self.sprite_sheet.get_image(
+            frame=self.current_frame,
+            width=self.frame_width,
+            height=self.frame_height,
+            scale=self.scale,
+            colour=self.colour,
+        )           
+
     def update(self):
         """Update the sprite's animation frame."""
         now = pygame.time.get_ticks()
         self.update_animation_set()
 
+        if self.player.hp <= 0:
+            self.image = self.get_current_image()
+            return
+
         if now - self.last_update_time > self.animation_speed * 1000:
             self.last_update_time = now
             self.current_frame = self.start_frame + ((self.current_frame - self.start_frame - 1) % self.frame_count)
-            self.image = self.sprite_sheet.get_image(
-                frame=self.current_frame,
-                width=self.frame_width,
-                height=self.frame_height,
-                scale=self.scale,
-                colour=self.colour,
-            )
+            self.image = self.get_current_image()

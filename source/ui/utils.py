@@ -163,22 +163,22 @@ class DeathScreen():
         self.overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.overlay.set_alpha(150)
         self.overlay.fill(BLACK)
-        self.restart = False
+        self.stand = False
 
         # Render DEATH message and restart option
         # Render "YOU DIED" and "RESTART? Y / N"
         self.text_you_died = font_xxl.render("YOU DIED", True, (255, 0, 0))
-        self.text_restart = font_xl.render("RESTART? Y / N", True, WHITE)
+        self.text_stand = font_xl.render("STAND UP AND JOIN THE HORDE? Y / N", True, WHITE)
 
         # Get text positions
         self.you_died_rect = self.text_you_died.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))
-        self.restart_rect = self.text_restart.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))        
+        self.stand_rect = self.text_stand.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))        
         
     def draw(self):
         """Blit overlay and text onto the screen"""
         self.screen.blit(self.overlay, (0, 0))
         self.screen.blit(self.text_you_died, self.you_died_rect)
-        self.screen.blit(self.text_restart, self.restart_rect)
+        self.screen.blit(self.text_stand, self.stand_rect)
 
         pygame.display.flip()  # Update display
 
@@ -191,7 +191,7 @@ class DeathScreen():
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_y:  # Restart game logic
-                    self.restart = True
+                    self.stand = True
                 elif event.key == pygame.K_n:  # Quit game
                     pygame.quit()
                     sys.exit()
