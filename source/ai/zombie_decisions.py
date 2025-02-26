@@ -125,7 +125,7 @@ class MoveDecision(DecisionCommand):
         character = self.goal.manager.character
         x, y = character.location
 
-        if self.target_location: # If a target is selected, move there
+        if self.target_location[0]: # If a target is selected, move there
             target_x, target_y = self.target_location
             dx, dy = target_x - x, target_y - y
 

@@ -43,11 +43,7 @@ class GoalManager:
             return StandGoal(self)
 
         # If a human is visible, switch to hunting mode
-        if bool(self.find_visible_human()) or (self.current_goal and hasattr(self.current_goal, 'last_known_target') and bool(self.current_goal.last_known_target[0])):
-            if self.character.game.debug:
-                human, location = self.find_visible_human()
-                if human:
-                    print(f"Find visible human: {human.current_name} at {location}. Current goal: {self.current_goal}")
+        if bool(self.find_visible_human()[0]) or (self.current_goal and hasattr(self.current_goal, 'last_known_target') and bool(self.current_goal.last_known_target[0])):
             return HuntBrainsGoal(self)
 
         # If no humans are visible, wander aimlessly

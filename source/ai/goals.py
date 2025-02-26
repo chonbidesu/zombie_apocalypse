@@ -5,6 +5,7 @@ import random
 from .human_decisions import ScoutSafehouseDecision, EnterSafehouseDecision, SecureSafehouseDecision, SeekFAKDecision, HealThyselfDecision
 from .zombie_decisions import PursueBrainsDecision, AttackBrainsDecision, ChaseBrainsDecision, BreakInsideDecision, MoveDecision
 from .decisions import StandDecision
+from data import BLOCKS
 
 
 class GoalCommand:
@@ -155,14 +156,16 @@ class IdleGoal(GoalCommand):
         # Check if current building is lit
         x, y = character.location
         block = city.block(x, y)
-        if block.lights_on:
+        properties = BLOCKS[block.type]
+
+        if properties.is_building and block.lights_on:
             self.target_block = block
             return [BreakInsideDecision]
 
         # Prioritize moving toward lit buildings
         lit_buildings = [
             loc for loc in adjacent_locations
-            if city.block(*loc).lights_on
+            if hasattr(city.block(*loc), 'lights_on') and city.block(*loc).lights_on
         ]
 
         if lit_buildings:

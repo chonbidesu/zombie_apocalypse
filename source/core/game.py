@@ -84,7 +84,7 @@ class GameInitializer:
 
         if self.debug:
             print("Creating debug NPCs...")
-            npcs = GenerateNPCs(self, total_humans=10, total_zombies=10)
+            npcs = GenerateNPCs(self, total_humans=100, total_zombies=100)
         else:
             # Populate the city
             npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
