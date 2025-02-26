@@ -18,7 +18,8 @@ def main():
     clock = pygame.time.Clock()
 
     # Start the game
-    game = GameInitializer(screen, clock)
+    debug = True
+    game = GameInitializer(screen, clock, debug=debug)
     running = True
 
     while running:

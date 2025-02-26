@@ -71,6 +71,8 @@ class Move(ActionCommand):
                 self.success = True
         
         if self.success:
+            if self.character.game.debug:
+                print(f"{self.character.current_name} at ({self.character.location}) moving to ({new_x}, {new_y})")
             self.character.move(new_x, new_y)
 
 

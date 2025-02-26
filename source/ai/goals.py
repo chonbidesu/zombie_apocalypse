@@ -93,6 +93,9 @@ class HuntBrainsGoal(GoalCommand):
         super().__init__(manager)
         self.last_known_target = None  # Stores (human, last_seen_location)
         self.target_block = None
+        if manager.character.game.debug:
+            print(f"{self.manager.character.current_name} chose {type(self)}.")
+
 
     def is_complete(self):
         """The goal is complete when the target is lost and the last known location is reached."""
@@ -134,6 +137,8 @@ class IdleGoal(GoalCommand):
     def __init__(self, manager):
         super().__init__(manager)
         self.target_block = None
+        if manager.character.game.debug:
+            print(f"{self.manager.character.current_name} chose {type(self)}.")
 
     def is_complete(self):
         """WanderGoal is never truly 'complete' unless interrupted by a human presence."""

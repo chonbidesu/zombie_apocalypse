@@ -26,9 +26,10 @@ class GameState:
 
 class GameInitializer:
     """Initialize the game, centralizing resources."""
-    def __init__(self, screen, clock):
+    def __init__(self, screen, clock, debug=False):
         self.screen = screen
         self.clock = clock
+        self.debug = debug
         self.state = None
         self.cursor = ui.Cursor(self)
         self.menu = menus.GameMenu(self)         
@@ -81,8 +82,12 @@ class GameInitializer:
         # Initialize city
         city = City()
 
-        # Populate the city
-        npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
+        if self.debug:
+            print("Creating debug NPCs...")
+            npcs = GenerateNPCs(self, total_humans=10, total_zombies=10)
+        else:
+            # Populate the city
+            npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
 
         print("New game created.")
         return GameState(player, city, npcs)
@@ -130,6 +135,16 @@ class GameInitializer:
         self.title_screen = False
         self.newgame_menu = False
         self.initialize_game(player, portrait.portrait_path)    
+
+    def start_debug_game(self):
+        print("Starting debug game...")
+
+        # Define player
+        player_name = CharacterName("Debug", "Player", "Test")
+        player = Character(self, player_name, Occupation.FIREFIGHTER, 12, 12, is_human=True)
+        portrait = list(self.menu.newgame_menu.portrait_sprites)[0]
+
+        self.initialize_game(player, portrait.portrait_path)
 
     def save_game(self, index):
         """Save the game state to a file."""
@@ -180,6 +195,10 @@ class GameInitializer:
     def update_game_state(self):
         """Handles updating NPCs, processing actions, and checking player status."""
         
+        if self.debug and not self.state:
+            self.title_screen = False
+            self.start_debug_game()
+
         if self.state:
             # Process NPC actions
             self.process_npcs()
