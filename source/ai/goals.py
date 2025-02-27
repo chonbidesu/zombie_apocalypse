@@ -139,7 +139,7 @@ class IdleGoal(GoalCommand):
 
     def is_complete(self):
         """WanderGoal is never truly 'complete' unless interrupted by a human presence."""
-        return self.last_known_target and all(value for value in self.last_known_target)
+        return self.last_known_target and all(value is not None for value in self.last_known_target)
 
     def get_decisions(self):
         """Choose a movement target, prioritizing lit buildings or wandering randomly."""
