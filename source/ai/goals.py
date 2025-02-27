@@ -94,13 +94,10 @@ class HuntBrainsGoal(GoalCommand):
         super().__init__(manager)
         self.last_known_target = None  # Stores (human, last_seen_location)
         self.target_block = None
-        if manager.character.game.debug:
-            print(f"{self.manager.character.current_name} chose {type(self)}.")
-
 
     def is_complete(self):
         """The goal is complete when the target is lost and the last known location is reached."""
-        return self.last_known_target is None and self.manager.find_visible_human() is None
+        return self.last_known_target is None or any(value is None for value in self.last_known_target)
 
     def get_decisions(self):
         """Determine the next decision based on human visibility and memory."""
@@ -137,13 +134,12 @@ class IdleGoal(GoalCommand):
     """Zombies wander unless they detect a human nearby."""
     def __init__(self, manager):
         super().__init__(manager)
+        self.last_known_target = None  # Stores (human, last_seen_location)
         self.target_block = None
-        if manager.character.game.debug:
-            print(f"{self.manager.character.current_name} chose {type(self)}.")
 
     def is_complete(self):
         """WanderGoal is never truly 'complete' unless interrupted by a human presence."""
-        return bool(self.manager.find_visible_human())
+        return self.last_known_target and all(value for value in self.last_known_target)
 
     def get_decisions(self):
         """Choose a movement target, prioritizing lit buildings or wandering randomly."""

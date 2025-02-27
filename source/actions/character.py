@@ -75,6 +75,19 @@ class Move(ActionCommand):
                 print(f"{self.character.current_name} at ({self.character.location}) moving to ({new_x}, {new_y})")
             self.character.move(new_x, new_y)
 
+            # Resolve line of sight for nearby zombies
+            if self.character.is_human:
+                watching_zombies = self.character.goal_manager.find_watching_zombies()
+                if watching_zombies:
+                    last_known_target = self.character, self.character.location
+                    for zombie in watching_zombies:
+                        zombie.goal_manager.current_goal.last_known_target = last_known_target
+
+            else:
+                visible_human, loc = self.character.goal_manager.find_visible_human()
+                if visible_human:
+                    self.character.goal_manager.current_goal.last_known_target = visible_human, loc
+
 
 class Enter(ActionCommand):
     def __init__(self, character):
