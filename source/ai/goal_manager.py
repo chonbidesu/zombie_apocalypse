@@ -15,14 +15,17 @@ class GoalManager:
 
     def evaluate_goal(self):
         """Determines the appropriate goal based on character state."""
-        if not self.current_goal or self.current_goal.is_complete():
+        if not self.current_goal or not self.current_goal.is_valid():
             if self.character.is_human:
                 new_goal = None #new_goal = self.evaluate_human_goal()
             else:
                 new_goal = self.evaluate_zombie_goal()
 
             return self.set_goal(new_goal)
-        
+
+        if self.character.game.debug and self.current_goal and self.current_goal.last_known_target and self.current_goal.last_known_target[0] == self.character.game.state.player:
+            print(f"{self.character.current_name} has player as last known target! Last known location at {self.current_goal.last_known_target[1]}")
+
         return self.current_goal
 
     def evaluate_human_goal(self):
@@ -41,6 +44,10 @@ class GoalManager:
         # If zombie is dead, stand up
         if self.character.is_dead:
             return StandGoal(self)
+
+        visible_human, location = self.find_visible_human()
+        if isinstance(self.current_goal, HuntBrainsGoal):
+            last_known_target = self.current_goal.last_known_target
 
         # If a human is visible, switch to hunting mode
         if self.current_goal and type(self.current_goal) == IdleGoal:
@@ -79,6 +86,8 @@ class GoalManager:
         for loc in adjacent_locations:
             block_characters = self.character.helper.filter_characters_at_location(*loc, inside=False)
             if block_characters.living_humans:
+                if self.character.game.debug and self.character == self.character.game.state.player:
+                    print(f"{self.character.current_name} sees {block_characters.living_humans[0].current_name} at {loc}.")
                 return block_characters.living_humans[0], loc
 
         return None, None   
@@ -118,6 +127,9 @@ class GoalManager:
                     watching_zombies.extend(block_characters_inside.living_zombies)
                 elif block_characters_outside.living_zombies:
                     watching_zombies.extend(block_characters_outside.living_zombies)
+
+        if self.character.game.debug and self.character == self.character.game.state.player:
+            print(f"Watching zombies: {[zombie.current_name for zombie in watching_zombies]}")
 
         return watching_zombies
 

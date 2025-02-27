@@ -87,7 +87,8 @@ class Character:
             "Name": self.current_name,
             "Occupation": self.occupation.name.title(),
             "HP": f"{self.hp} / {self.max_hp}",
-            "XP": self.xp
+            "XP": self.xp,
+            "Location": self.location,
         }
         return status
     

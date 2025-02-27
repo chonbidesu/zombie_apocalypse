@@ -78,11 +78,12 @@ class SurviveGoal(GoalCommand):
 class StandGoal(GoalCommand):
     """Goal to stand up if enough AP available."""
     def __init__(self, manager):
-        super().__init__(manager)    
+        super().__init__(manager)   
+        self.last_known_target = None 
 
-    def is_complete(self):
-        """The goal is complete when the character has stood up."""
-        return self.manager.character.is_dead == False        
+    def is_valid(self):
+        """The goal is valid if the character is dead."""
+        return self.manager.character.is_dead       
 
     def get_decisions(self):
         return [StandDecision]
@@ -95,9 +96,9 @@ class HuntBrainsGoal(GoalCommand):
         self.last_known_target = None  # Stores (human, last_seen_location)
         self.target_block = None
 
-    def is_complete(self):
-        """The goal is complete when the target is lost and the last known location is reached."""
-        return self.last_known_target is None or any(value is None for value in self.last_known_target)
+    def is_valid(self):
+        """The goal is valid while a living human is visible or until their last known location is reached."""
+        return self.last_known_target and all(value for value in self.last_known_target)
 
     def get_decisions(self):
         """Determine the next decision based on human visibility and memory."""
@@ -111,21 +112,18 @@ class HuntBrainsGoal(GoalCommand):
             self.last_known_target = (target_human, location)  # Update memory
             self.target_block = city.block(*location)
 
-            # Attack if in melee range, otherwise pursue
-            return [AttackBrainsDecision, PursueBrainsDecision]
-
         # If no visible human, but we have a last known location, chase them
         if self.last_known_target:
             target_human, location = self.last_known_target
-            target_block = city.block(*location)
 
             # If the human entered a building, attempt to break in
             if target_human.inside:
-                self.target_block = target_block
                 return [BreakInsideDecision]
+            
+            else:
 
-            # If the target simply moved away, chase them
-            return [ChaseBrainsDecision]
+                # Attack if in melee range, otherwise pursue
+                return [AttackBrainsDecision, PursueBrainsDecision, ChaseBrainsDecision]
 
         return []
 
@@ -137,9 +135,9 @@ class IdleGoal(GoalCommand):
         self.last_known_target = None  # Stores (human, last_seen_location)
         self.target_block = None
 
-    def is_complete(self):
+    def is_valid(self):
         """WanderGoal is never truly 'complete' unless interrupted by a human presence."""
-        return self.last_known_target and all(value is not None for value in self.last_known_target)
+        return self.last_known_target is None or any(value is None for value in self.last_known_target)
 
     def get_decisions(self):
         """Choose a movement target, prioritizing lit buildings or wandering randomly."""

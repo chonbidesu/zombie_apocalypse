@@ -12,17 +12,13 @@ class PursueBrainsDecision(DecisionCommand):
         self.goal = goal
 
     def is_valid(self):
-        """Valid if a human is visible within the zombie's perception range."""
-        character = self.goal.manager.character
-        x, y = character.location
-        block_characters = character.helper.filter_characters_at_location(x, y, inside=character.inside)
-
-        return self.goal.manager.find_visible_human() is not None and not bool(block_characters.living_humans)
+        """Valid if target human is visible within the zombie's perception range."""
+        return self.goal.last_known_target and all(value for value in self.goal.last_known_target)
 
     def execute(self):
         """Move towards the nearest human, or fail if blocked."""
         character = self.goal.manager.character
-        target_human, target_location = self.goal.manager.find_visible_human()
+        target_human, target_location = self.goal.last_known_target
         city = character.game.state.city
         x, y = character.location
         block = city.block(x, y)
@@ -57,12 +53,14 @@ class AttackBrainsDecision(DecisionCommand):
         self.goal = goal
 
     def is_valid(self):
-        """Valid if a human is in the same block and has the same inside status."""
+        """Valid if target human is in the same block and has the same inside status."""
         character = self.goal.manager.character
-        x, y = character.location
-        block_characters = character.helper.filter_characters_at_location(x, y, inside=character.inside)
+        if self.goal.last_known_target:
+            target, location = self.goal.last_known_target
 
-        return bool(block_characters.living_humans)  # True if there are humans to attack
+            return character.location == location and character.inside == target.inside # True if target is in range
+        
+        return False
 
     def execute(self):
         """Attack the nearest human in the same block."""

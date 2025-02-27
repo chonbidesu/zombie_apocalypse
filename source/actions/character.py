@@ -76,8 +76,6 @@ class Move(ActionCommand):
             # Resolve line of sight for nearby zombies
             if self.character.is_human:
                 watching_zombies = self.character.goal_manager.find_watching_zombies()
-                if self.character.game.debug:
-                    print(f"Zombies watching {self.character.current_name}: {[z.current_name for z in watching_zombies]}")
                 if watching_zombies:
                     last_known_target = self.character, self.character.location
                     for zombie in watching_zombies:
