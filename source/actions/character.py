@@ -212,6 +212,8 @@ class Stand(ActionCommand):
         """Character stands up at half health."""
         if not self.character.permadeath:
             self.success = True
+            self.message = "You stand up, feeling weak."
+            self.witness = f"{self.character.current_name} stands up!"
             self.character.heal(self.character.max_hp // 2)
             if self.character.helper.has_skill(SkillType.ANKLE_GRAB):
                 self.character.lose_ap(1)

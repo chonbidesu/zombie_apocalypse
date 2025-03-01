@@ -9,6 +9,7 @@ class DecisionCommand:
     """Base class for all AI decisions."""
     def __init__(self, goal):
         self.goal = goal
+        self.action = None
 
     def is_valid(self):
         """Checks if this decision is valid for the character."""

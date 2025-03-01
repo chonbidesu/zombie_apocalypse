@@ -98,7 +98,7 @@ class HuntBrainsGoal(GoalCommand):
 
     def is_valid(self):
         """The goal is valid while a living human is visible or until their last known location is reached."""
-        return self.last_known_target and all(value for value in self.last_known_target)
+        return self.last_known_target and all(value for value in self.last_known_target) and not self.manager.character.is_dead
 
     def get_decisions(self):
         """Determine the next decision based on human visibility and memory."""
@@ -137,7 +137,7 @@ class IdleGoal(GoalCommand):
 
     def is_valid(self):
         """WanderGoal is never truly 'complete' unless interrupted by a human presence."""
-        return self.last_known_target is None or any(value is None for value in self.last_known_target)
+        return self.last_known_target is None or any(value is None for value in self.last_known_target) and not self.manager.character.is_dead
 
     def get_decisions(self):
         """Choose a movement target, prioritizing lit buildings or wandering randomly."""

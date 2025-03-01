@@ -13,7 +13,8 @@ class PursueBrainsDecision(DecisionCommand):
 
     def is_valid(self):
         """Valid if target human is visible within the zombie's perception range."""
-        return self.goal.last_known_target and all(value for value in self.goal.last_known_target)
+        not_attackable = self.goal.last_known_target and self.goal.manager.character.location != self.goal.last_known_target[1] or self.goal.manager.character.inside != self.goal.last_known_target[0].inside
+        return self.goal.last_known_target and all(value for value in self.goal.last_known_target) and not_attackable
 
     def execute(self):
         """Move towards the nearest human, or fail if blocked."""
@@ -26,23 +27,23 @@ class PursueBrainsDecision(DecisionCommand):
 
         # Determine the movement action
         if target_location in character.helper.get_adjacent_locations():
-            action = Move(character)
+            self.action = Move(character)
             target_x, target_y = target_location[0], target_location[1]
             move_target = MoveTarget(target_x - x, target_y - y)
-            action.execute(move_target)
+            self.action.execute(move_target)
 
         elif target_human and target_human.inside and not character.inside:
             # Check if the building can be entered
             if (target_block.barricade.level == 0 and not target_block.doors_closed) or character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
-                action = Enter(character)
-                action.execute()
+                self.action = Enter(character)
+                self.action.execute()
             else:
                 self.success = False  # Blocked, let the goal manager handle another decision
 
         elif target_human and not target_human.inside and character.inside:
             if (target_block.barricade.level == 0 and not target_block.doors_closed) or character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
-                action = Leave(character)
-                action.execute()
+                self.action = Leave(character)
+                self.action.execute()
             else:
                 self.success = False
     
@@ -73,8 +74,8 @@ class AttackBrainsDecision(DecisionCommand):
             return  # No valid targets, GoalManager will handle another decision
 
         target = block_characters.living_humans[0]  # Attack the first human found
-        action = Attack(character)
-        action.execute(target)
+        self.action = Attack(character)
+        self.action.execute(target)
 
 
 class ChaseBrainsDecision(DecisionCommand):
@@ -99,8 +100,8 @@ class ChaseBrainsDecision(DecisionCommand):
         if self.target_location:
             target_x, target_y = self.target_location
             move_target = MoveTarget(target_x - x, target_y - y)
-            action = Move(self)
-            action.execute(move_target)
+            self.action = Move(self)
+            self.action.execute(move_target)
 
             if character.location == (target_x, target_y):
                 self.goal.last_known_target = None
@@ -134,7 +135,8 @@ class MoveDecision(DecisionCommand):
         else:
             move_target = None # If no target is selected, wander randomly
 
-        Move(character).execute(move_target)
+        self.action = Move(character)
+        self.action.execute(move_target)
 
 
 class BreakInsideDecision(DecisionCommand):
