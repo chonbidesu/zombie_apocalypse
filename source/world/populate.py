@@ -53,14 +53,16 @@ class GenerateNPCs:
         """Get all NPCs at a specific location."""
         return [npc for npc in self.list if npc.x == x and npc.y == y]
 
-    def gain_ap(self):
+    def gain_ap(self, ap):
         for npc in self.list:
-            npc.ap += 1
+            npc.ap += ap
 
     def take_action(self):
         """Allow all NPCs to take an action, such as moving or attacking."""
         for npc in self.list:
-            npc.state.act()
+            if npc.ap > 0:
+                npc.goal_manager.evaluate_goal()          
+                npc.goal_manager.current_goal.execute() if bool(npc.goal_manager.current_goal) else False
 
     # Assign a random name to the character
     def _assign_name(self):

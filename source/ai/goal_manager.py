@@ -45,19 +45,30 @@ class GoalManager:
         if self.character.is_dead:
             return StandGoal(self)
 
-        visible_human, location = self.find_visible_human()
+        visible_human, new_location = self.find_visible_human()
+        last_known_target = None
         if isinstance(self.current_goal, HuntBrainsGoal):
             last_known_target = self.current_goal.last_known_target
 
-        # If a human is visible, switch to hunting mode
-        if self.current_goal and type(self.current_goal) == IdleGoal:
-            last_known_target = self.current_goal.last_known_target
-            new_goal = HuntBrainsGoal(self)
-            new_goal.last_known_target = last_known_target
-            return new_goal
+        if visible_human:
+            if last_known_target:
+                _, last_location = last_known_target
+
+                if self._is_better_target(new_location, last_location):
+                    return HuntBrainsGoal(self, target=(visible_human, new_location))
+                return self.current_goal  # Continue hunting the last target
+            else:
+                return HuntBrainsGoal(self, target=(visible_human, new_location))
 
         # If no humans are visible, wander aimlessly
         return IdleGoal(self)
+
+    def _is_better_target(self, new_location, old_location):
+        """Returns True if the new target is closer."""
+        x, y = self.character.location
+        new_dist = abs(new_location[0] - x) + abs(new_location[1] - y)
+        old_dist = abs(old_location[0] - x) + abs(old_location[1] - y)
+        return new_dist < old_dist        
 
     def find_visible_human(self):
         """Returns the closest visible human and their location."""

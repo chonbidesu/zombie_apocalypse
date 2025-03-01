@@ -20,6 +20,7 @@ class CloseDoors(ActionCommand):
             if self.is_player:
                 action_progress = self.character.game.game_ui.action_progress
                 action_progress.start("Closing doors", block.close_doors)
+                self.character.game.tick()
             else:
                 block.close_doors()
             self.character.lose_ap(1)
@@ -39,6 +40,7 @@ class OpenDoors(ActionCommand):
             if self.is_player:
                 action_progress = self.character.game.game_ui.action_progress
                 action_progress.start("Opening doors", block.open_doors)
+                self.character.game.tick()
             else:
                 block.open_doors()
             self.character.lose_ap(1)
@@ -73,6 +75,7 @@ class AddBarricades(ActionCommand):
         if success:
             
             if self.is_player:
+                self.character.game.tick()
                 action_progress = self.character.game.game_ui.action_progress
                 action_progress.start("Barricading", block.barricade.adjust_sublevel, 1)
             else:
@@ -97,6 +100,9 @@ class AddBarricades(ActionCommand):
                    
         else:
             self.message = "You can't find anything to reinforce the barricade."
+
+        if self.is_player:
+            self.character.game.tick()            
             
 
 class Decade(ActionCommand):
@@ -120,6 +126,8 @@ class Decade(ActionCommand):
 
             self.success = True
             self.sfx='decade'
+            if self.is_player:
+                self.character.game.tick()
               
 
 class Ransack(ActionCommand):
@@ -146,6 +154,9 @@ class Ransack(ActionCommand):
         else:
             self.message = "This building is already ruined."
 
+        if self.success and self.is_player:
+            self.character.game.tick()
+
 
 class Dump(ActionCommand):
     """Dump a body outside the building."""
@@ -162,7 +173,8 @@ class Dump(ActionCommand):
             self.message = "You dump a body outside."
             self.witness = f"{self.character.current_name} dumps a body outside."
             self.success = True
-
+            if self.is_player:
+                self.character.game.tick()
 
 class Search(ActionCommand):
     """Search inside a building for useful items."""
@@ -171,6 +183,9 @@ class Search(ActionCommand):
 
     def execute(self):
         """Search a building for items."""
+        if self.is_player:
+            self.character.game.tick()
+
         block = self.get_block()
 
         search_path = DataPath('tables/search.csv').path
@@ -219,7 +234,8 @@ class Search(ActionCommand):
         # Add the item to inventory
         self.character.inventory.append(item)
         self.character.lose_ap(1)
-        self.message = f"You found {item.description}!"        
+        self.message = f"You found {item.description}!"     
+        self.success = True   
         return True
 
 

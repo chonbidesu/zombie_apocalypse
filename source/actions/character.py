@@ -20,7 +20,10 @@ class Use(ActionCommand):
 
     def execute(self, target):
         self.success, self.message = target.item.use()
-
+        
+        if self.success:
+            if self.is_player:
+                self.character.game.tick()
 
 class Drop(ActionCommand):
     def __init__(self, character):
@@ -86,6 +89,9 @@ class Move(ActionCommand):
                 if visible_human:
                     self.character.goal_manager.current_goal.last_known_target = visible_human, loc
 
+            if self.is_player:
+                self.character.game.tick()
+
 
 class Enter(ActionCommand):
     def __init__(self, character):
@@ -135,6 +141,7 @@ class Enter(ActionCommand):
 
         if self.success:
             if self.is_player:
+                self.character.game.tick()
                 screen_transition = self.character.game.game_ui.screen_transition
                 screen_transition.circle_wipe(self.character.enter, self.character.game.chat_history)
             else:
@@ -190,6 +197,7 @@ class Leave(ActionCommand):
 
         if self.success:
             if self.is_player:
+                self.character.game.tick()                
                 screen_transition = self.character.game.game_ui.screen_transition
                 screen_transition.circle_wipe(self.character.leave, self.character.game.chat_history)
             else:
@@ -212,6 +220,8 @@ class Stand(ActionCommand):
 
         if self.success:
             if self.is_player:
+                stand_ap = 1 if self.character.has_skill(SkillType.ANKLE_GRAB) else STAND_AP
+                self.character.game.tick(stand_ap)                
                 action_progress = self.character.game.game_ui.action_progress
                 action_progress.start("Standing", self.character.stand, duration=10000)
             else:

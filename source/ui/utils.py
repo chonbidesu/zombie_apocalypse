@@ -140,8 +140,8 @@ class DayCycleManager:
 
     def process_night_cycle(self):
         """Process 8 hours of NPC actions."""
+        self.game.state.npcs.gain_ap(20)
         for _ in range(8 * 10 * 1000 // ACTION_INTERVAL): # Calculate number of NPC actions in 8 hours
-            self.game.state.npcs.gain_ap()
             self.game.state.npcs.take_action()
             self.game.ticker += 1  # Track time progression
 
@@ -151,6 +151,7 @@ class DayCycleManager:
     def start_new_day(self):
         """End the night cycle and start a new day."""
         self.night_overlay_alpha = 0 # Make night overlay transparent
+        self.game.state.npcs.gain_ap(40)
         pygame.mixer.music.play(0)
         print("You wake up at dawn...")
 

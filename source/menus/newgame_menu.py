@@ -96,8 +96,16 @@ class NewGameMenu:
     
     def draw(self, screen):
         """Draw the new game menu."""
-        screen.fill(DARK_GREEN)
-        
+        if self.game.title_screen:
+            panel_width, panel_height = SCREEN_WIDTH - 60, SCREEN_HEIGHT - 60
+            panel_surface = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
+            panel_surface.fill(DARK_GREEN)
+            panel_surface.set_alpha(150)
+            panel_rect = panel_surface.get_rect(topleft=(30, 30))
+            screen.blit(panel_surface, panel_rect)
+        else:
+            screen.fill(DARK_GREEN)
+
         # Draw header
         title_text = font_xl.render("Create Character", True, WHITE)
         title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, 75))

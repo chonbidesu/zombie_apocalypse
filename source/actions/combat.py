@@ -15,9 +15,14 @@ class Attack(ActionCommand):
 
     def execute(self, target):
         if self.character.is_human:
-            return self._human_attack(target)
+            attack = self._human_attack(target)
         else:
-            return self._zombie_attack(target)
+            attack = self._zombie_attack(target)
+
+        if self.is_player:
+            self.character.game.tick()
+
+        return attack        
 
     def _human_attack(self, target):
         equipped = self.character.equipped
@@ -215,6 +220,9 @@ class Heal(ActionCommand):
             else:
                 self.message = f"{target.current_name} already feels healthy."
 
+        if self.success and self.is_player:
+            self.character.game.tick()
+
 class Inject(ActionCommand):
     """Handles reviving zombies."""
     def __init__(self, character):
@@ -251,7 +259,8 @@ class Inject(ActionCommand):
 
         self.success = True
         self.message = "Following standard procedures, you press the syringe into the back of the zombie's neck and pump the glittering serum into its brain and spinal cord."
-            
+        if self.is_player:
+            self.character.game.tick()
 
 class ExtractDNA(ActionCommand):
     """Handles extracting DNA from zombies."""
@@ -262,6 +271,8 @@ class ExtractDNA(ActionCommand):
         if target.is_human:
             self.character.lose_ap(1)
             message = "NecroTech needs DNA samples from the dead, not the living."
+            if self.is_player:
+                self.character.game.tick()            
             return
         
         if not target.tagged:
@@ -271,6 +282,9 @@ class ExtractDNA(ActionCommand):
         self.character.lose_ap(1)
         self.success = True
         self.message = f"You extract DNA from the zombie and upload the data to the NecroNet."
+        
+        if self.is_player:
+            self.character.game.tick()
 
     def extract_dna(self, target):
         city = self.character.game.state.city

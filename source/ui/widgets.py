@@ -154,14 +154,13 @@ class ClockHUD:
     def __init__(self, game, start_time=480): # Default start time 8:00 AM (8 * 60 minutes)
         self.game = game
         self.time_in_minutes = start_time
-        self.last_update = time.time()
+        self.last_update = self.game.ticker
 
     def update(self):
         """Update the clock every second in real time."""
-        current_time = time.time()
-        if current_time - self.last_update >= 3.125:  # 3.125 seconds = 10 in-game minute = full day cycle in 5 minutes
-            self.time_in_minutes += 10
-            self.last_update = current_time
+        if self.game.ticker > self.last_update:
+            self.time_in_minutes += 16
+            self.last_update = self.game.ticker
 
         # If it's 12:00 PM, start the night cycle
         if self.time_in_minutes >= 24 * 60:  # 24 * 60 = 1440 minutes = 12:00 PM

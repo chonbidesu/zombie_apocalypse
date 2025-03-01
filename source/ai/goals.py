@@ -91,9 +91,9 @@ class StandGoal(GoalCommand):
 
 class HuntBrainsGoal(GoalCommand):
     """Zombie goal to find and attack the nearest human, even if they move out of sight."""
-    def __init__(self, manager):
+    def __init__(self, manager, target=None):
         super().__init__(manager)
-        self.last_known_target = None  # Stores (human, last_seen_location)
+        self.last_known_target = target  # Stores (human, last_seen_location)
         self.target_block = None
 
     def is_valid(self):
@@ -130,9 +130,9 @@ class HuntBrainsGoal(GoalCommand):
 
 class IdleGoal(GoalCommand):
     """Zombies wander unless they detect a human nearby."""
-    def __init__(self, manager):
+    def __init__(self, manager, target=None):
         super().__init__(manager)
-        self.last_known_target = None  # Stores (human, last_seen_location)
+        self.last_known_target = target  # Stores (human, last_seen_location)
         self.target_block = None
 
     def is_valid(self):

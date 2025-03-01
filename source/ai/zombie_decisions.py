@@ -22,6 +22,7 @@ class PursueBrainsDecision(DecisionCommand):
         city = character.game.state.city
         x, y = character.location
         block = city.block(x, y)
+        target_block = city.block(*target_location)
 
         # Determine the movement action
         if target_location in character.helper.get_adjacent_locations():
@@ -32,14 +33,14 @@ class PursueBrainsDecision(DecisionCommand):
 
         elif target_human and target_human.inside and not character.inside:
             # Check if the building can be entered
-            if (block.barricade.level == 0 and not block.doors_closed) or character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
+            if (target_block.barricade.level == 0 and not target_block.doors_closed) or character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
                 action = Enter(character)
                 action.execute()
             else:
                 self.success = False  # Blocked, let the goal manager handle another decision
 
         elif target_human and not target_human.inside and character.inside:
-            if (block.barricade.level == 0 and not block.doors_closed) or character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
+            if (target_block.barricade.level == 0 and not target_block.doors_closed) or character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
                 action = Leave(character)
                 action.execute()
             else:

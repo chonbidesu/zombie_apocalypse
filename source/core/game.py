@@ -46,6 +46,7 @@ class GameInitializer:
         self.start_new_game = False
         self.event_handler = EventHandler(self) 
         self.title_screen = True
+        self.parallax = ui.ParallaxBackground(self.menu.title_menu._get_parallax_paths(), self.menu.title_menu._get_parallax_speeds())
         pygame.mixer.init()  # Initialize the mixer
         self.load_sounds()    # Load sound effects
 
@@ -146,6 +147,17 @@ class GameInitializer:
 
         self.initialize_game(player, portrait.portrait_path)
 
+    def tick(self, ap_cost=1):
+        self.ticker += ap_cost
+        print(f"Ticker: {self.ticker}")
+                    
+        # Check buildings for fuel expiry
+        for row in self.state.city.grid:
+            for block in row:
+                if hasattr(block, 'fuel_expiration') and block.fuel_expiration < self.ticker:
+                    if block.lights_on:
+                        block.lights_on = False
+
     def save_game(self, index):
         """Save the game state to a file."""
         saveload.GameData.save_game(index, self)
@@ -217,32 +229,22 @@ class GameInitializer:
 
         self.action_timer += self.clock.get_time()
         if self.action_timer >= ACTION_INTERVAL:
-            self.state.npcs.gain_ap() # Grant AP to all NPCs
             self.action_queue = deque(self.state.npcs.list) # Load all NPCs into the queue
-            self.action_timer = 0
-            self.ticker += 1
-            
-            # Check buildings for fuel expiry
-            for row in self.state.city.grid:
-                for block in row:
-                    if hasattr(block, 'fuel_expiration') and block.fuel_expiration < self.ticker:
-                        if block.lights_on:
-                            block.lights_on = False         
+            self.action_timer = 0       
 
         # Process the action queue in batches
         for _ in range(min(actions_per_frame, len(self.action_queue))):
             npc = self.action_queue.popleft() # Get next npc
-            npc.goal_manager.evaluate_goal()          
-            npc.goal_manager.current_goal.execute() if bool(npc.goal_manager.current_goal) else False
-            """
-            NPC DECISION MAKING GOES HERE
-            npc.gain_skill()
-            """
+            if npc.ap > 0:
+                npc.goal_manager.evaluate_goal()          
+                npc.goal_manager.current_goal.execute() if bool(npc.goal_manager.current_goal) else False
             
     def update_screen(self):
         """Handles drawing game elements and updating UI."""
         
         if self.title_screen:
+            self.parallax.update()
+            self.parallax.draw(self.screen)
             if self.newgame_menu:
                 self.menu.newgame_menu.draw(self.screen)
             elif self.load_menu:

@@ -10,7 +10,8 @@ from data import SaveLoadPath
 
 class SaveLoadMenu:
     """Create a save/load menu for the game."""
-    def __init__(self, mode):
+    def __init__(self, game, mode):
+        self.game = game
         self.mode = mode
         self.header = self.create_header()
         self.slots = self.create_slots()
@@ -40,7 +41,15 @@ class SaveLoadMenu:
         return group
 
     def draw(self, screen):
-        screen.fill(DARK_GREEN)
+        if self.game.title_screen:
+            panel_width, panel_height = SCREEN_WIDTH - 60, SCREEN_HEIGHT - 60
+            panel_surface = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
+            panel_surface.fill(DARK_GREEN)
+            panel_surface.set_alpha(150)
+            panel_rect = panel_surface.get_rect(topleft=(30, 30))
+            screen.blit(panel_surface, panel_rect)
+        else:
+            screen.fill(DARK_GREEN)
 
         screen.blit(*self.header)
         for slot in self.slots:

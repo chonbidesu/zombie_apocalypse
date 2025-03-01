@@ -34,7 +34,7 @@ class TitleMenu:
     
     def draw(self, screen):
         self.title_music()
-        screen.fill(DARK_GREEN)
+        
         title_text = font_xxl.render("Zombie Apocalypse", True, WHITE)
         title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 5))
         screen.blit(title_text, title_rect)        
@@ -50,6 +50,26 @@ class TitleMenu:
             pygame.mixer.music.load(ResourcePath("music/summoning.mp3").path)
             pygame.mixer.music.set_volume(0.3)  # Set volume to 50%
             pygame.mixer.music.play(-1)
+
+    def _get_parallax_paths(self):
+        image_paths = [
+            ResourcePath("parallax/WCP_1.png").path,
+            ResourcePath("parallax/WCP_2.png").path,
+            ResourcePath("parallax/WCP_3.png").path,
+            ResourcePath("parallax/WCP_4.png").path,
+            ResourcePath("parallax/WCP_5.png").path,                                                
+        ]
+        return image_paths
+
+    def _get_parallax_speeds(self):
+        scroll_speeds = [
+            0.1, 
+            0.25, 
+            0.5, 
+            1, 
+            1.5
+        ]
+        return scroll_speeds            
 
 class TitleAction:
     """Handles executing actions for the title screen."""

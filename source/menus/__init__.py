@@ -11,8 +11,8 @@ class GameMenu:
     def __init__(self, game):
         self.pause_menu = PauseMenu()
         self.newgame_menu = NewGameMenu(game)
-        self.save_menu = SaveLoadMenu("save")
-        self.load_menu = SaveLoadMenu("load")
+        self.save_menu = SaveLoadMenu(game, "save")
+        self.load_menu = SaveLoadMenu(game, "load")
         self.title_menu = TitleMenu()
         self.title_action = TitleAction(game)
         self.skills_menu = SkillsMenu(game)
