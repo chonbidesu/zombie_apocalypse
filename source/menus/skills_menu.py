@@ -209,7 +209,7 @@ class SkillsMenu:
         xp_cost = self._get_skill_xp_cost(skill)
 
         player.xp -= xp_cost
-        player.add_skill(skill)
+        player.helper.add_skill(skill)
         self.selected_skill.acquired = True
 
     def create_resources(self):

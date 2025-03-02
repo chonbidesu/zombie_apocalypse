@@ -71,8 +71,6 @@ class KeydownHandler:
 
     def handle_map(self, event):
         """Handle key press events."""
-        player = self.game.state.player
-
         key_to_action = {
             pygame.K_PAGEDOWN: ZoomOut,
             pygame.K_PAGEUP: ZoomIn,
@@ -80,7 +78,7 @@ class KeydownHandler:
         }
         action = key_to_action.get(event.key)
         if action:
-            action(player).execute()         
+            action(self.game).execute()         
 
     def handle_game(self, event):
         """Handles key presses during gameplay."""

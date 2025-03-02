@@ -85,12 +85,12 @@ class AddBarricades(ActionCommand):
                 self.message = "You reinforce the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
                 self.witness = f"{self.character.current_name} reinforced the barricade. It's looking very strong, now - any further barricading will prevent survivors from climbing in."
             
-            elif self.barricade.sublevel == 0:
+            elif block.barricade.sublevel == 0:
                 barricade_description = block.barricade.get_description()
                 self.message = f"You reinforce the barricade. The building is now {barricade_description}."   
                 self.witness = f"{self.character.current_name} reinforced the barricade. The building is now {barricade_description}."
             
-            elif self.barricade.sublevel > 0:
+            elif block.barricade.sublevel > 0:
                 self.message = "You reinforce the barricade."
                 self.witness = f"{self.character.current_name} reinforced the barricade."
 
@@ -116,7 +116,7 @@ class Decade(ActionCommand):
             block.barricade.register_hit()
             self.character.lose_ap(1)
 
-            if self.barricade.level == 0:
+            if block.barricade.level == 0:
                 self.message = "You smash at the barricades. The last piece of it falls away."
                 self.witness = "Something smashes through the last of the barricades."
 

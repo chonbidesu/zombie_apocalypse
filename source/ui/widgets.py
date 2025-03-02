@@ -159,8 +159,9 @@ class ClockHUD:
     def update(self):
         """Update the clock every second in real time."""
         if self.game.ticker > self.last_update:
-            self.time_in_minutes += 16
-            self.last_update = self.game.ticker
+            ticker_difference = self.game.ticker - self.last_update  # How many ticks have passed
+            self.time_in_minutes += ticker_difference * 16  # Scale time based on missed ticks
+            self.last_update = self.game.ticker  # Update last recorded ticker
 
         # If it's 12:00 PM, start the night cycle
         if self.time_in_minutes >= 24 * 60:  # 24 * 60 = 1440 minutes = 12:00 PM

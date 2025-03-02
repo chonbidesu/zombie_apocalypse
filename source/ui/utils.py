@@ -3,6 +3,7 @@
 
 import pygame
 import sys
+import random
 
 from core.settings import *
 from data import ResourcePath
@@ -95,14 +96,13 @@ class DayCycleManager:
         self.game = game
         self.night_overlay_alpha = 0 # Start the day with a transparent overlay
         self.is_night = False
+        self.music = [ResourcePath("music/road_runner.mp3").path, ResourcePath("music/forward_motion.mp3").path]
 
-        pygame.mixer.init() # Initialize the sound mixer
-        pygame.mixer.music.load(ResourcePath("music/road_runner.mp3").path)
-        pygame.mixer.music.set_volume(0.3)  # Set volume to 50%
 
     def update(self):
         """Updates the environment based on the time of day."""
         current_time = self.game.game_ui.description_panel.clock.time_in_minutes
+
         # Transition from day to night (9:00 AM → Midnight)
         if 1260 <= current_time < 1440:
             self.apply_night_overlay(current_time)
@@ -111,6 +111,7 @@ class DayCycleManager:
         if current_time == 0 and not self.is_night:
             self.is_night = True
             self.start_night()
+
 
     def apply_night_overlay(self, current_time):
         """
@@ -140,18 +141,23 @@ class DayCycleManager:
 
     def process_night_cycle(self):
         """Process 8 hours of NPC actions."""
-        self.game.state.npcs.gain_ap(20)
-        for _ in range(8 * 10 * 1000 // ACTION_INTERVAL): # Calculate number of NPC actions in 8 hours
-            self.game.state.npcs.take_action()
-            self.game.ticker += 1  # Track time progression
+        self.game.state.npcs.gain_ap(10)
 
-        self.start_new_day()
+        self.game.process_npcs("night")
+
         self.game.game_ui.description_panel.clock.time_in_minutes = 8 * 60  # Reset to 8:00 AM
+        self.start_new_day()
 
     def start_new_day(self):
         """End the night cycle and start a new day."""
         self.night_overlay_alpha = 0 # Make night overlay transparent
-        self.game.state.npcs.gain_ap(40)
+        self.is_night = False
+        self.game.state.npcs.gain_ap(50)
+
+        pygame.mixer.init() # Initialize the sound mixer
+        pygame.mixer.music.set_volume(0.3)
+        song = random.choice(self.music)
+        pygame.mixer.music.load(song)
         pygame.mixer.music.play(0)
         print("You wake up at dawn...")
 

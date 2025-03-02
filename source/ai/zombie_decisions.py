@@ -79,36 +79,6 @@ class AttackBrainsDecision(DecisionCommand):
         self.action.execute(target)
 
 
-class ChaseBrainsDecision(DecisionCommand):
-    """Zombies chase the last known location of a human who moved out of sight."""
-
-    def __init__(self, goal):
-        super().__init__(goal)
-        self.goal = goal
-        self.target_human, self.target_location = goal.last_known_target if goal.last_known_target else None, None  # (Human, (x, y))
-
-    def is_valid(self):
-        """Valid if the zombie hasn't yet reached the last known location."""
-        character = self.goal.manager.character
-        return self.goal.last_known_target and character.location != self.target_location
-
-    def execute(self):
-        """Move towards the last known location of the human."""
-        character = self.goal.manager.character        
-
-        # Move toward the last known location
-        x, y = character.location
-        if self.target_location:
-            target_x, target_y = self.target_location
-            move_target = MoveTarget(target_x - x, target_y - y)
-            self.action = Move(self)
-            self.action.execute(move_target)
-
-            if character.location == (target_x, target_y):
-                self.goal.last_known_target = None
-                self.goal.target_block = None
-
-
 class MoveDecision(DecisionCommand):
     """Move towards a target location."""
 
@@ -146,13 +116,12 @@ class BreakInsideDecision(DecisionCommand):
     def __init__(self, goal):
         super().__init__(goal)
         self.goal = goal
-        self.target_block = goal.target_block
 
     def is_valid(self):
         """Valid if the block has barricades."""
         character = self.goal.manager.character
-        return self.target_block and self.target_block.barricade.level > 0 or \
-            (self.target_block.doors_closed and character.helper.has_skill(SkillType.MEMORIES_OF_LIFE))
+        target_human, loc = self.goal.last_known_target
+        return target_human.inside and character.inside != target_human.inside and self.goal.target_block.doors_closed and character.location == loc
 
     def execute(self):
         """Execute the attack on barricades."""

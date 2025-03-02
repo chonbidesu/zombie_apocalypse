@@ -79,7 +79,14 @@ class Move(ActionCommand):
         if self.success:
             if self.is_player:
                 game = self.character.game
-                game.tick()
+                if self.character.is_human:
+                    ap_cost = 1
+                else:
+                    if self.character.helper.has_skill(SkillType.LURCHING_GAIT):
+                        ap_cost = 1
+                    else:
+                        ap_cost = 2
+                game.tick(ap_cost)
                 screen_transition = game.game_ui.screen_transition
                 screen_transition.dissolve_scene(self.character.move, game.chat_history, new_x, new_y)                
             else:
@@ -91,10 +98,12 @@ class Move(ActionCommand):
                 if watching_zombies:
                     last_known_target = (self.character, self.character.location)                    
                     for zombie in watching_zombies:
-                        zombie.goal_manager.current_goal.last_known_target = last_known_target
+                        if zombie.goal_manager.current_goal:
+                            zombie.goal_manager.current_goal.last_known_target = last_known_target
 
             else:
-                if self.character.goal_manager.current_goal.last_known_target:
+                current_goal = self.character.goal_manager.current_goal
+                if current_goal and current_goal.last_known_target:
                     return
 
 
@@ -227,7 +236,7 @@ class Stand(ActionCommand):
 
         if self.success:
             if self.is_player:
-                stand_ap = 1 if self.character.has_skill(SkillType.ANKLE_GRAB) else STAND_AP
+                stand_ap = 1 if self.character.helper.has_skill(SkillType.ANKLE_GRAB) else STAND_AP
                 self.character.game.tick(stand_ap)                
                 action_progress = self.character.game.game_ui.action_progress
                 action_progress.start("Standing", self.character.stand, duration=10000)

@@ -3,7 +3,7 @@
 import random
 
 from .human_decisions import ScoutSafehouseDecision, EnterSafehouseDecision, SecureSafehouseDecision, SeekFAKDecision, HealThyselfDecision
-from .zombie_decisions import PursueBrainsDecision, AttackBrainsDecision, ChaseBrainsDecision, BreakInsideDecision, MoveDecision
+from .zombie_decisions import PursueBrainsDecision, AttackBrainsDecision, BreakInsideDecision, MoveDecision
 from .decisions import StandDecision
 from data import BLOCKS
 
@@ -123,23 +123,7 @@ class HuntBrainsGoal(GoalCommand):
 
     def get_decisions(self):
         """Determine the next decision based on human visibility and memory."""
-        character = self.manager.character
-        city = character.game.state.city
-
-        # If no visible human, but we have a last known location, chase them
-        if self.last_known_target:
-            target_human, _ = self.last_known_target
-
-            # If the human entered a building, attempt to break in
-            if target_human.inside and self.target_block.doors_closed:
-                return [BreakInsideDecision]
-            
-            else:
-
-                # Attack if in melee range, otherwise pursue
-                return [AttackBrainsDecision, PursueBrainsDecision, ChaseBrainsDecision]
-
-        return []
+        return [BreakInsideDecision, AttackBrainsDecision, PursueBrainsDecision]
 
 
 class IdleGoal(GoalCommand):
@@ -148,7 +132,7 @@ class IdleGoal(GoalCommand):
         super().__init__(manager, target)
 
     def is_valid(self):
-        """WanderGoal is never truly 'complete' unless interrupted by a human presence."""
+        """IdleGoal is never truly 'complete' unless interrupted by a human presence."""
         return self.last_known_target is None or any(value is None for value in self.last_known_target) and not self.manager.character.is_dead
 
     def get_decisions(self):

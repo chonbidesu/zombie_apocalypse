@@ -30,5 +30,5 @@ class ActionCommand:
     
     def get_block_npcs(self):
         x, y = self.character.location
-        block_npcs = self.character.state.filter_characters_at_location(x, y, inside=True)    
+        block_npcs = self.character.helper.filter_characters_at_location(x, y, inside=True)    
         return block_npcs      

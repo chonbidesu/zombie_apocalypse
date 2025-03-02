@@ -9,7 +9,9 @@ from collections import deque
 import menus
 from events import EventHandler
 import core.saveload as saveload
-from core.settings import *
+from .npc_processor import NPCProcessor
+from .settings import *
+
 import ui
 from world import City, GenerateNPCs, CityBlock, BuildingBlock
 from characters import Character, CharacterName
@@ -149,7 +151,7 @@ class GameInitializer:
 
     def tick(self, ap_cost=1):
         self.ticker += ap_cost
-        print(f"Ticker: {self.ticker}")
+        print(f"Time: {self.ticker}")
                     
         # Check buildings for fuel expiry
         for row in self.state.city.grid:
@@ -190,6 +192,8 @@ class GameInitializer:
         if set_time:
             self.game_ui.description_panel.clock.time_in_minutes = set_time
 
+        self.npc_processor = NPCProcessor(self, actions_per_frame=100)
+
         # Opening scene transition
         self.game_ui.day_cycle.start_new_day()
         self.game_ui.screen_transition.start_scene(self.chat_history) 
@@ -211,44 +215,17 @@ class GameInitializer:
             self.title_screen = False
             self.start_debug_game()
 
-        if self.state:
+        if self.state and not self.paused and not self.skills_menu:
             # Process NPC actions
             self.process_npcs()
 
-            # Handle player death
-            if self.state.player.is_dead:
-                self.game_ui.death_screen.handle_events(pygame.event.get())
-                self.game_ui.death_screen.draw()
-                if self.game_ui.death_screen.stand:
-                    Stand(self.state.player).execute()
-
-    def process_npcs(self):
+    def process_npcs(self, time_of_day="day"):
         """Processes NPC actions in batches to optimize performance."""
-        # Set up AI action queue
-        actions_per_frame = 100
-
-        self.action_timer += self.clock.get_time()
-        if self.action_timer >= ACTION_INTERVAL:
-            self.action_queue = deque(self.state.npcs.list) # Load all NPCs into the queue
-            self.action_timer = 0       
-
-        # Process the action queue in batches
-        for _ in range(min(actions_per_frame, len(self.action_queue))):
-            npc = self.action_queue.popleft() # Get next npc
-            if npc.ap > 0:
-                npc.goal_manager.evaluate_goal()          
-                npc.goal_manager.current_goal.execute() if bool(npc.goal_manager.current_goal) else False
-                current_goal = npc.goal_manager.current_goal
-                if self.debug and current_goal and current_goal.last_known_target and current_goal.last_known_target[0] == self.state.player:
-                    print(f"{npc.current_name}: Goal - {type(current_goal)}")
-                    if current_goal.current_decision:
-                        print(f"Decision - {type(current_goal.current_decision)}")
-                        if current_goal.current_decision.action:
-                            print(f"Action - {type(current_goal.current_decision.action)}")
-            
+        self.npc_processor.process(time_of_day)      
+           
     def update_screen(self):
         """Handles drawing game elements and updating UI."""
-        
+              
         if self.title_screen:
             self.parallax.update()
             self.parallax.draw(self.screen)
@@ -281,12 +258,19 @@ class GameInitializer:
             self.menu.skills_menu.draw(self.screen)
 
         elif self.reading_map:
-            self.game_ui.map.draw()
+            self.game_ui.map.draw()           
 
         else:
             # Draw game elements
             self.game_ui.update()
             self.game_ui.draw(self.chat_history)
+
+            # Handle player death
+            if self.state.player.is_dead:
+                self.game_ui.death_screen.handle_events(pygame.event.get())
+                self.game_ui.death_screen.draw()
+                if self.game_ui.death_screen.stand:
+                    Stand(self.state.player).execute()
 
             # Draw right-click menu if active
             if self.popup_menu:

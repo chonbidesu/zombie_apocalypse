@@ -55,7 +55,7 @@ class GenerateNPCs:
 
     def gain_ap(self, ap):
         for npc in self.list:
-            npc.ap += ap
+            npc.ap = min(npc.ap + ap, 60)
 
     def take_action(self):
         """Allow all NPCs to take an action, such as moving or attacking."""
