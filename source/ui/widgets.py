@@ -173,12 +173,15 @@ class ClockHUD:
         am_pm = "AM" if hours < 12 else "PM"
         display_hours = hours if hours <= 12 else hours - 12  # Convert to 12-hour format
 
-        time_str = f"{display_hours:02}:{minutes:02} {am_pm}"
+        show_colon = int(time.time()) % 2 == 0  # Blink every second based on real time
+        colon = ":" if show_colon else " "        
+
+        time_str = f"{display_hours:02}{colon}{minutes:02} {am_pm}"
         
         # Change colour to red if night is approaching
         colour = (255, 0, 0) if self.time_in_minutes >= 21 * 60 else (255, 255, 255)
 
-        time_surface = font_xl.render(time_str, True, colour)
-        time_shadow = font_xl.render(time_str, True, BLACK)
+        time_surface = font_clock.render(time_str, True, colour)
+        time_shadow = font_clock.render(time_str, True, BLACK)
         screen.blit(time_shadow, (x + 2, y + 2))  # Drop shadow
         screen.blit(time_surface, (x, y))  # Display in centre of setting image

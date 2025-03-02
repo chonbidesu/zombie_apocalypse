@@ -93,8 +93,26 @@ class HuntBrainsGoal(GoalCommand):
     """Zombie goal to find and attack the nearest human, even if they move out of sight."""
     def __init__(self, manager, target=None):
         super().__init__(manager)
-        self.last_known_target = target  # Stores (human, last_seen_location)
-        self.target_block = None
+        self._last_known_target = target  # Stores (human, last_seen_location)
+        self._target_block = None
+
+    @property
+    def last_known_target(self):
+        """Dynamically updates if a human is visible, otherwise retains the last known target."""
+        target_human, location = self.manager.find_visible_human()
+
+        if target_human:
+            self._last_known_target = (target_human, location)
+
+        return self._last_known_target
+    
+    @property
+    def target_block(self):
+        character = self.manager.character
+        city = character.game.state.city        
+        _, location = self.last_known_target
+        self._target_block = city.block(*location)
+        return self._target_block
 
     def is_valid(self):
         """The goal is valid while a living human is visible or until their last known location is reached."""
@@ -105,19 +123,12 @@ class HuntBrainsGoal(GoalCommand):
         character = self.manager.character
         city = character.game.state.city
 
-        # Check for a visible human
-        target_human, location = self.manager.find_visible_human()
-
-        if target_human:
-            self.last_known_target = (target_human, location)  # Update memory
-            self.target_block = city.block(*location)
-
         # If no visible human, but we have a last known location, chase them
         if self.last_known_target:
-            target_human, location = self.last_known_target
+            target_human, _ = self.last_known_target
 
             # If the human entered a building, attempt to break in
-            if target_human.inside:
+            if target_human.inside and self.target_block.doors_closed:
                 return [BreakInsideDecision]
             
             else:

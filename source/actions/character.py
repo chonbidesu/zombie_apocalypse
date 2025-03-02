@@ -4,8 +4,9 @@ import random
 from dataclasses import dataclass
 
 from actions.base_command import ActionCommand
-from data import BLOCKS, SkillType
+from data import BLOCKS, SkillType, ItemType
 from core.settings import *
+from items import Weapon, ItemFunction
              
 
 @dataclass
@@ -21,9 +22,11 @@ class Use(ActionCommand):
     def execute(self, target):
         self.success, self.message = target.item.use()
         
-        if self.success:
-            if self.is_player:
-                self.character.game.tick()
+        if self.success and self.is_player and \
+            not (issubclass(type(target.item), Weapon) or \
+                 target.item.type == ItemType.FIRST_AID_KIT or \
+                    target.item.item_function == ItemFunction.SCIENCE):
+            self.character.game.tick()
 
 class Drop(ActionCommand):
     def __init__(self, character):
@@ -74,23 +77,25 @@ class Move(ActionCommand):
                 self.success = True
         
         if self.success:
-            self.character.move(new_x, new_y)
+            if self.is_player:
+                game = self.character.game
+                game.tick()
+                screen_transition = game.game_ui.screen_transition
+                screen_transition.dissolve_scene(self.character.move, game.chat_history, new_x, new_y)                
+            else:
+                self.character.move(new_x, new_y)
 
             # Resolve line of sight for nearby zombies
             if self.character.is_human:
                 watching_zombies = self.character.goal_manager.find_watching_zombies()
                 if watching_zombies:
-                    last_known_target = self.character, self.character.location
                     for zombie in watching_zombies:
-                        zombie.goal_manager.current_goal.last_known_target = last_known_target
+                        _ = zombie.goal_manager.current_goal.last_known_target
 
             else:
-                visible_human, loc = self.character.goal_manager.find_visible_human()
-                if visible_human:
-                    self.character.goal_manager.current_goal.last_known_target = visible_human, loc
+                _ = self.character.goal_manager.current_goal.last_known_target
 
-            if self.is_player:
-                self.character.game.tick()
+
 
 
 class Enter(ActionCommand):

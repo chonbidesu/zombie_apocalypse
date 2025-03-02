@@ -85,7 +85,7 @@ class GameInitializer:
 
         if self.debug:
             print("Creating debug NPCs...")
-            npcs = GenerateNPCs(self, total_humans=100, total_zombies=100)
+            npcs = GenerateNPCs(self, total_humans=100, total_zombies=500)
         else:
             # Populate the city
             npcs = GenerateNPCs(self, total_humans=500, total_zombies=500)
@@ -239,8 +239,12 @@ class GameInitializer:
                 npc.goal_manager.evaluate_goal()          
                 npc.goal_manager.current_goal.execute() if bool(npc.goal_manager.current_goal) else False
                 current_goal = npc.goal_manager.current_goal
-                if self.debug and current_goal and current_goal.last_known_target and current_goal.last_known_target[0] == self.state.player and current_goal.current_decision and current_goal.current_decision.action:
-                    print(f"{npc.current_name}: Goal - {type(current_goal)} | Decision - {type(current_goal.current_decision)} | Action - {type(current_goal.current_decision.action)}")
+                if self.debug and current_goal and current_goal.last_known_target and current_goal.last_known_target[0] == self.state.player:
+                    print(f"{npc.current_name}: Goal - {type(current_goal)}")
+                    if current_goal.current_decision:
+                        print(f"Decision - {type(current_goal.current_decision)}")
+                        if current_goal.current_decision.action:
+                            print(f"Action - {type(current_goal.current_decision.action)}")
             
     def update_screen(self):
         """Handles drawing game elements and updating UI."""

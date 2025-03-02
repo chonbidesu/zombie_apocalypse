@@ -2,7 +2,7 @@
 
 from .decisions import DecisionCommand
 from actions import Move, MoveTarget, Enter, Leave, Attack
-from data import SkillType
+from data import SkillType, BLOCKS
 
 
 class PursueBrainsDecision(DecisionCommand):
@@ -24,6 +24,7 @@ class PursueBrainsDecision(DecisionCommand):
         x, y = character.location
         block = city.block(x, y)
         target_block = city.block(*target_location)
+        properties = BLOCKS[target_block.type]
 
         # Determine the movement action
         if target_location in character.helper.get_adjacent_locations():
@@ -34,7 +35,7 @@ class PursueBrainsDecision(DecisionCommand):
 
         elif target_human and target_human.inside and not character.inside:
             # Check if the building can be entered
-            if (target_block.barricade.level == 0 and not target_block.doors_closed) or character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
+            if properties.is_building and (target_block.barricade.level == 0 and not target_block.doors_closed) or character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
                 self.action = Enter(character)
                 self.action.execute()
             else:
@@ -151,8 +152,7 @@ class BreakInsideDecision(DecisionCommand):
         """Valid if the block has barricades."""
         character = self.goal.manager.character
         return self.target_block and self.target_block.barricade.level > 0 or \
-            (self.target_block.doors_closed and character.helper.has_skill(SkillType.MEMORIES_OF_LIFE)) or \
-            self.target_block.doors_closed == False
+            (self.target_block.doors_closed and character.helper.has_skill(SkillType.MEMORIES_OF_LIFE))
 
     def execute(self):
         """Execute the attack on barricades."""

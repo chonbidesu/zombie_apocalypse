@@ -22,6 +22,7 @@ class Character:
         self.xp = 0
         self.level = 0
         self.is_dead = False
+        self.time_of_death = 0
         self.permadeath = False
         self.is_human = is_human
         self.inside = inside
@@ -136,6 +137,7 @@ class Character:
         zombified = self.is_human
         self.is_dead = True
         self.is_human = False
+        self.time_of_death = self.game.ticker
 
         if zombified:
             self.helper.update_name()

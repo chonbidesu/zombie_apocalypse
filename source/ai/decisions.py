@@ -27,7 +27,9 @@ class StandDecision(DecisionCommand):
         self.goal = goal
 
     def is_valid(self):
-        return self.goal.manager.character.is_dead
+        character = self.goal.manager.character
+        game = character.game
+        return character.is_dead and game.ticker >= character.time_of_death + 20
     
     def execute(self):
         character = self.goal.manager.character

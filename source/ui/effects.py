@@ -16,7 +16,7 @@ class ScreenTransition:
         """Perform a circle wipe transition effect and call the target_function to change game state."""
         max_radius = int((SCREEN_WIDTH ** 2 + SCREEN_HEIGHT ** 2) ** 0.5) # Cover the screen
         duration = 1.0
-        steps = int(duration * 30)
+        steps = int(duration * 60)
         increment = max_radius // steps
 
         # Create surface for the mask effect
@@ -29,7 +29,7 @@ class ScreenTransition:
             pygame.draw.circle(mask_surface, (0, 0, 0, 0), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), radius)
             self.screen.blit(mask_surface, (0, 0))
             pygame.display.flip()
-            self.clock.tick(30)
+            self.clock.tick(60)
 
         # Execute the target function
         result = target_function(*args, **kwargs)
@@ -51,7 +51,7 @@ class ScreenTransition:
         """Reverse circle wipe to reveal the game after loading/starting new game"""
         max_radius = int((SCREEN_WIDTH ** 2 + SCREEN_HEIGHT ** 2) ** 0.5) # Cover the screen
         duration = 1.0
-        steps = int(duration * 30)
+        steps = int(duration * 60)
         increment = max_radius // steps
 
         # Create surface for the mask effect
@@ -68,16 +68,42 @@ class ScreenTransition:
             pygame.display.flip()
             self.clock.tick(60)        
 
-    def flicker_red(self, intensity=120, duration=0.3):
+    def flicker_red(self, intensity=120, duration=0.1):
         """Flickers the screen red to indicate damage taken."""
         overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
         overlay.fill((255, 0, 0, intensity))  # Semi-transparent red
 
-        steps = int(duration * 30)  # Convert seconds to frames
+        steps = int(duration * 60)  # Convert seconds to frames
         for _ in range(steps):
             self.screen.blit(overlay, (0, 0))
             pygame.display.flip()
             self.clock.tick(60)  # 60 FPS flicker effect    
+
+    def dissolve_scene(self, target_function, chat_history, *args, **kwargs):
+        """Smoothly dissolve from the current scene to the next state."""
+        duration = 0.2
+        steps = int(duration * 60)
+        alpha_step = 255 // steps
+
+        # Capture the pre-transition scene
+        pre_surface = self.screen.copy()
+
+        # Execute the target function
+        result = target_function(*args, **kwargs)
+        self.update_ui()
+
+        # Dissolve effect
+        for alpha in range(0, 256, alpha_step):
+            self.draw_ui(chat_history)
+
+            # Draw pre-transition with decreasing opacity
+            faded_pre = pre_surface.copy()
+            faded_pre.set_alpha(255 - alpha)
+            self.screen.blit(faded_pre, (0, 0))
+
+            self.update_ui()
+            pygame.display.flip()
+            self.clock.tick(60) 
 
 
 class ParallaxBackground:
