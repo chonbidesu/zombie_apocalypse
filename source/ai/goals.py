@@ -11,9 +11,33 @@ from data import BLOCKS
 class GoalCommand:
     """Base class for all AI goals."""
 
-    def __init__(self, manager):
+    def __init__(self, manager, target=None):
         self.manager = manager
         self.current_decision = None  # Holds the active decision
+        self._last_known_target = target  # Stores (human, last_seen_location)
+        self.target_block = None        
+
+    @property
+    def last_known_target(self):
+        """Dynamically updates if a human is visible, otherwise retains the last known target."""
+        character = self.manager.character
+        city = character.game.state.city        
+        target_human, location = self.manager.find_visible_human()
+
+        if target_human:
+            self._last_known_target = (target_human, location)
+            self.target_block = city.block(*location)
+
+        return self._last_known_target
+    
+    @last_known_target.setter
+    def last_known_target(self, value):
+        """Allows explicit assignment when external conditions (like line of sight) dictate it."""
+        character = self.manager.character
+        city = character.game.state.city        
+        self._last_known_target = value
+        if value:
+            self.target_block = city.block(*value[1])
 
     def is_complete(self):
         """Returns True if the goal is fully achieved."""
@@ -77,9 +101,8 @@ class SurviveGoal(GoalCommand):
 
 class StandGoal(GoalCommand):
     """Goal to stand up if enough AP available."""
-    def __init__(self, manager):
-        super().__init__(manager)   
-        self.last_known_target = None 
+    def __init__(self, manager, target=None):
+        super().__init__(manager, target)   
 
     def is_valid(self):
         """The goal is valid if the character is dead."""
@@ -92,27 +115,7 @@ class StandGoal(GoalCommand):
 class HuntBrainsGoal(GoalCommand):
     """Zombie goal to find and attack the nearest human, even if they move out of sight."""
     def __init__(self, manager, target=None):
-        super().__init__(manager)
-        self._last_known_target = target  # Stores (human, last_seen_location)
-        self._target_block = None
-
-    @property
-    def last_known_target(self):
-        """Dynamically updates if a human is visible, otherwise retains the last known target."""
-        target_human, location = self.manager.find_visible_human()
-
-        if target_human:
-            self._last_known_target = (target_human, location)
-
-        return self._last_known_target
-    
-    @property
-    def target_block(self):
-        character = self.manager.character
-        city = character.game.state.city        
-        _, location = self.last_known_target
-        self._target_block = city.block(*location)
-        return self._target_block
+        super().__init__(manager, target)
 
     def is_valid(self):
         """The goal is valid while a living human is visible or until their last known location is reached."""
@@ -142,9 +145,7 @@ class HuntBrainsGoal(GoalCommand):
 class IdleGoal(GoalCommand):
     """Zombies wander unless they detect a human nearby."""
     def __init__(self, manager, target=None):
-        super().__init__(manager)
-        self.last_known_target = target  # Stores (human, last_seen_location)
-        self.target_block = None
+        super().__init__(manager, target)
 
     def is_valid(self):
         """WanderGoal is never truly 'complete' unless interrupted by a human presence."""

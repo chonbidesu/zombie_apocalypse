@@ -89,13 +89,13 @@ class Move(ActionCommand):
             if self.character.is_human:
                 watching_zombies = self.character.goal_manager.find_watching_zombies()
                 if watching_zombies:
+                    last_known_target = (self.character, self.character.location)                    
                     for zombie in watching_zombies:
-                        _ = zombie.goal_manager.current_goal.last_known_target
+                        zombie.goal_manager.current_goal.last_known_target = last_known_target
 
             else:
-                _ = self.character.goal_manager.current_goal.last_known_target
-
-
+                if self.character.goal_manager.current_goal.last_known_target:
+                    return
 
 
 class Enter(ActionCommand):
