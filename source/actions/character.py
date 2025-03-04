@@ -78,6 +78,7 @@ class Move(ActionCommand):
         
         if self.success:
             if self.is_player:
+                self.sfx = 'footsteps'
                 game = self.character.game
                 if self.character.is_human:
                     ap_cost = 1
@@ -120,7 +121,6 @@ class Enter(ActionCommand):
                 self.message = "You entered the building."
                 self.witness = f"{self.character.current_name} entered the building."
                 self.success = True
-                self.sfx = 'footsteps'
 
             else:
                 if building.doors_closed:
@@ -130,7 +130,6 @@ class Enter(ActionCommand):
                         self.success = True
                         self.message = "You enter the building, leaving the doors wide open."
                         self.witness = f"{self.character.current_name} entered the building, leaving the doors wide open."
-                        self.sfx = 'footsteps'
                     else:
                         self.message = "You need the MEMORIES OF LIFE skill in order to open doors."
                     
@@ -139,7 +138,6 @@ class Enter(ActionCommand):
                     self.message = "You enter the building."
                     self.witness = f"{self.character.current_name} entered the building."
                     self.success = True
-                    self.sfx = 'footsteps'
                 
         elif building.barricade.level > 0 and not self.character.is_human:
             self.message = "You have to break through the barricades first."
@@ -149,12 +147,12 @@ class Enter(ActionCommand):
             self.message = "You climb through the barricades and are now inside."
             self.witness = f"{self.character.current_name} climbed through the barricades and is now inside."
             self.success = True
-            self.sfx = 'footsteps'
         else:
             self.message = "You can't find a way through the barricades."
 
         if self.success:
             if self.is_player:
+                self.sfx = 'footsteps'
                 self.character.game.tick()
                 screen_transition = self.character.game.game_ui.screen_transition
                 screen_transition.circle_wipe(self.character.enter, self.character.game.chat_history)
@@ -176,7 +174,6 @@ class Leave(ActionCommand):
                 self.message = "You left the building."
                 self.witness = f"{self.character.current_name} left the building."
                 self.success = True
-                self.sfx = 'footsteps'
             else:
                 if building.doors_closed:
                     if self.character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
@@ -186,7 +183,6 @@ class Leave(ActionCommand):
                         self.message = "You left the building, leaving the doors wide open."
                         self.witness = f"{self.character.current_name} left the building, leaving the doors wide open."
                         self.success = True
-                        self.sfx = 'footsteps'
                     else:
                         self.message = "You need the MEMORIES OF LIFE skill in order to open doors."                      
                 else:
@@ -195,7 +191,6 @@ class Leave(ActionCommand):
                     self.message = "You left the building."
                     self.witness = f"{self.character.current_name} left the building."
                     self.success = True
-                    self.sfx = 'footsteps'
 
         elif building.barricade.level > 0 and not self.character.is_human:
             self.message = "You have to break through the barricades first."
@@ -211,6 +206,7 @@ class Leave(ActionCommand):
 
         if self.success:
             if self.is_player:
+                self.sfx = 'footsteps'
                 self.character.game.tick()                
                 screen_transition = self.character.game.game_ui.screen_transition
                 screen_transition.circle_wipe(self.character.leave, self.character.game.chat_history)

@@ -1,5 +1,7 @@
 # base_command.py
 
+import pygame
+
 class ActionCommand:
     """Base class for all actions."""
     def __init__(self, character):
@@ -16,6 +18,10 @@ class ActionCommand:
         """Executes the action. Subclasses must implement this."""
         raise NotImplementedError("Subclasses must implement execute()")
     
+    def play_sound(self):
+        game = self.character.game
+        pygame.mixer.Sound.play(game.sounds[self.sfx])        
+
     def _is_player(self):
         if self.character:
             return self.character == self.character.game.state.player

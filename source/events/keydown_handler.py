@@ -96,7 +96,10 @@ class KeydownHandler:
         if event.key in key_to_movement:
             player = self.game.state.player
             dx, dy = key_to_movement[event.key]
-            Move(player).execute(MoveTarget(dx, dy))
+            action = Move(player)
+            action.execute(MoveTarget(dx, dy))
+            if action.sfx:
+                action.play_sound()
 
         if event.key == pygame.K_ESCAPE:
             Pause(self.game).execute()            

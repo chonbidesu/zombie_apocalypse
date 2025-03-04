@@ -32,22 +32,23 @@ class PursueBrainsDecision(DecisionCommand):
             target_x, target_y = target_location[0], target_location[1]
             move_target = MoveTarget(target_x - x, target_y - y)
             self.action.execute(move_target)
+            if self.action.sfx:
+                self.action.play_sound()             
 
         elif target_human and target_human.inside and not character.inside:
             # Check if the building can be entered
             if properties.is_building and (target_block.barricade.level == 0 and not target_block.doors_closed) or character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
                 self.action = Enter(character)
                 self.action.execute()
-            else:
-                self.success = False  # Blocked, let the goal manager handle another decision
+                if self.action.sfx:
+                    self.action.play_sound()                 
 
         elif target_human and not target_human.inside and character.inside:
             if (target_block.barricade.level == 0 and not target_block.doors_closed) or character.helper.has_skill(SkillType.MEMORIES_OF_LIFE):
                 self.action = Leave(character)
-                self.action.execute()
-            else:
-                self.success = False
-    
+                self.action.execute() 
+                if self.action.sfx:
+                    self.action.play_sound()   
 
 class AttackBrainsDecision(DecisionCommand):
     """Zombie decision to attack a human if they are in the same block and within reach."""
@@ -77,7 +78,8 @@ class AttackBrainsDecision(DecisionCommand):
         target = block_characters.living_humans[0]  # Attack the first human found
         self.action = Attack(character)
         self.action.execute(target)
-
+        if self.action.sfx and character.location == character.game.state.player.location:
+            self.action.play_sound()
 
 class MoveDecision(DecisionCommand):
     """Move towards a target location."""
@@ -108,6 +110,8 @@ class MoveDecision(DecisionCommand):
 
         self.action = Move(character)
         self.action.execute(move_target)
+        if self.action.sfx and character.location == character.game.state.player.location:
+            self.action.play_sound()        
 
 
 class BreakInsideDecision(DecisionCommand):
@@ -121,21 +125,25 @@ class BreakInsideDecision(DecisionCommand):
         """Valid if a human is inside a barricaded building OR the target is a lit building with barricades."""
         character = self.goal.manager.character
         target_human, loc = self.goal.last_known_target if self.goal.last_known_target else (None, None)
-        
-        # Human is inside a barricaded building
-        if target_human:
-            return (
-                target_human.inside 
-                and character.inside != target_human.inside 
-                and self.goal.target_block.barricade.level > 0 
-                and character.location == loc
-            )
+        block = self.goal.target_block
 
-        # No human, but the target is a lit building with barricades
-        x, y = self.goal.target_block.x, self.goal.target_block.y
-        if self.goal.target_block:
-            block = self.goal.target_block
-            return block.lights_on and block.barricade.level > 0 and character.location == (x, y)
+        if block:        
+            properties = BLOCKS[block.type]
+        
+            if properties.is_building:
+                # Human is inside a barricaded building
+                if target_human:
+                    return (
+                        target_human.inside 
+                        and character.inside != target_human.inside 
+                        and block.barricade.level > 0 
+                        and character.location == loc
+                    )
+
+                # No human, but the target is a lit building with barricades
+                x, y = block.x, block.y
+
+                return block.lights_on and block.barricade.level > 0 and character.location == (x, y)
 
         return False
 
@@ -144,6 +152,8 @@ class BreakInsideDecision(DecisionCommand):
         character = self.goal.manager.character
         self.action = Decade(character)
         self.action.execute()
+        if self.action.sfx and character.location == character.game.state.player.location:
+            self.action.play_sound()
 
 
 

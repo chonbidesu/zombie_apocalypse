@@ -56,16 +56,31 @@ class GameInitializer:
         """Load sound effects for actions."""
         self.sounds = {
             #"attack": pygame.mixer.Sound("sfx/attack.wav"),
-            #"damage": pygame.mixer.Sound("sfx/damage.wav"),
+            "break_1": pygame.mixer.Sound(ResourcePath("sfx/hit/break_1.wav").path),
+            "break_2": pygame.mixer.Sound(ResourcePath("sfx/hit/break_2.wav").path),
+            "break_3": pygame.mixer.Sound(ResourcePath("sfx/hit/break_3.wav").path),
+            "break_4": pygame.mixer.Sound(ResourcePath("sfx/hit/break_4.wav").path),
+            "break_5": pygame.mixer.Sound(ResourcePath("sfx/hit/break_5.wav").path),
+            "break_6": pygame.mixer.Sound(ResourcePath("sfx/hit/break_6.wav").path),
+            "break_7": pygame.mixer.Sound(ResourcePath("sfx/hit/break_7.wav").path),
+            "break_8": pygame.mixer.Sound(ResourcePath("sfx/hit/break_8.wav").path),
+
             "reload": pygame.mixer.Sound(ResourcePath("sfx/reload.mp3").path),
             "gun_shot": pygame.mixer.Sound(ResourcePath("sfx/gun_shot.mp3").path),
             "zombie_sounds": pygame.mixer.Sound(ResourcePath("sfx/zombie_sounds.wav").path),
-            "search": pygame.mixer.Sound(ResourcePath("sfx/search.wav").path),
+
+            "search_1": pygame.mixer.Sound(ResourcePath("sfx/search/search_1.wav").path),
+            "search_2": pygame.mixer.Sound(ResourcePath("sfx/search/search_2.wav").path),
+            "search_3": pygame.mixer.Sound(ResourcePath("sfx/search/search_3.wav").path),
+
             "footsteps": pygame.mixer.Sound(ResourcePath("sfx/footsteps.wav").path),
             "door_open": pygame.mixer.Sound(ResourcePath("sfx/door_open.wav").path),
             "door_close": pygame.mixer.Sound(ResourcePath("sfx/door_close.wav").path),
             "decade": pygame.mixer.Sound(ResourcePath("sfx/decade.wav").path),
-            "barricade": pygame.mixer.Sound(ResourcePath("sfx/barricade.wav").path),
+
+            "barricade_1": pygame.mixer.Sound(ResourcePath("sfx/barricade/barricade_1.wav").path),
+            "barricade_2": pygame.mixer.Sound(ResourcePath("sfx/barricade/barricade_2.wav").path),          
+
             "human_death": pygame.mixer.Sound(ResourcePath("sfx/human_death.wav").path),
             "zombie_death": pygame.mixer.Sound(ResourcePath("sfx/zombie_death.wav").path),
 

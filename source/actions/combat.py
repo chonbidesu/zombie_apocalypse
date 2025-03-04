@@ -19,6 +19,10 @@ class Attack(ActionCommand):
         else:
             attack = self._zombie_attack(target)
 
+        if self.success:
+            sound = random.randint(1, 8)
+            self.sfx = f'break_{sound}'   
+
         if self.is_player:
             self.character.game.tick()
 
@@ -183,7 +187,8 @@ class Attack(ActionCommand):
             self.message = f"You attack {target.current_name} with {weapon.name} for {weapon.damage + bonus_damage} damage."
             self.witness = f"{self.character.current_name} attacks {target.current_name} with {weapon.name}."
             self.attacked = f"{self.character.current_name} attacks you with {weapon.name} for {weapon.damage + bonus_damage} damage!"
-            self.success = True
+            self.success = True        
+
         else:
             self.message = "Your attack misses."
 

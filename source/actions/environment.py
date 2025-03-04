@@ -75,6 +75,8 @@ class AddBarricades(ActionCommand):
         if success:
             
             if self.is_player:
+                sound = random.randint(1, 2)
+                self.sfx = f'barricade_{sound}'
                 self.character.game.tick()
                 action_progress = self.character.game.game_ui.action_progress
                 action_progress.start("Barricading", block.barricade.adjust_sublevel, 1)
@@ -96,8 +98,7 @@ class AddBarricades(ActionCommand):
 
             self.character.lose_ap(1)
             self.success = True                
-            self.sfx='barricade'
-                   
+                  
         else:
             self.message = "You can't find anything to reinforce the barricade."
 
@@ -125,8 +126,8 @@ class Decade(ActionCommand):
                 self.witness = "Something smashes at the barricades."
 
             self.success = True
-            self.sfx='decade'
             if self.is_player:
+                self.sfx = 'decade'
                 self.character.game.tick()
               
 
@@ -155,6 +156,7 @@ class Ransack(ActionCommand):
             self.message = "This building is already ruined."
 
         if self.success and self.is_player:
+            self.sfx = 'ransack'
             self.character.game.tick()
 
 
@@ -236,6 +238,9 @@ class Search(ActionCommand):
         self.character.lose_ap(1)
         self.message = f"You found {item.description}!"     
         self.success = True   
+        if self.is_player:
+            sound = random.randint(1, 3)
+            self.sfx = f'search_{sound}'
         return True
 
 

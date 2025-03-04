@@ -171,6 +171,8 @@ class MouseButtonUpHandler:
                 if action_class:
                     action = action_class(player)
                     action.execute()
+                    if action.sfx:
+                        action.play_sound()
                     if action.message:
                         self.handle_feedback(action.message)      
 

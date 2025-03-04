@@ -99,16 +99,22 @@ class MouseButtonDownHandler:
                 else:
                     action = Attack(player)
                 action.execute(target.sprite.npc)
+                if action.sfx:
+                    action.play_sound()
 
             elif target.type == 'block' and not self.game.popup_menu:
                 action = Move(player)
                 action.execute(target.sprite)  
+                if action.sfx:
+                    action.play_sound()
             
             elif player.is_human and target.type == 'human':
                 if player.equipped:
                     if player.equipped.type == ItemType.FIRST_AID_KIT:
                         action = Heal(player)
                         action.execute(target.sprite.npc)
+                        if action.sfx:
+                            action.play_sound()
 
                 else:
                     #action = Speak(player)
@@ -120,6 +126,8 @@ class MouseButtonDownHandler:
                     if player.equipped.type == ItemType.FIRST_AID_KIT:
                         action = Heal(player)
                         action.execute(player)
+                        if action.sfx:
+                            action.play_sound()
 
             else:
                 skills_button = self.game.game_ui.status_panel.button_group.sprite
