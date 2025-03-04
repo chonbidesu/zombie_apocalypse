@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 from core.settings import *
 from items import ItemFunction
-from characters.helper import CharacterHelper, ZombieWeapon, CharacterName
+from .helper import CharacterHelper, ZombieWeapon, CharacterName
+from .skill_manager import SkillManager
 from ai import GoalManager
 
 
@@ -34,6 +35,7 @@ class Character:
         self.tagged = False
 
         self.goal_manager = GoalManager(self)
+        self.skill_manager = SkillManager(self)
 
         self.helper = CharacterHelper(self)
         self.helper.update_name()    
