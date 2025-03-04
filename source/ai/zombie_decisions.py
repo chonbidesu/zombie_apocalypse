@@ -1,7 +1,7 @@
 # zombie_decisions.py
 
 from .decisions import DecisionCommand
-from actions import Move, MoveTarget, Enter, Leave, Attack
+from actions import Move, MoveTarget, Enter, Leave, Attack, Decade
 from data import SkillType, BLOCKS
 
 
@@ -85,7 +85,8 @@ class MoveDecision(DecisionCommand):
     def __init__(self, goal):
         super().__init__(goal)
         self.goal = goal
-        self.target_location = goal.target_block.location if goal.target_block else None, None
+        self.target_x = goal.target_block.x if goal.target_block else None
+        self.target_y = goal.target_block.y if goal.target_block else None        
 
     def is_valid(self):
         """Valid if the target location is reachable."""
@@ -96,9 +97,8 @@ class MoveDecision(DecisionCommand):
         character = self.goal.manager.character
         x, y = character.location
 
-        if self.target_location[0]: # If a target is selected, move there
-            target_x, target_y = self.target_location
-            dx, dy = target_x - x, target_y - y
+        if self.target_x: # If a target is selected, move there
+            dx, dy = self.target_x - x, self.target_y - y
 
             # Move towards the target
             move_target = MoveTarget(dx, dy)
@@ -118,13 +118,33 @@ class BreakInsideDecision(DecisionCommand):
         self.goal = goal
 
     def is_valid(self):
-        """Valid if the block has barricades."""
+        """Valid if a human is inside a barricaded building OR the target is a lit building with barricades."""
         character = self.goal.manager.character
-        target_human, loc = self.goal.last_known_target
-        return target_human.inside and character.inside != target_human.inside and self.goal.target_block.doors_closed and character.location == loc
+        target_human, loc = self.goal.last_known_target if self.goal.last_known_target else (None, None)
+        
+        # Human is inside a barricaded building
+        if target_human:
+            return (
+                target_human.inside 
+                and character.inside != target_human.inside 
+                and self.goal.target_block.barricade.level > 0 
+                and character.location == loc
+            )
+
+        # No human, but the target is a lit building with barricades
+        x, y = self.goal.target_block.x, self.goal.target_block.y
+        if self.goal.target_block:
+            block = self.goal.target_block
+            return block.lights_on and block.barricade.level > 0 and character.location == (x, y)
+
+        return False
 
     def execute(self):
         """Execute the attack on barricades."""
+        character = self.goal.manager.character
+        self.action = Decade(character)
+        self.action.execute()
+
 
 
 
