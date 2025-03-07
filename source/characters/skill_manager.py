@@ -65,14 +65,14 @@ class SkillManager:
         elif skill_category in (SkillCategory.ZOMBIE_HUNTER, SkillCategory.ZOMBIE):
             return 100  # Fixed cost
 
-    def attempt_learn_skill(self):
+    def learn_skill(self):
         """Attempt to learn the selected skill if enough XP is available."""
         if self.selected_skill is None:
             return
         
         cost = self.get_skill_xp_cost()
         if cost is not None and self.character.xp >= cost:
-            self.character.xp -= cost
+            self.character.lose_xp(cost)
             if self.character.is_human:
                 self.character.human_skills.append(self.selected_skill)
             else:

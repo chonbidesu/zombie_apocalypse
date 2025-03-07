@@ -80,6 +80,10 @@ class Character:
         """Gain a certain amount of experience points."""
         self.xp += xp
 
+    def lose_xp(self, xp):
+        """Lose a certain amount of experience points."""
+        self.xp -= xp
+
     def gain_level(self):
         """Gain a level."""
         self.level += 1

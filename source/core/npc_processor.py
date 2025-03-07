@@ -36,6 +36,8 @@ class NPCProcessor:
             npc = self.action_queue.popleft()
             if npc.ap > 0:
                 self.process_npc_action(npc)
+            npc.skill_manager.select_skill()
+            npc.skill_manager.learn_skill()
 
     def process_night_cycle(self):
         """Processes all NPC actions as quickly as possible during the night."""
