@@ -106,6 +106,19 @@ class Move(ActionCommand):
                 current_goal = self.character.goal_manager.current_goal
                 if current_goal and current_goal.last_known_target:
                     return
+                else:
+                    # Prioritize moving toward lit buildings
+                    adjacent_locations = self.character.helper.get_adjacent_locations()
+
+                    lit_buildings = [
+                        loc for loc in adjacent_locations
+                        if hasattr(city.block(*loc), 'lights_on') and city.block(*loc).lights_on
+                    ]
+
+                    if lit_buildings:
+                        self.character.goal_manager.current_goal.target_block = city.block(random.choice(lit_buildings))
+                    else:
+                        self.character.goal_manager.current_goal.target_block = None
 
 
 class Enter(ActionCommand):

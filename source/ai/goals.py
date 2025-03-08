@@ -27,6 +27,8 @@ class GoalCommand:
         if target_human:
             self._last_known_target = (target_human, location)
             self.target_block = city.block(*location)
+        else:
+            self._last_known_target = None
 
         return self._last_known_target
     
@@ -137,31 +139,4 @@ class IdleGoal(GoalCommand):
 
     def get_decisions(self):
         """Choose a movement target, prioritizing lit buildings or wandering randomly."""
-        character = self.manager.character
-
-        # Get nearby locations
-        adjacent_locations = character.helper.get_adjacent_locations()
-        city = character.game.state.city
-
-        # Check if current building is lit
-        x, y = character.location
-        block = city.block(x, y)
-        properties = BLOCKS[block.type]
-
-        if properties.is_building and block.lights_on:
-            self.target_block = block
-            return [BreakInsideDecision]
-
-        # Prioritize moving toward lit buildings
-        lit_buildings = [
-            loc for loc in adjacent_locations
-            if hasattr(city.block(*loc), 'lights_on') and city.block(*loc).lights_on
-        ]
-
-        if lit_buildings:
-            self.target_block = city.block(random.choice(lit_buildings))
-        else:
-            self.target_block = None
-
-        # Move or wander
-        return [MoveDecision]
+        return [BreakInsideDecision, MoveDecision]

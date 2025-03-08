@@ -74,9 +74,9 @@ class SkillManager:
         if cost is not None and self.character.xp >= cost:
             self.character.lose_xp(cost)
             if self.character.is_human:
-                self.character.human_skills.append(self.selected_skill)
+                self.character.human_skills.add(self.selected_skill)
             else:
-                self.character.zombie_skills.append(self.selected_skill)
+                self.character.zombie_skills.add(self.selected_skill)
 
             if self.character.game.debug:
                 print(f"{self.character.current_name} learned {self.selected_skill} for {cost} XP.")

@@ -44,26 +44,25 @@ class NPCProcessor:
         # Load all NPCs into the queue and process as fast as possible
         self.action_queue = deque(npc for npc in self.state.npcs.list if npc.ap > 0)
 
-        with ThreadPoolExecutor() as executor:
+        last_ap_state = {npc: npc.ap for npc in self.state.npcs.list}
+
+        while self.action_queue:
+            npc = self.action_queue.popleft()
+            if npc.ap > 0:
+                self.process_npc_action(npc)
+
+            # Refill the action queue with NPCs that still have AP
+            self.action_queue.extend(npc for npc in self.state.npcs.list if npc.ap > 0)
+
+            time.sleep(0.01)
+
+            progress_made = any(npc.ap < last_ap_state[npc] for npc in self.state.npcs.list)
             last_ap_state = {npc: npc.ap for npc in self.state.npcs.list}
 
-            while self.action_queue:
-                batch = list(self.action_queue)[:10]
-                executor.map(self.process_npc_action, batch)
-
-                self.action_queue = deque(npc for npc in self.action_queue if npc.ap > 0)
-            
-                time.sleep(0.01)
-
-                progress_made = any(npc.ap < last_ap_state[npc] for npc in self.state.npcs.list)
-                last_ap_state = {npc: npc.ap for npc in self.state.npcs.list}   
-
-                if not progress_made:
-                    print("WARNING: Some NPCs are stuck with AP but unable to act.")
-                    stuck_npcs = [npc for npc in self.state.npcs.list if npc.ap > 0]
-                    for npc in stuck_npcs:
-                        print(f"{npc.current_name} - AP: {npc.ap}")
-                    break
+            if not progress_made:
+                stuck_npcs = [npc for npc in self.state.npcs.list if npc.ap > 0]
+                print(f"WARNING: {len(stuck_npcs)} NPCs are stuck with AP but unable to act.")
+                break
 
     def process_npc_action(self, npc):
         """Helper method to process an NPC's action."""
@@ -74,8 +73,10 @@ class NPCProcessor:
             npc.goal_manager.current_goal.execute()
             current_goal = npc.goal_manager.current_goal
             if self.debug and current_goal and current_goal.last_known_target and current_goal.last_known_target[0] == self.state.player:
-                print(f"{npc.current_name}: Goal - {type(current_goal)}")
+                message = f"{npc.current_name}: Goal - {type(current_goal)}"
                 if current_goal.current_decision:
-                    print(f"Decision - {type(current_goal.current_decision)}")
+                    message += f"Decision - {type(current_goal.current_decision)}"
                     if current_goal.current_decision.action:
-                        print(f"Action - {type(current_goal.current_decision.action)}")
+                        message += f"Action - {type(current_goal.current_decision.action)}"
+
+                print(message)

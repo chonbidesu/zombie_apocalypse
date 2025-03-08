@@ -141,7 +141,7 @@ class DayCycleManager:
 
     def process_night_cycle(self):
         """Process 8 hours of NPC actions."""
-        self.game.state.npcs.gain_ap(10)
+        self.game.state.npcs.gain_ap(20)
 
         self.game.process_npcs("night")
 
@@ -152,7 +152,7 @@ class DayCycleManager:
         """End the night cycle and start a new day."""
         self.night_overlay_alpha = 0 # Make night overlay transparent
         self.is_night = False
-        self.game.state.npcs.gain_ap(50)
+        self.game.state.npcs.gain_ap(60)
 
         pygame.mixer.init() # Initialize the sound mixer
         pygame.mixer.music.set_volume(0.3)
