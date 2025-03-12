@@ -85,6 +85,7 @@ class NewGameMenu:
         portraits = pygame.sprite.Group()
         portrait_paths = [
         "sprite_sheets/female1_sprite_sheet.png",
+        "sprite_sheets/female2_sprite_sheet.png",
         "sprite_sheets/male1_sprite_sheet.png",
     ]
 
