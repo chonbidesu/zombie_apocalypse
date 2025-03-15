@@ -7,6 +7,7 @@ from items import ItemFunction
 from .helper import CharacterHelper, ZombieWeapon, CharacterName
 from .skill_manager import SkillManager
 from ai import GoalManager
+from data import SkillType
 
 
 class Character:
@@ -14,18 +15,15 @@ class Character:
     def __init__(self, game, name, occupation, x, y, is_human, inside=False):
         self.game = game
         self.name = name
-        self.current_name = "John Doe"
         self.occupation = occupation
         self.location = (x, y)
-        self.max_hp = MAX_HP
-        self.hp = self.max_hp
+        self.is_human = is_human
         self.ap = 0
         self.xp = 0
         self.level = 0
         self.is_dead = False
         self.time_of_death = 0
         self.permadeath = False
-        self.is_human = is_human
         self.inside = inside
         self.inventory = []
         self.equipped = None
@@ -38,9 +36,28 @@ class Character:
         self.skill_manager = SkillManager(self)
 
         self.helper = CharacterHelper(self)
-        self.helper.update_name()    
         self.helper.add_starting_skill()
-        self.helper.add_starting_items() 
+        self.helper.add_starting_items()
+
+        self.hp = self.max_hp
+
+    @property
+    def max_hp(self):
+        """Returns the character's maximum health points."""
+        base_hp = MAX_HP
+        if self.is_human and self.helper.has_skill(SkillType.BODY_BUILDING):
+            base_hp += 10
+        if not self.is_human and self.helper.has_skill(SkillType.FLESH_ROT):
+            base_hp += 10
+        return base_hp        
+
+    @property
+    def current_name(self):
+        """Returns the character's name based on their current state."""
+        if self.is_human:
+            return f"{self.name.first_name} {self.name.last_name}"
+        else:
+            return f"{self.name.zombie_adjective} {self.name.first_name}"
 
     def take_damage(self, amount, fatal=True):
         """Reduces the character's health by the given amount."""
@@ -61,12 +78,7 @@ class Character:
     def revive(self):
         """Revives the character to human state."""
         self.is_dead = True
-        self.is_human = True
-
-        for skill in self.zombie_skills:
-            self.helper.apply_skill_effect(skill, remove=True)
-        for skill in self.human_skills:
-            self.helper.apply_skill_effect(skill)    
+        self.is_human = True   
 
     def gain_ap(self, ap):
         """Gain a certain amount of action points."""
@@ -140,16 +152,6 @@ class Character:
 
     def die(self):
         """Handles the character's death."""
-        zombified = self.is_human
         self.is_dead = True
         self.is_human = False
-        self.time_of_death = self.game.ticker
-
-        if zombified:
-            self.helper.update_name()
-
-            # Reassign passive skill effects
-            for skill in self.human_skills:
-                self.helper.apply_skill_effect(skill, remove=True)
-            for skill in self.zombie_skills:
-                self.helper.apply_skill_effect(skill)                
+        self.time_of_death = self.game.ticker              

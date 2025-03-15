@@ -5,7 +5,7 @@ from ui.actions_panel import ActionsPanel
 from ui.inventory_panel import InventoryPanel
 from ui.description_panel import DescriptionPanel
 from ui.viewport import Viewport
-from ui.utils import ActionProgress, DayCycleManager, DeathScreen, WrapText
+from ui.utils import ActionProgress, DayCycleManager, WrapText
 from ui.effects import ScreenTransition, ParallaxBackground
 from ui.widgets import Cursor, Button
 from ui.map import Map
@@ -26,7 +26,6 @@ class DrawUI:
         self.screen_transition = ScreenTransition(screen, self.draw, self.update)
         self.day_cycle = DayCycleManager(game)        
         self.map = Map(game, screen)
-        self.death_screen = DeathScreen(game, screen)
 
     def draw(self, chat_history):
         self.screen.fill(DARK_GREEN)

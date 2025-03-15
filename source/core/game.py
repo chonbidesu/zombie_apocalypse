@@ -280,13 +280,6 @@ class GameInitializer:
             self.game_ui.update()
             self.game_ui.draw(self.chat_history)
 
-            # Handle player death
-            if self.state.player.is_dead:
-                self.game_ui.death_screen.handle_events(pygame.event.get())
-                self.game_ui.death_screen.draw()
-                if self.game_ui.death_screen.stand:
-                    Stand(self.state.player).execute()
-
             # Draw right-click menu if active
             if self.popup_menu:
                 self.popup_menu.draw()

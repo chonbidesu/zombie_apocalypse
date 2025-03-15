@@ -48,13 +48,6 @@ class CharacterHelper:
         self.game = character.game
         self.character = character # Reference the parent character
    
-    def update_name(self):
-        """Updates the character's name."""
-        if self.character.is_human:
-            self.character.current_name = f"{self.character.name.first_name} {self.character.name.last_name}"
-        else:
-            self.character.current_name = f"{self.character.name.zombie_adjective} {self.character.name.first_name}"
-
     def filter_characters_at_location(self, x, y, inside=False, include_player=True):
         """Retrieve all characters at a given location and categorize them."""
         player = self.game.state.player
@@ -184,24 +177,11 @@ class CharacterHelper:
             else:
                 self.character.human_skills.add(skill)
 
-            self.apply_skill_effect(skill)
             self.character.gain_level()
 
     def has_skill(self, skill):
         """Check if a character has a particular skill."""
         return skill in self.character.human_skills or skill in self.character.zombie_skills
-
-    def apply_skill_effect(self, skill, remove=False):
-        """Apply or remove the passive effects of a skill."""
-        if remove:
-            modifier = -1
-        else:
-            modifier = 1
-
-        if skill == SkillType.BODY_BUILDING:
-            self.character.max_hp += 10 * modifier
-        elif skill == SkillType.FLESH_ROT:
-            self.character.max_hp += 10 * modifier
 
     def create_item(self, type):
         """Create an item based on its type."""

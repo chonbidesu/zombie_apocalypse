@@ -87,14 +87,21 @@ class NewGameMenu:
         "sprite_sheets/female1_sprite_sheet.png",
         "sprite_sheets/female2_sprite_sheet.png",
         "sprite_sheets/male1_sprite_sheet.png",
+        "sprite_sheets/male2_sprite_sheet.png",
     ]
 
         for i, path in enumerate(portrait_paths):
-            portrait = PortraitSprite(path, SCREEN_WIDTH // 2 - 200 + (i * 200), 150)
+            portrait = PortraitSprite(path, SCREEN_WIDTH // 2 - 400 + (i * 200), 150)
             portraits.add(portrait)
 
         return portraits
     
+    def update_portrait_state(self):
+        """Switch portraits to zombie versions if Occupation.CORPSE is selected."""
+        is_human = self.selected_occupation != Occupation.CORPSE
+        for portrait in self.portrait_sprites:
+            portrait.toggle_state(is_human)
+
     def draw(self, screen):
         """Draw the new game menu."""
         if self.game.title_screen:
@@ -215,15 +222,32 @@ class PortraitSprite(pygame.sprite.Sprite):
         self.sprite_sheet = pygame.image.load(ResourcePath(image_path).path).convert_alpha()
 
         # Extract first frame (assuming sprite sheet is horizontal)
-        frame_width, frame_height = 66, 66
-        original_image = pygame.Surface((frame_width, frame_height), pygame.SRCALPHA)
-        original_image.blit(self.sprite_sheet, (0, 0), (0, 0, frame_width, frame_height))
+        self.frame_width, self.frame_height = 66, 66
+        self.human_image = self._extract_frame(0)
+        self.zombie_image = self._extract_frame(19)
 
-        self.image = pygame.transform.scale(original_image, (frame_width * 2, frame_height * 2))
+        self.image = pygame.transform.scale(self.human_image, (self.frame_width * 2, self.frame_height * 2))
 
         # Create a rect for positioning
         self.rect = self.image.get_rect(topleft=(x, y))
         self.selected = False
+        self.is_human = True
+
+    def _extract_frame(self, frame_index):
+        """Extract a specific frame from the sprite sheet."""
+        frame_x = frame_index * self.frame_width
+        frame_surface = pygame.Surface((self.frame_width, self.frame_height), pygame.SRCALPHA)
+        frame_surface.blit(self.sprite_sheet, (0, 0), (frame_x, 0, self.frame_width, self.frame_height))
+        return frame_surface
+
+    def toggle_state(self, is_human):
+        """Toggle between human and zombie states."""
+        if self.is_human != is_human:
+            self.is_human = is_human
+            self.image = pygame.transform.scale(
+                self.human_image if is_human else self.zombie_image,
+                (self.frame_width * 2, self.frame_height * 2)
+            )
 
     def update(self, selected):
         """Update the border to indicate selection."""

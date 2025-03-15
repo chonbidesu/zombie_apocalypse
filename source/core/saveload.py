@@ -212,12 +212,7 @@ class GameData:
         player.ap = self.player_data.get("ap", 0)
         player.xp = self.player_data.get("xp", 0)
         player.level = self.player_data.get("level", 1)
-        player.is_dead = self.player_data.get("is_dead", False)
-
-        if player.is_human:
-            player.current_name = f"{player.name.first_name} {player.name.last_name}"
-        else:
-            player.current_name = f"{player.name.zombie_adjective} {player.name.first_name}"        
+        player.is_dead = self.player_data.get("is_dead", False)  
 
         # Create NPC list
         npcs = populate_class(game, total_humans=0, total_zombies=0)
@@ -266,11 +261,6 @@ class GameData:
             npc.xp = npc_data.get("xp", 0)
             npc.level = npc_data.get("level", 1)
             npc.is_dead = npc_data.get("is_dead", False)
-
-            if npc.is_human:
-                npc.current_name = f"{npc.name.first_name} {npc.name.last_name}"
-            else:
-                npc.current_name = f"{npc.name.zombie_adjective} {npc.name.first_name}"
 
             npcs.list.append(npc)
 

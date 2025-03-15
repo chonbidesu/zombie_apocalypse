@@ -103,22 +103,23 @@ class Move(ActionCommand):
                             zombie.goal_manager.current_goal.last_known_target = last_known_target
 
             else:
-                current_goal = self.character.goal_manager.current_goal
-                if current_goal and current_goal.last_known_target:
-                    return
-                else:
-                    # Prioritize moving toward lit buildings
-                    adjacent_locations = self.character.helper.get_adjacent_locations()
-
-                    lit_buildings = [
-                        loc for loc in adjacent_locations
-                        if hasattr(city.block(*loc), 'lights_on') and city.block(*loc).lights_on
-                    ]
-
-                    if lit_buildings:
-                        self.character.goal_manager.current_goal.target_block = city.block(random.choice(lit_buildings))
+                if not self.is_player:
+                    current_goal = self.character.goal_manager.current_goal
+                    if current_goal and current_goal.last_known_target:
+                        return
                     else:
-                        self.character.goal_manager.current_goal.target_block = None
+                        # Prioritize moving toward lit buildings
+                        adjacent_locations = self.character.helper.get_adjacent_locations()
+
+                        lit_buildings = [
+                            loc for loc in adjacent_locations
+                            if hasattr(city.block(*loc), 'lights_on') and city.block(*loc).lights_on
+                        ]
+
+                        if lit_buildings:
+                            self.character.goal_manager.current_goal.target_block = city.block(random.choice(lit_buildings))
+                        else:
+                            self.character.goal_manager.current_goal.target_block = None
 
 
 class Enter(ActionCommand):
@@ -248,7 +249,7 @@ class Stand(ActionCommand):
                 stand_ap = 1 if self.character.helper.has_skill(SkillType.ANKLE_GRAB) else STAND_AP
                 self.character.game.tick(stand_ap)                
                 action_progress = self.character.game.game_ui.action_progress
-                action_progress.start("Standing", self.character.stand, duration=10000)
+                action_progress.start("Standing", self.character.stand)
             else:
                 self.character.stand()
         

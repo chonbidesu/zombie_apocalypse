@@ -41,6 +41,7 @@ class MouseButtonDownHandler:
                 if slot.rect.collidepoint(event.pos):
                     newgame_menu.selected_occupation = slot.occupation if not slot.selected else None
                     newgame_menu.occupation_slots.update(newgame_menu.selected_occupation)
+                    newgame_menu.update_portrait_state()
 
             for text_input in newgame_menu.text_inputs.values():
                 text_input.active = text_input.rect.collidepoint(event.pos)  
