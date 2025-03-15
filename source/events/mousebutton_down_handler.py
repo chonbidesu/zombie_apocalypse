@@ -89,7 +89,7 @@ class MouseButtonDownHandler:
         player = self.game.state.player
         action = None
 
-        if event.button == 1:
+        if event.button == 1 and not player.is_dead:
             mouse_pos = pygame.mouse.get_pos()
             target = ClickTarget(self.game, mouse_pos)
             if (player.is_human and target.type == 'zombie') or (not player.is_human and target.type == 'human'):

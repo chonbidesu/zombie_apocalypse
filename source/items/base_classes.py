@@ -9,6 +9,7 @@ class ItemFunction(Enum):
     MELEE = auto()
     FIREARM = auto()
     SCIENCE = auto()
+    ZOMBIE = auto()
 
 class Item:
     """Base class for all items."""
@@ -98,4 +99,11 @@ class Melee(Weapon):
 
     def get_attributes(self):
         """Returns weapon-specific attributes."""
-        return {"durability": self.durability}        
+        return {"durability": self.durability}      
+
+
+class ZombieWeapon(Weapon):
+    """Base class for all zombie weapons."""
+    def __init__(self, character, type, name, description, image_file, attack, damage):
+        super().__init__(character, type, name, description, image_file, attack, damage, durability=None, max_ammo=None)
+        self.item_function = ItemFunction.ZOMBIE

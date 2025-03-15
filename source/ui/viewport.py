@@ -71,12 +71,19 @@ class BlockSprite(pygame.sprite.Sprite):
         """
         # Determine the target block coordinates based on player location and dx, dy offsets
         player = self.game.state.player
+
         x = player.location[0] + self.dx
         y = player.location[1] + self.dy
 
         # Check if the target coordinates are within city bounds
         if 0 <= x < CITY_SIZE and 0 <= y < CITY_SIZE:
             self.block = self.game.state.city.block(x, y)  # Retrieve the CityBlock at (x, y)
+
+            # Check if player is dead
+            if player.is_dead:
+                self.image.fill(DARK_GREEN)
+                return
+
             if self.block.type == BlockType.NECROTECH_LAB and SkillType.NECROTECH_EMPLOYMENT not in player.human_skills:
                 self.properties = BLOCKS[BlockType.OFFICE]
             else:

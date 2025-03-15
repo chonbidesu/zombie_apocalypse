@@ -32,3 +32,8 @@ class ItemType(Enum):
     TENNIS_RACKET = auto()
     SHOTGUN = auto()
     PISTOL = auto()
+
+
+class ZombieWeaponType(Enum):
+    ZOMBIE_CLAWS = auto()
+    ZOMBIE_TEETH = auto()

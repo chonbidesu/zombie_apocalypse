@@ -2,7 +2,7 @@
 
 from .barricade_data import BarricadeState, BARRICADE_DESCRIPTIONS
 from .block_data import BlockType, BlockProperties, BLOCKS, BlockNPCs
-from .item_data import ItemType
+from .item_data import ItemType, ZombieWeaponType
 from .neighbourhood_data import NEIGHBOURHOODS
 from .path import ResourcePath, DataPath, SaveLoadPath
 from .action_data import Action

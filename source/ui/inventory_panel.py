@@ -30,7 +30,11 @@ class InventoryPanel:
         self.screen.blit(self.weapon_image, (weapon_x, weapon_y))
 
         # Draw inventory items and weapon
-        self._draw_items(x, y)
+        player = self.game.state.player
+        if player.is_human:
+            self._draw_items(x, y)
+        else:
+            self._draw_zombie_weapons(x, y)
 
     def _draw_items(self, x, y):
         """Inventory item scaling, positioning and drawing."""
@@ -48,7 +52,7 @@ class InventoryPanel:
         updated_sprites = []
 
         # Scale each inventory item image before drawing
-        for index, item in enumerate(list(player.inventory)[:MAX_ITEMS]):
+        for index, item in enumerate(player.inventory[:MAX_ITEMS]):
             row = index // MAX_ITEMS_PER_ROW
             col = index % MAX_ITEMS_PER_ROW
 
@@ -102,6 +106,46 @@ class InventoryPanel:
         for sprite in list(self.inventory_group):
             if sprite not in updated_sprites:
                 sprite.kill()
+
+        # Draw the inventory group to screen
+        self.inventory_group.draw(self.screen)
+
+    def _draw_zombie_weapons(self, x, y):
+        """Draws the zombie attack options (claws & teeth)."""
+        player = self.game.state.player
+        item_width = int(self.width * 0.14)
+        item_height = int(self.height * 0.32)
+        highlight = pygame.Surface((item_width, item_height), pygame.SRCALPHA)
+
+        # Positioning
+        start_x = x + int(self.width * 0.06)
+        item_y = y + int(self.height * 0.13)
+
+        claws_sprite = InventorySprite(player.zombie_weapons[0], start_x, item_y, item_width, item_height)
+        teeth_sprite = InventorySprite(player.zombie_weapons[1], start_x + item_width + int(self.width * 0.05), item_y, item_width, item_height)
+        self.inventory_group.add(claws_sprite, teeth_sprite)
+
+        for sprite in [claws_sprite, teeth_sprite]:
+            if sprite.item == player.equipped:
+                highlight.fill((TRANS_YELLOW))
+                self.screen.blit(highlight, sprite.rect.topleft)
+
+                # Draw enlarged equipped weapon
+                weapon_item_size = self.weapon_size * 3 // 5
+                enlarged_weapon_image = pygame.transform.scale(sprite.image, (weapon_item_size, weapon_item_size))
+                weapon_item_x = x - (self.weapon_size // 2) - (weapon_item_size // 2)
+                weapon_item_y = y + (self.weapon_size // 2) - (weapon_item_size // 2)
+                self.screen.blit(enlarged_weapon_image, (weapon_item_x, weapon_item_y))
+
+                # Draw equipped weapon label
+                weapon_text = font_large.render(sprite.item.name, True, ORANGE)
+                weapon_text_shadow = font_large.render(sprite.item.name, True, BLACK)
+                text_width = weapon_text.get_width()
+                self.screen.blit(weapon_text_shadow, (weapon_item_x + (weapon_item_size // 2) - (text_width // 2) + 1, weapon_item_y + weapon_item_size + 8))
+                self.screen.blit(weapon_text, (weapon_item_x + (weapon_item_size // 2) - (text_width // 2), weapon_item_y + weapon_item_size + 7))
+
+            else:
+                highlight.fill((0, 0, 0, 0))
 
         # Draw the inventory group to screen
         self.inventory_group.draw(self.screen)

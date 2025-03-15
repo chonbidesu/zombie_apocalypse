@@ -1,5 +1,6 @@
 # description_panel.py
 
+import pygame
 import random
 
 from core.settings import *
@@ -36,30 +37,41 @@ class DescriptionPanel:
         self.clock = ClockHUD(self.game)        
 
     def draw(self):
+        player = self.game.state.player
+
         # Blit the panel background
         self.screen.blit(self.image, (self.x, 10))
 
         # Blit the setting image at the top of the panel
-        self.screen.blit(self.setting_image, (self.setting_image_x, self.setting_image_y)) 
+        if player.is_dead:
+            grayscale_image = self._convert_to_grayscale(self.setting_image)
+            self.screen.blit(grayscale_image, (self.setting_image_x, self.setting_image_y))
+        else:
+            self.screen.blit(self.setting_image, (self.setting_image_x, self.setting_image_y)) 
 
         # Draw the Clock HUD
         self.clock_x = self.setting_image_x + 5
         self.clock_y = self.setting_image_y + 5
         self.clock.draw(self.screen, self.clock_x, self.clock_y)
 
-        # Draw NPC sprites
-        self.zombie_sprite_group.update(self.game)
-        self.human_sprite_group.update(self.game)
-        self.zombie_sprite_group.draw(self.screen)
-        self.human_sprite_group.draw(self.screen) 
-
         # Render each paragraph inside the description panel
         text_start_y = self.setting_image_y + self.setting_height + 20
-        for line in self.current_description:
-            text = font_large.render(line, True, BLACK)
+        if player.is_dead:
+            text = font_large.render("You are dead.", True, BLACK)
             text_rect = text.get_rect(x=self.x + 50, y=text_start_y)  # Padding of 50px on the left
             self.screen.blit(text, text_rect)
-            text_start_y += font_large.size(line)[1]  # Move down for the next line        
+        else:
+            for line in self.current_description:
+                text = font_large.render(line, True, BLACK)
+                text_rect = text.get_rect(x=self.x + 50, y=text_start_y)  # Padding of 50px on the left
+                self.screen.blit(text, text_rect)
+                text_start_y += font_large.size(line)[1]  # Move down for the next line        
+
+            # Draw NPC sprites
+            self.zombie_sprite_group.update(self.game)
+            self.human_sprite_group.update(self.game)
+            self.zombie_sprite_group.draw(self.screen)
+            self.human_sprite_group.draw(self.screen) 
 
     def update(self):
         self._update_observations()
@@ -71,6 +83,15 @@ class DescriptionPanel:
         self._position_npc_sprites(self.zombie_sprite_group, 'right')
         self.human_sprite_group.update(self.game)
         self._position_npc_sprites(self.human_sprite_group, 'left')    
+
+    def _convert_to_grayscale(self, image):
+        """Convert the given image to grayscale."""
+        arr = pygame.surfarray.array3d(image)
+        # Calculate the grayscale values
+        gray = arr.mean(axis=2, keepdims=True)
+        gray_arr = gray.repeat(3, axis=2)
+        gray_surface = pygame.surfarray.make_surface(gray_arr)
+        return gray_surface
 
     def _create_sprite_elements(self):
         self.zombie_sprite_group = pygame.sprite.Group()

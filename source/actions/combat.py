@@ -3,8 +3,7 @@
 import random
 
 from actions.base_command import ActionCommand
-from data import ItemType, SkillType, BLOCKS, BlockType
-from characters import ZombieWeapon
+from data import ItemType, SkillType, BLOCKS, BlockType, ZombieWeaponType
 from items import ItemFunction
 
 
@@ -149,7 +148,9 @@ class Attack(ActionCommand):
             
 
     def _zombie_attack(self, target):
-        weapon = ZombieWeapon.choose()  # Get attack choice
+        if not self.character.equipped:
+            self.character.choose_zombie_attack()
+        weapon = self.character.equipped
 
         # Base attack success rate
         attack_chance = weapon.attack
@@ -158,11 +159,11 @@ class Attack(ActionCommand):
         # Apply skill bonuses
         if self.character.helper.has_skill(SkillType.VIGOUR_MORTIS):
             attack_chance += 10
-        if weapon.name == 'hands' and self.character.helper.has_skill(SkillType.DEATH_GRIP):
+        if weapon.type == ZombieWeaponType.ZOMBIE_CLAWS and self.character.helper.has_skill(SkillType.DEATH_GRIP):
             attack_chance += 15
             if self.character.helper.has_skill(SkillType.REND_FLESH):
                 bonus_damage = 1
-        if weapon.name == 'teeth' and self.character.helper.has_skill(SkillType.NECK_LURCH):
+        if weapon.type == ZombieWeaponType.ZOMBIE_TEETH and self.character.helper.has_skill(SkillType.NECK_LURCH):
             attack_chance += 10
 
         roll = random.randint(1, 100)

@@ -54,6 +54,11 @@ class ContextMenu:
                 menu_data = [item.name, 'Install', 'Drop']
             elif item.item_function == ItemFunction.AMMO:
                 menu_data = [item.name, 'Reload', 'Drop']
+            elif item.item_function == ItemFunction.ZOMBIE:
+                if item == self.player.equipped:
+                    menu_data = [item.name, 'Info']
+                else:
+                    menu_data = [item.name, 'Equip', 'Info']
         
         elif menu_type == 'center block':
             properties = BLOCKS[self.sprite.block.type]

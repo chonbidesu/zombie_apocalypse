@@ -128,28 +128,28 @@ class MouseButtonUpHandler:
         """Handle mouse button up events."""
         player = self.game.state.player
 
-        if event.button == 3:  # Right-click for popup menu
-            mouse_pos = pygame.mouse.get_pos()
-            target = ClickTarget(self.game, mouse_pos)
-            self.context_menu = ContextMenu(target, self.game.state.player)
-            if self.context_menu:
-                self.game.popup_menu = self.context_menu.menu
+        if not player.is_dead:
+            if event.button == 3:  # Right-click for popup menu
+                mouse_pos = pygame.mouse.get_pos()
+                target = ClickTarget(self.game, mouse_pos)
+                self.context_menu = ContextMenu(target, self.game.state.player)
+                if self.context_menu:
+                    self.game.popup_menu = self.context_menu.menu
+                    if self.game.popup_menu:
+                        self.game.popup_menu.show()
+
+            elif event.button == 1:
                 if self.game.popup_menu:
-                    self.game.popup_menu.show()
+                    menu_rect = self.game.popup_menu.menus[-1].rect
+                    if not menu_rect.collidepoint(event.pos):
+                        self.game.popup_menu.hide()
+                        self.game.popup_menu = None
 
-        elif event.button == 1:
-            if self.game.popup_menu:
-                menu_rect = self.game.popup_menu.menus[-1].rect
-                if not menu_rect.collidepoint(event.pos):
-                    self.game.popup_menu.hide()
-                    self.game.popup_menu = None
-
-            # Handle the skills menu
-            else:
-                skills_button = self.game.game_ui.status_panel.button_group.sprite
-                if skills_button.rect.collidepoint(event.pos):
-                    action = OpenSkillsMenu(self.game)
-                    action.execute()                    
+        # Handle the skills menu
+        skills_button = self.game.game_ui.status_panel.button_group.sprite
+        if skills_button.rect.collidepoint(event.pos):
+            action = OpenSkillsMenu(self.game)
+            action.execute()                    
 
         # Handle actions for button clicks
         for button in self.game.game_ui.actions_panel.button_group:

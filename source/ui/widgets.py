@@ -4,7 +4,7 @@ import pygame
 import time
 
 from core.settings import *
-from data import ResourcePath, ItemType
+from data import ResourcePath, ItemType, ZombieWeaponType
 
 class Button(pygame.sprite.Sprite):
     """A button that changes images on mouse events."""
@@ -75,6 +75,8 @@ class Cursor(object):
         self.punch_cursor = self._create_cursor(ResourcePath("cursor/zombie_fist.png").path)
         self.attack_cursor = self._create_cursor(ResourcePath("cursor/crosshair.png").path)
         self.speak_cursor = self._create_cursor(ResourcePath("cursor/mouth.png").path)
+        self.teeth_cursor = self._create_cursor(ResourcePath("cursor/zombie_teeth.png").path)
+        self.claws_cursor = self._create_cursor(ResourcePath("cursor/zombie_claws.png").path)
         self.heal_cursor = self._create_cursor(ResourcePath("items/first_aid_kit.png").path)
         self.extract_cursor = self._create_cursor(ResourcePath("items/dna_extractor.png").path)
         self.revivify_cursor = self._create_cursor(ResourcePath("items/syringe.png").path)
@@ -98,27 +100,44 @@ class Cursor(object):
         # Check collisions with zombie sprites
         for zombie in game_ui.description_panel.zombie_sprite_group:
             if zombie.rect.collidepoint((mouse_x, mouse_y)):
-                if player.equipped and player.equipped.type != ItemType.FIRST_AID_KIT:
-                    if player.equipped.type == ItemType.DNA_EXTRACTOR:
-                        self.set_extract()
-                        cursor_changed = True
-                        break
-                    elif player.equipped.type == ItemType.SYRINGE:
-                        self.set_revivify()
-                        cursor_changed = True
-                        break
+                if player.is_human:
+                    if player.equipped and player.equipped.type != ItemType.FIRST_AID_KIT:
+                        if player.equipped.type == ItemType.DNA_EXTRACTOR:
+                            self.set_extract()
+                            cursor_changed = True
+                            break
+                        elif player.equipped.type == ItemType.SYRINGE:
+                            self.set_revivify()
+                            cursor_changed = True
+                            break
+                        else:
+                            self.set_attack()
                     else:
-                        self.set_attack()
+                        self.set_punch()
                 else:
-                    self.set_punch()
+                    self.set_speak()
                 cursor_changed = True
                 break
 
         for human in game_ui.description_panel.human_sprite_group:
             if human.rect.collidepoint((mouse_x, mouse_y)):
-                if player.equipped:
-                    if player.equipped.type == ItemType.FIRST_AID_KIT:
-                        self.set_heal()
+                if player.is_human:
+                    if player.equipped:
+                        if player.equipped.type == ItemType.FIRST_AID_KIT:
+                            self.set_heal()
+                            cursor_changed = True
+                            break
+
+                    self.set_speak()
+                    cursor_changed = True
+                    break
+
+                else:
+                    if player.equipped:
+                        if player.equipped.type == ZombieWeaponType.ZOMBIE_CLAWS:
+                            self.set_claws()
+                        elif player.equipped.type == ZombieWeaponType.ZOMBIE_TEETH:
+                            self.set_teeth()
                         cursor_changed = True
                         break
 
@@ -137,8 +156,17 @@ class Cursor(object):
     def set_attack(self):
         pygame.mouse.set_cursor(self.attack_cursor)
 
+    def set_speak(self):
+        pygame.mouse.set_cursor(self.speak_cursor)
+
     def set_punch(self):
         pygame.mouse.set_cursor(self.punch_cursor)
+
+    def set_teeth(self):
+        pygame.mouse.set_cursor(self.teeth_cursor)
+
+    def set_claws(self):
+        pygame.mouse.set_cursor(self.claws_cursor)
 
     def set_extract(self):
         pygame.mouse.set_cursor(self.extract_cursor)

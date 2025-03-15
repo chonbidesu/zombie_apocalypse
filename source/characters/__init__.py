@@ -1,10 +1,11 @@
 # __init__.py
 
 from dataclasses import dataclass
+import random
 
 from core.settings import *
-from items import ItemFunction
-from .helper import CharacterHelper, ZombieWeapon, CharacterName
+from items import ItemFunction, Claws, Teeth
+from .helper import CharacterHelper, CharacterName
 from .skill_manager import SkillManager
 from ai import GoalManager
 from data import SkillType
@@ -26,7 +27,6 @@ class Character:
         self.permadeath = False
         self.inside = inside
         self.inventory = []
-        self.equipped = None
         self.human_skills = set()
         self.zombie_skills = set()
         self.safehouse = None
@@ -40,6 +40,8 @@ class Character:
         self.helper.add_starting_items()
 
         self.hp = self.max_hp
+        self.zombie_weapons = (Claws(self), Teeth(self))
+        self.equipped = None if self.is_human else self.zombie_weapons[0]
 
     @property
     def max_hp(self):
@@ -117,6 +119,10 @@ class Character:
     def unequip(self):
         self.equipped = None   
 
+    def choose_zombie_attack(self):
+        attack = random.randint(0, 1)
+        self.equipped = self.zombie_weapons[attack]
+
     def drop(self, item):
         self.inventory.remove(item)
         if item == self.equipped:
@@ -154,4 +160,5 @@ class Character:
         """Handles the character's death."""
         self.is_dead = True
         self.is_human = False
-        self.time_of_death = self.game.ticker              
+        self.time_of_death = self.game.ticker    
+        self.equipped = self.zombie_weapons[0]  # Default to claws          
