@@ -31,6 +31,7 @@ class InventoryPanel:
 
         # Draw inventory items and weapon
         player = self.game.state.player
+
         if player.is_human:
             self._draw_items(x, y)
         else:

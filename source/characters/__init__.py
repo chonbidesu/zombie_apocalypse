@@ -161,4 +161,5 @@ class Character:
         self.is_dead = True
         self.is_human = False
         self.time_of_death = self.game.ticker    
+        self.helper.update_state()
         self.equipped = self.zombie_weapons[0]  # Default to claws          

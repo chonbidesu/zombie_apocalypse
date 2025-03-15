@@ -47,7 +47,14 @@ class CharacterHelper:
     def __init__(self, character):
         self.game = character.game
         self.character = character # Reference the parent character
-   
+
+    def update_state(self):
+        """Updates UI elements when the player changes state."""
+        player = self.game.state.player
+        if self.character == player:
+            self.game.game_ui.inventory_panel.inventory_group.empty()
+            self.game.menu.skills_menu.create_resources()
+
     def filter_characters_at_location(self, x, y, inside=False, include_player=True):
         """Retrieve all characters at a given location and categorize them."""
         player = self.game.state.player
