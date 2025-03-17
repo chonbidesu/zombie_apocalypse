@@ -13,7 +13,11 @@ class PursueBrainsDecision(DecisionCommand):
 
     def is_valid(self):
         """Valid if target human is visible within the zombie's perception range."""
-        not_attackable = self.goal.last_known_target and self.goal.manager.character.location != self.goal.last_known_target[1] or self.goal.manager.character.inside != self.goal.last_known_target[0].inside
+        if self.goal.last_known_target:
+            not_attackable = (self.goal.last_known_target and self.goal.manager.character.location != self.goal.last_known_target[1] or 
+                              self.goal.manager.character.inside != self.goal.last_known_target[0].inside)
+        else:
+            not_attackable = False
         return self.goal.last_known_target and all(value for value in self.goal.last_known_target) and not_attackable
 
     def execute(self):
@@ -59,9 +63,9 @@ class AttackBrainsDecision(DecisionCommand):
     def is_valid(self):
         """Valid if target human is in the same block and has the same inside status."""
         character = self.goal.manager.character
+
         if self.goal.last_known_target:
             target, location = self.goal.last_known_target
-
             return character.location == location and character.inside == target.inside # True if target is in range
         
         return False
@@ -75,6 +79,7 @@ class AttackBrainsDecision(DecisionCommand):
         if not block_characters.living_humans:
             return  # No valid targets, GoalManager will handle another decision
 
+        character.choose_zombie_attack()
         target = block_characters.living_humans[0]  # Attack the first human found
         self.action = Attack(character)
         self.action.execute(target)

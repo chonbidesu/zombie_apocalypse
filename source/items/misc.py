@@ -44,7 +44,7 @@ class FuelCan(Item):
                 return False, "You need to install a generator first."
             else:
                 self.character.lose_ap(1)
-                block.fuel_expiration = self.game.ticker + FUEL_DURATION
+                block.fuel_expiration = self.character.game.ticker + FUEL_DURATION
                 block.lights_on = True
                 self.character.inventory.remove(self)
                 return True, "You fuel the generator. The lights are now on."

@@ -117,7 +117,7 @@ class Move(ActionCommand):
                         ]
 
                         if lit_buildings:
-                            self.character.goal_manager.current_goal.target_block = city.block(random.choice(lit_buildings))
+                            self.character.goal_manager.current_goal.target_block = city.block(*random.choice(lit_buildings))
                         else:
                             self.character.goal_manager.current_goal.target_block = None
 
