@@ -119,7 +119,7 @@ class GameInitializer:
         player = Character(self, player_name, Occupation.CONSUMER, 50, 50, is_human=True)
 
         # Populate the city
-        npcs = GenerateNPCs(self, total_humans=10, total_zombies=100)
+        npcs = GenerateNPCs(self, total_humans=0, total_zombies=100)
 
         print("New game created.")
         return GameState(player, city, npcs)

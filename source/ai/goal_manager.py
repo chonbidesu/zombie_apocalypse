@@ -15,12 +15,13 @@ class GoalManager:
 
     def evaluate_goal(self):
         """Determines the appropriate goal based on character state."""
-        if not self.current_goal or not self.current_goal.is_valid():
-            if self.character.is_human:
-                new_goal = None #new_goal = self.evaluate_human_goal()
-            else:
-                new_goal = self.evaluate_zombie_goal()
+        if self.character.is_human:
+            new_goal = None #new_goal = self.evaluate_human_goal()
+        else:
+            new_goal = self.evaluate_zombie_goal()
 
+        if not self.current_goal or type(new_goal) != type(self.current_goal):
+            print(f"{self.character.current_name} switching goal from {self.current_goal.__class__.__name__ if self.current_goal else 'None'} to {new_goal.__class__.__name__ if new_goal else 'None'}")
             return self.set_goal(new_goal)
 
         if self.character.game.debug and self.current_goal and self.current_goal.last_known_target and self.current_goal.last_known_target[0] == self.character.game.state.player:
@@ -45,30 +46,13 @@ class GoalManager:
         if self.character.is_dead:
             return StandGoal(self)
 
-        visible_human, new_location = self.find_visible_human()
-        last_known_target = None
-        if isinstance(self.current_goal, HuntBrainsGoal):
-            last_known_target = self.current_goal.last_known_target
+        # Prioritize hunting if it's valid
+        hunt_goal = HuntBrainsGoal(self)
+        if hunt_goal.is_valid():
+            return hunt_goal
 
-        if visible_human:
-            if last_known_target:
-                _, last_location = last_known_target
-
-                if self._is_better_target(new_location, last_location):
-                    return HuntBrainsGoal(self, target=(visible_human, new_location))
-                return self.current_goal  # Continue hunting the last target
-            else:
-                return HuntBrainsGoal(self, target=(visible_human, new_location))
-
-        # If no humans are visible, wander aimlessly
-        return IdleGoal(self)
-
-    def _is_better_target(self, new_location, old_location):
-        """Returns True if the new target is closer."""
-        x, y = self.character.location
-        new_dist = abs(new_location[0] - x) + abs(new_location[1] - y)
-        old_dist = abs(old_location[0] - x) + abs(old_location[1] - y)
-        return new_dist < old_dist        
+        # Otherwise, default to wandering
+        return IdleGoal(self)     
 
     def find_visible_human(self):
         """Returns the closest visible human and their location."""

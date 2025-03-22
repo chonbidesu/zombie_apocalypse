@@ -49,8 +49,10 @@ class GoalCommand:
         """Determines the current decision or picks a new one."""
         
         # If there's no active decision or it's invalid, get a new decision
-        if not self.current_decision or not self.current_decision.is_valid():
-            self.current_decision = self.get_next_decision()
+        next_decision = self.get_next_decision()
+
+        if not self.current_decision or type(self.current_decision) != type(next_decision):
+            self.current_decision = next_decision
 
         if self.current_decision:
             return self.current_decision.execute()
@@ -121,7 +123,7 @@ class HuntBrainsGoal(GoalCommand):
 
     def is_valid(self):
         """The goal is valid while a living human is visible or until their last known location is reached."""
-        return bool(self.get_decisions) and not self.manager.character.is_dead
+        return bool(self.get_decisions()) and not self.manager.character.is_dead
 
     def get_decisions(self):
         """Determine the next decision based on human visibility and memory."""

@@ -105,7 +105,7 @@ class Move(ActionCommand):
             else:
                 if not self.is_player:
                     current_goal = self.character.goal_manager.current_goal
-                    if current_goal and current_goal.last_known_target:
+                    if current_goal and current_goal.last_known_target or current_goal.target_block:
                         return
                     else:
                         # Prioritize moving toward lit buildings
@@ -117,7 +117,8 @@ class Move(ActionCommand):
                         ]
 
                         if lit_buildings:
-                            self.character.goal_manager.current_goal.target_block = city.block(*random.choice(lit_buildings))
+                            target_block = city.block(*random.choice(lit_buildings))
+                            self.character.goal_manager.current_goal.target_block = target_block
                         else:
                             self.character.goal_manager.current_goal.target_block = None
 

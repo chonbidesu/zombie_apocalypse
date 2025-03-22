@@ -1,0 +1,602 @@
+2025-03-22 12:47:08,858 - INFO - Starting AI debug simulation for Engorged Elias
+2025-03-22 12:47:08,859 - DEBUG - [Round 1]
+2025-03-22 12:47:08,859 - DEBUG - NPC: Engorged Elias at ((79, 88))
+2025-03-22 12:47:08,859 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,859 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,859 - DEBUG - Action: Move
+2025-03-22 12:47:08,859 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,859 - DEBUG - [Round 2]
+2025-03-22 12:47:08,859 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,859 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,859 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,859 - DEBUG - Action: Move
+2025-03-22 12:47:08,860 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,860 - DEBUG - [Round 3]
+2025-03-22 12:47:08,860 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,860 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,860 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,860 - DEBUG - Action: Decade
+2025-03-22 12:47:08,860 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,860 - DEBUG - [Round 4]
+2025-03-22 12:47:08,860 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,860 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,860 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,860 - DEBUG - Action: Decade
+2025-03-22 12:47:08,860 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,861 - DEBUG - [Round 5]
+2025-03-22 12:47:08,861 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,861 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,861 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,861 - DEBUG - Action: Decade
+2025-03-22 12:47:08,861 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,861 - DEBUG - [Round 6]
+2025-03-22 12:47:08,861 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,861 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,861 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,861 - DEBUG - Action: Decade
+2025-03-22 12:47:08,861 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,862 - DEBUG - [Round 7]
+2025-03-22 12:47:08,862 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,862 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,862 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,862 - DEBUG - Action: Decade
+2025-03-22 12:47:08,862 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,862 - DEBUG - [Round 8]
+2025-03-22 12:47:08,862 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,862 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,862 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,862 - DEBUG - Action: Decade
+2025-03-22 12:47:08,862 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,863 - DEBUG - [Round 9]
+2025-03-22 12:47:08,863 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,863 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,863 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,863 - DEBUG - Action: Decade
+2025-03-22 12:47:08,863 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,864 - DEBUG - [Round 10]
+2025-03-22 12:47:08,864 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,864 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,864 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,864 - DEBUG - Action: Decade
+2025-03-22 12:47:08,864 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,865 - DEBUG - [Round 11]
+2025-03-22 12:47:08,865 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,865 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,865 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,865 - DEBUG - Action: Decade
+2025-03-22 12:47:08,865 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,866 - DEBUG - [Round 12]
+2025-03-22 12:47:08,866 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,866 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,866 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,866 - DEBUG - Action: Decade
+2025-03-22 12:47:08,866 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,867 - DEBUG - [Round 13]
+2025-03-22 12:47:08,867 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,867 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,867 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,867 - DEBUG - Action: Decade
+2025-03-22 12:47:08,867 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,868 - DEBUG - [Round 14]
+2025-03-22 12:47:08,868 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,868 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,868 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,868 - DEBUG - Action: Decade
+2025-03-22 12:47:08,868 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,868 - DEBUG - [Round 15]
+2025-03-22 12:47:08,868 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,868 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,868 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,868 - DEBUG - Action: Decade
+2025-03-22 12:47:08,868 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,869 - DEBUG - [Round 16]
+2025-03-22 12:47:08,869 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,869 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,869 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,869 - DEBUG - Action: Decade
+2025-03-22 12:47:08,869 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,869 - DEBUG - [Round 17]
+2025-03-22 12:47:08,869 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,869 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,869 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,869 - DEBUG - Action: Decade
+2025-03-22 12:47:08,869 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,870 - DEBUG - [Round 18]
+2025-03-22 12:47:08,870 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,870 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,870 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,870 - DEBUG - Action: Decade
+2025-03-22 12:47:08,870 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,870 - DEBUG - [Round 19]
+2025-03-22 12:47:08,870 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,870 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,870 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,871 - DEBUG - Action: Decade
+2025-03-22 12:47:08,871 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,871 - DEBUG - [Round 20]
+2025-03-22 12:47:08,871 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,871 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,871 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,871 - DEBUG - Action: Decade
+2025-03-22 12:47:08,871 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,871 - DEBUG - [Round 21]
+2025-03-22 12:47:08,871 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,871 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,871 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,871 - DEBUG - Action: Decade
+2025-03-22 12:47:08,871 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,872 - DEBUG - [Round 22]
+2025-03-22 12:47:08,872 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,872 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,872 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,872 - DEBUG - Action: Decade
+2025-03-22 12:47:08,872 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,872 - DEBUG - [Round 23]
+2025-03-22 12:47:08,872 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,872 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,872 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,872 - DEBUG - Action: Decade
+2025-03-22 12:47:08,872 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,873 - DEBUG - [Round 24]
+2025-03-22 12:47:08,873 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,873 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,873 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,873 - DEBUG - Action: Decade
+2025-03-22 12:47:08,873 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,873 - DEBUG - [Round 25]
+2025-03-22 12:47:08,874 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,874 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,874 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,874 - DEBUG - Action: Decade
+2025-03-22 12:47:08,874 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,874 - DEBUG - [Round 26]
+2025-03-22 12:47:08,874 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,874 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,874 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,874 - DEBUG - Action: Decade
+2025-03-22 12:47:08,874 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,875 - DEBUG - [Round 27]
+2025-03-22 12:47:08,875 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,875 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,875 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,875 - DEBUG - Action: Decade
+2025-03-22 12:47:08,875 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,875 - DEBUG - [Round 28]
+2025-03-22 12:47:08,875 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,875 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,875 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,875 - DEBUG - Action: Decade
+2025-03-22 12:47:08,875 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,875 - DEBUG - [Round 29]
+2025-03-22 12:47:08,876 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,876 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,876 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,876 - DEBUG - Action: Decade
+2025-03-22 12:47:08,876 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,876 - DEBUG - [Round 30]
+2025-03-22 12:47:08,876 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,876 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,876 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,876 - DEBUG - Action: Decade
+2025-03-22 12:47:08,876 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,876 - DEBUG - [Round 31]
+2025-03-22 12:47:08,876 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,876 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,876 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,877 - DEBUG - Action: Decade
+2025-03-22 12:47:08,877 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,877 - DEBUG - [Round 32]
+2025-03-22 12:47:08,877 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,877 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,877 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,877 - DEBUG - Action: Decade
+2025-03-22 12:47:08,877 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,877 - DEBUG - [Round 33]
+2025-03-22 12:47:08,877 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,877 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,877 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,877 - DEBUG - Action: Decade
+2025-03-22 12:47:08,877 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,878 - DEBUG - [Round 34]
+2025-03-22 12:47:08,878 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,878 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,878 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,878 - DEBUG - Action: Decade
+2025-03-22 12:47:08,878 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,878 - DEBUG - [Round 35]
+2025-03-22 12:47:08,878 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,878 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,878 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,878 - DEBUG - Action: Decade
+2025-03-22 12:47:08,878 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,879 - DEBUG - [Round 36]
+2025-03-22 12:47:08,879 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,879 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,879 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,879 - DEBUG - Action: Decade
+2025-03-22 12:47:08,879 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,879 - DEBUG - [Round 37]
+2025-03-22 12:47:08,880 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,880 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,880 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,880 - DEBUG - Action: Decade
+2025-03-22 12:47:08,880 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,880 - DEBUG - [Round 38]
+2025-03-22 12:47:08,880 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,880 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,880 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,880 - DEBUG - Action: Decade
+2025-03-22 12:47:08,880 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,881 - DEBUG - [Round 39]
+2025-03-22 12:47:08,881 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,881 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,881 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,881 - DEBUG - Action: Decade
+2025-03-22 12:47:08,881 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,881 - DEBUG - [Round 40]
+2025-03-22 12:47:08,881 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,881 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,881 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,881 - DEBUG - Action: Decade
+2025-03-22 12:47:08,881 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,882 - DEBUG - [Round 41]
+2025-03-22 12:47:08,882 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,882 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,882 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,882 - DEBUG - Action: Decade
+2025-03-22 12:47:08,882 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,883 - DEBUG - [Round 42]
+2025-03-22 12:47:08,883 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,883 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,883 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,883 - DEBUG - Action: Decade
+2025-03-22 12:47:08,883 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,884 - DEBUG - [Round 43]
+2025-03-22 12:47:08,884 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,884 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,884 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,884 - DEBUG - Action: Decade
+2025-03-22 12:47:08,884 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,884 - DEBUG - [Round 44]
+2025-03-22 12:47:08,884 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,884 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,884 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,884 - DEBUG - Action: Decade
+2025-03-22 12:47:08,884 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,885 - DEBUG - [Round 45]
+2025-03-22 12:47:08,885 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,885 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,885 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,885 - DEBUG - Action: Decade
+2025-03-22 12:47:08,885 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,886 - DEBUG - [Round 46]
+2025-03-22 12:47:08,886 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,886 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,886 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,886 - DEBUG - Action: Decade
+2025-03-22 12:47:08,886 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,886 - DEBUG - [Round 47]
+2025-03-22 12:47:08,886 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,886 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,886 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,886 - DEBUG - Action: Decade
+2025-03-22 12:47:08,886 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,887 - DEBUG - [Round 48]
+2025-03-22 12:47:08,887 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,887 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,887 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,887 - DEBUG - Action: Decade
+2025-03-22 12:47:08,887 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,887 - DEBUG - [Round 49]
+2025-03-22 12:47:08,887 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,887 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,887 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,887 - DEBUG - Action: Decade
+2025-03-22 12:47:08,887 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,888 - DEBUG - [Round 50]
+2025-03-22 12:47:08,888 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,888 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,888 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,888 - DEBUG - Action: Decade
+2025-03-22 12:47:08,888 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,888 - DEBUG - [Round 51]
+2025-03-22 12:47:08,888 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,888 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,888 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,888 - DEBUG - Action: Decade
+2025-03-22 12:47:08,888 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,889 - DEBUG - [Round 52]
+2025-03-22 12:47:08,889 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,889 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,889 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,889 - DEBUG - Action: Decade
+2025-03-22 12:47:08,889 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,889 - DEBUG - [Round 53]
+2025-03-22 12:47:08,889 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,889 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,889 - DEBUG - Decision: BreakInsideDecision
+2025-03-22 12:47:08,889 - DEBUG - Action: Decade
+2025-03-22 12:47:08,889 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,890 - DEBUG - [Round 54]
+2025-03-22 12:47:08,890 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,890 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,890 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,890 - DEBUG - Action: Enter
+2025-03-22 12:47:08,890 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,890 - DEBUG - [Round 55]
+2025-03-22 12:47:08,891 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,891 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,891 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,891 - DEBUG - Action: Enter
+2025-03-22 12:47:08,891 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,891 - DEBUG - [Round 56]
+2025-03-22 12:47:08,891 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,891 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,891 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,891 - DEBUG - Action: Enter
+2025-03-22 12:47:08,891 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,892 - DEBUG - [Round 57]
+2025-03-22 12:47:08,892 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,892 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,892 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,892 - DEBUG - Action: Enter
+2025-03-22 12:47:08,892 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,892 - DEBUG - [Round 58]
+2025-03-22 12:47:08,892 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,892 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,892 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,892 - DEBUG - Action: Enter
+2025-03-22 12:47:08,892 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,893 - DEBUG - [Round 59]
+2025-03-22 12:47:08,893 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,893 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,893 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,893 - DEBUG - Action: Enter
+2025-03-22 12:47:08,893 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,894 - DEBUG - [Round 60]
+2025-03-22 12:47:08,894 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,894 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,894 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,894 - DEBUG - Action: Enter
+2025-03-22 12:47:08,894 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,894 - DEBUG - [Round 61]
+2025-03-22 12:47:08,894 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,894 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,894 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,894 - DEBUG - Action: Enter
+2025-03-22 12:47:08,894 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,895 - DEBUG - [Round 62]
+2025-03-22 12:47:08,895 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,895 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,895 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,895 - DEBUG - Action: Enter
+2025-03-22 12:47:08,895 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,895 - DEBUG - [Round 63]
+2025-03-22 12:47:08,895 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,895 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,895 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,895 - DEBUG - Action: Enter
+2025-03-22 12:47:08,895 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,896 - DEBUG - [Round 64]
+2025-03-22 12:47:08,896 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,896 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,896 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,896 - DEBUG - Action: Enter
+2025-03-22 12:47:08,896 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,897 - DEBUG - [Round 65]
+2025-03-22 12:47:08,897 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,897 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,897 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,897 - DEBUG - Action: Enter
+2025-03-22 12:47:08,897 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,897 - DEBUG - [Round 66]
+2025-03-22 12:47:08,897 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,897 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,897 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,897 - DEBUG - Action: Enter
+2025-03-22 12:47:08,897 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,898 - DEBUG - [Round 67]
+2025-03-22 12:47:08,898 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,898 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,898 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,898 - DEBUG - Action: Enter
+2025-03-22 12:47:08,898 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,898 - DEBUG - [Round 68]
+2025-03-22 12:47:08,898 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,898 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,898 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,898 - DEBUG - Action: Enter
+2025-03-22 12:47:08,898 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,899 - DEBUG - [Round 69]
+2025-03-22 12:47:08,899 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,899 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,899 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,899 - DEBUG - Action: Enter
+2025-03-22 12:47:08,899 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,900 - DEBUG - [Round 70]
+2025-03-22 12:47:08,900 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,900 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,900 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,900 - DEBUG - Action: Enter
+2025-03-22 12:47:08,900 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,900 - DEBUG - [Round 71]
+2025-03-22 12:47:08,901 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,901 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,901 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,901 - DEBUG - Action: Enter
+2025-03-22 12:47:08,901 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,901 - DEBUG - [Round 72]
+2025-03-22 12:47:08,901 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,901 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,901 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,901 - DEBUG - Action: Enter
+2025-03-22 12:47:08,901 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,902 - DEBUG - [Round 73]
+2025-03-22 12:47:08,902 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,902 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,902 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,902 - DEBUG - Action: Enter
+2025-03-22 12:47:08,902 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,902 - DEBUG - [Round 74]
+2025-03-22 12:47:08,902 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,902 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,902 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,902 - DEBUG - Action: Enter
+2025-03-22 12:47:08,902 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,903 - DEBUG - [Round 75]
+2025-03-22 12:47:08,903 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,903 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,903 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,903 - DEBUG - Action: Enter
+2025-03-22 12:47:08,903 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,904 - DEBUG - [Round 76]
+2025-03-22 12:47:08,904 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,904 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,904 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,904 - DEBUG - Action: Enter
+2025-03-22 12:47:08,904 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,904 - DEBUG - [Round 77]
+2025-03-22 12:47:08,904 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,904 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,904 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,904 - DEBUG - Action: Enter
+2025-03-22 12:47:08,904 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,905 - DEBUG - [Round 78]
+2025-03-22 12:47:08,905 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,905 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,905 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,905 - DEBUG - Action: Enter
+2025-03-22 12:47:08,905 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,905 - DEBUG - [Round 79]
+2025-03-22 12:47:08,905 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,905 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,905 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,905 - DEBUG - Action: Enter
+2025-03-22 12:47:08,905 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,906 - DEBUG - [Round 80]
+2025-03-22 12:47:08,906 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,906 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,906 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,906 - DEBUG - Action: Enter
+2025-03-22 12:47:08,906 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,906 - DEBUG - [Round 81]
+2025-03-22 12:47:08,906 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,906 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,906 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,906 - DEBUG - Action: Enter
+2025-03-22 12:47:08,906 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,907 - DEBUG - [Round 82]
+2025-03-22 12:47:08,907 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,907 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,907 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,907 - DEBUG - Action: Enter
+2025-03-22 12:47:08,907 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,908 - DEBUG - [Round 83]
+2025-03-22 12:47:08,908 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,908 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,908 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,908 - DEBUG - Action: Enter
+2025-03-22 12:47:08,908 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,908 - DEBUG - [Round 84]
+2025-03-22 12:47:08,908 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,908 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,908 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,908 - DEBUG - Action: Enter
+2025-03-22 12:47:08,908 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,909 - DEBUG - [Round 85]
+2025-03-22 12:47:08,909 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,909 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,909 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,909 - DEBUG - Action: Enter
+2025-03-22 12:47:08,909 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,909 - DEBUG - [Round 86]
+2025-03-22 12:47:08,909 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,909 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,909 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,909 - DEBUG - Action: Enter
+2025-03-22 12:47:08,909 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,910 - DEBUG - [Round 87]
+2025-03-22 12:47:08,910 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,910 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,910 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,910 - DEBUG - Action: Enter
+2025-03-22 12:47:08,910 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,910 - DEBUG - [Round 88]
+2025-03-22 12:47:08,910 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,910 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,910 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,910 - DEBUG - Action: Enter
+2025-03-22 12:47:08,910 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,911 - DEBUG - [Round 89]
+2025-03-22 12:47:08,911 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,911 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,911 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,911 - DEBUG - Action: Enter
+2025-03-22 12:47:08,911 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,911 - DEBUG - [Round 90]
+2025-03-22 12:47:08,912 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,912 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,912 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,912 - DEBUG - Action: Enter
+2025-03-22 12:47:08,912 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,912 - DEBUG - [Round 91]
+2025-03-22 12:47:08,912 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,912 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,912 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,912 - DEBUG - Action: Enter
+2025-03-22 12:47:08,912 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,913 - DEBUG - [Round 92]
+2025-03-22 12:47:08,913 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,913 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,913 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,913 - DEBUG - Action: Enter
+2025-03-22 12:47:08,913 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,914 - DEBUG - [Round 93]
+2025-03-22 12:47:08,914 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,914 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,914 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,914 - DEBUG - Action: Enter
+2025-03-22 12:47:08,914 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,914 - DEBUG - [Round 94]
+2025-03-22 12:47:08,914 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,914 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,914 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,914 - DEBUG - Action: Enter
+2025-03-22 12:47:08,914 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,915 - DEBUG - [Round 95]
+2025-03-22 12:47:08,915 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,915 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,915 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,915 - DEBUG - Action: Enter
+2025-03-22 12:47:08,915 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,916 - DEBUG - [Round 96]
+2025-03-22 12:47:08,916 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,916 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,916 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,916 - DEBUG - Action: Enter
+2025-03-22 12:47:08,916 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,916 - DEBUG - [Round 97]
+2025-03-22 12:47:08,916 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,916 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,916 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,916 - DEBUG - Action: Enter
+2025-03-22 12:47:08,916 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,917 - DEBUG - [Round 98]
+2025-03-22 12:47:08,917 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,917 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,917 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,917 - DEBUG - Action: Enter
+2025-03-22 12:47:08,917 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,918 - DEBUG - [Round 99]
+2025-03-22 12:47:08,918 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,918 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,918 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,918 - DEBUG - Action: Enter
+2025-03-22 12:47:08,918 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,918 - DEBUG - [Round 100]
+2025-03-22 12:47:08,919 - DEBUG - NPC: Engorged Elias at ((78, 87))
+2025-03-22 12:47:08,919 - DEBUG - Goal: IdleGoal
+2025-03-22 12:47:08,919 - DEBUG - Decision: MoveDecision
+2025-03-22 12:47:08,919 - DEBUG - Action: Enter
+2025-03-22 12:47:08,919 - DEBUG - ----------------------------------------
+2025-03-22 12:47:08,919 - INFO - AI debug simulation completed.

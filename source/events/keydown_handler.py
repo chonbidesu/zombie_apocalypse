@@ -58,6 +58,7 @@ class KeydownHandler:
                         text_input.text = text_input.text[:-1]
                     elif event.key == pygame.K_TAB:
                         newgame_menu.cycle_text_input()
+                        return
                     elif event.unicode.isprintable() and len(text_input.text) < text_input.max_length:
                         text_input.text += event.unicode
 

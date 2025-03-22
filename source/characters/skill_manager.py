@@ -82,3 +82,11 @@ class SkillManager:
                 print(f"{self.character.current_name} learned {self.selected_skill} for {cost} XP.")
 
             self.selected_skill = None  # Reset after learning
+
+    def acquire_skills(self, skills):
+        """Acquire a set of skills for the NPC."""
+        for skill in skills:
+            if SKILLS[skill].skill_category == SkillCategory.ZOMBIE:
+                self.character.zombie_skills.add(skill)
+            else:
+                self.character.human_skills.add(skill)
