@@ -117,6 +117,9 @@ class Decade(ActionCommand):
             block.barricade.register_hit()
             self.character.lose_ap(1)
 
+            if not self.character.is_human:
+                self.character.gain_xp(1)
+
             if block.barricade.level == 0:
                 self.message = "You smash at the barricades. The last piece of it falls away."
                 self.witness = "Something smashes through the last of the barricades."
@@ -151,6 +154,7 @@ class Ransack(ActionCommand):
                     self.message = "You ransack further rooms of the building."
             self.success = True
             self.character.lose_ap(1)
+            self.character.gain_xp(1)
 
         else:
             self.message = "This building is already ruined."

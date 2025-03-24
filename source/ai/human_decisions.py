@@ -3,38 +3,6 @@
 from data import Action, ItemType
 from .decisions import DecisionCommand
 
-"""
-class UtilityAI:
-    def __init__(self, character):
-        self.character = character
-
-        self.goal_decisions = {
-            Decision.SCOUT_SAFEHOUSE: self.score_scout_safehouse(),
-            Decision.ATTACK_TO_KILL: self.score_attack_to_kill(),
-            Decision.SEEK_ITEMS: self.score_seek_items(),
-            Decision.SECURE_SAFEHOUSE: self.score_secure_safehouse(),
-            Decision.BARRICADE_SAFEHOUSE: self.score_barricade_safehouse(),
-            Decision.ENTER_SAFEHOUSE: self.score_enter_safehouse(),
-            Decision.DEFEND_SAFEHOUSE: self.score_defend_safehouse(),
-            Decision.POWER_SAFEHOUSE: self.score_power_safehouse(),
-            Decision.ARM_THYSELF: self.score_arm_thyself(),
-            Decision.HEAL_THYSELF: self.score_heal_thyself(),
-            Decision.DUMP_BODIES: self.score_dump_bodies(),
-            Decision.HUNT: self.score_hunt(),
-            Decision.PATROL: self.score_patrol(),
-            Decision.FLEE: self.score_flee(),
-        }
-
-        # Increase weight for decisions that align with current goal
-        if self.character.current_goal == Goal.SECURE_SHELTER:
-            scores[Decision.SCOUT_SAFEHOUSE] += 30
-        elif self.character.current_goal == Goal.LEVEL_UP:
-            scores[Decision.HUNT] += 40
-        elif self.character.current_goal == Goal.SURVIVE:
-            scores[Decision.HEAL_THYSELF] += 40
-"""
-
-
 
 class ScoutSafehouseDecision(DecisionCommand):
     """Find a suitable safehouse based on NPC occupation."""
@@ -42,11 +10,11 @@ class ScoutSafehouseDecision(DecisionCommand):
         super().__init__(goal)
         self.goal = goal
 
-    def is_valid(self, character):
+    def is_valid(self):
         """Valid if the NPC does not already have a safehouse."""
-        return not character.has_safehouse
+        return character.safehouse is None
     
-    def execute(self, character, executor):
+    def execute(self):
         """Finds the best safehouse and moves toward it."""
         pass
 
@@ -57,8 +25,10 @@ class EnterSafehouseDecision(DecisionCommand):
         super().__init__(goal)
         self.goal = goal
 
-    def is_valid(self, character):
-        """Valid if the NPC is at the safehouse but not inside."""
+    def is_valid(self):
+        """Valid if the NPC has a safehouse but not inside."""
+        safehouse_x = 
+        return character.safehouse is not None and not character.inside
 
     def execute(self, character, executor):
         """Enters the building."""
@@ -71,7 +41,7 @@ class SecureSafehouseDecision(DecisionCommand):
         super().__init__(goal)
         self.goal = goal
 
-    def is_valid(self, character):
+    def is_valid(self):
         """Valid if inside the safehouse and the doors are open."""
         return character.inside and not character.safehouse_secured
     
